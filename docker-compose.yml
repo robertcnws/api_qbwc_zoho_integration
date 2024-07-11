@@ -1,0 +1,90 @@
+services:
+  django_app:
+    build:
+      context: ./api_qbwc_zoho_backend/project_api
+    container_name: django_app
+    volumes:
+      - ./api_qbwc_zoho_backend:/app
+      - ./api_qbwc_zoho_backend/nginx/gunicorn.conf.py:/etc/nginx/gunicorn.conf.py
+    ports:
+      - "8000:8000"
+    environment:
+      - DJANGO_SETTINGS_MODULE=project_api.settings
+      - DJANGO_SUPERUSER_USERNAME=admin
+      - DJANGO_SUPERUSER_EMAIL=admin@example.com
+      - DJANGO_SUPERUSER_PASSWORD=admin
+      - LOGINUSER_USERNAME=test
+      - LOGINUSER_EMAIL=test@example.com
+      - LOGINUSER_PASSWORD=Hialeah2024*-
+    env_file:
+      - ./api_qbwc_zoho_backend/project_api/.env
+    networks:
+      - api_qbwc_zoho_network
+
+  nginx:
+    image: nginx:latest
+    container_name: nginx_server
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./api_qbwc_zoho_backend/nginx/nginx_react.conf:/etc/nginx/nginx.conf:ro  
+      - ./api_qbwc_zoho_backend/nginx/certificates:/etc/nginx/certificates:ro
+    depends_on:
+      - django_app
+      - react_app
+    networks:
+      - api_qbwc_zoho_network
+
+  react_app:
+    build:
+      context: ./api_qbwc_zoho_frontend
+    container_name: react_app
+    ports:
+      - "3000:3000"
+    stdin_open: true
+    tty: true
+    volumes:
+      - ./api_qbwc_zoho_frontend:/app
+    networks:
+      - api_qbwc_zoho_network
+  
+  # jenkins:
+  #   build: 
+  #     context: ./jenkins
+  #   container_name: jenkins_server
+  #   ports:
+  #     - "8080:8080"
+  #     - "50000:50000"
+  #   volumes:
+  #     - jenkins_home:/var/jenkins_home
+  #     - /var/run/docker.sock:/var/run/docker.sock
+  #   user: jenkins
+  #   environment:
+  #     - JAVA_OPTS=-Duser.timezone=America/New_York  # Opcional: Configura la zona horaria
+  #   restart: unless-stopped
+  #   networks:
+  #     - api_qbwc_zoho_network
+
+  postgres:
+    image: postgres:16.0
+    container_name: postgres_server
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=api_qbwc_zoho_dev_db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - "5433:5432"
+    networks:
+      - api_qbwc_zoho_network
+
+volumes:
+  postgres_data:
+  # jenkins_home:
+
+networks:
+  api_qbwc_zoho_network:
+    external: true
+    # driver: bridge

@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer"/>
+</head>
+<body class="d-flex justify-content-center align-items-center min-vh-100">
+    <div class="container mt-5 shadow p-3 mb-5 bg-white rounded">
+
+        <!-- Messages -->
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert {% if 'error' in message.tags %}alert-danger{% elif 'success' in message.tags %}alert-success{% elif 'info' in message.tags %}alert-info{% endif %} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <!-- Main Content -->
+        <div class="settingsMain">
+
+            <div class="row mb-3">
+                <div class="col-md-8 mt-3">
+                    <div class="heading">
+                        <h5><i class="fa-solid fa-dolly me-2"></i> QBWC Integration Details</h5>
+                    </div>
+                    <div class="dealerMain">
+                        <!-- Dealer details go here -->
+                    </div>
+                </div>
+
+                <div class="col-md-4 mt-3">
+                    <div class="heading">
+                        <h5>Quick Actions</h5>
+                    </div>
+                    
+                    <div class="container mt-5">
+                        <ul class="list-group">
+                            <li class="list-group-item">
+                                <a href="{% url 'api_quickbook_soap:qbwc_customers' %}" class="text-decoration-none">
+                                    <i class="fas fa-users me-2"></i> QBWC Customers
+                                </a>
+                            </li>
+                            <li class="list-group-item">
+                                <a href="{% url 'api_quickbook_soap:qbwc_items' %}" class="text-decoration-none">
+                                    <i class="fas fa-box me-2"></i> QBWC Items
+                                </a>
+                            </li>
+                            <li class="list-group-item">
+                                <a href="{% url 'api_quickbook_soap:matching_customers' %}" class="text-decoration-none">
+                                    <i class="fas fa-users me-2"></i> Match Customers
+                                </a>
+                            </li>
+                            <li class="list-group-item">
+                                <a href="{% url 'api_quickbook_soap:matching_items' %}" class="text-decoration-none">
+                                    <i class="fas fa-box me-2"></i> Match Items
+                                </a>
+                            </li>
+                            <li class="list-group-item">
+                                <a href="{% url 'api_quickbook_soap:matched_invoices' %}" class="text-decoration-none">
+                                    <i class="fas fa-file-invoice me-2"></i> Processed Invoices
+                                </a>
+                            </li>
+                        </ul>
+                    </div> 
+                    <div class="container text-end mt-3">
+                        <a href="{% url 'home' %}" class="btn btn-warning">Back</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Bootstrap JS, Popper.js, and jQuery -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

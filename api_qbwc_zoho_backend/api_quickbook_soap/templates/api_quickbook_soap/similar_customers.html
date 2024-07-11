@@ -1,0 +1,177 @@
+{% extends 'api_zoho/base.html' %}
+{% block styles %}
+    <style>
+        .highlight {
+            background-color: #f8d7da;
+            font-weight: bold;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid mt-5">
+    {% csrf_token %}
+    <div class="row col-12" role="alert">
+        <div class="col-6 d-flex justify-content-between align-items-center mb-3">
+            <h3>Similar Customers</h3>
+        </div>
+        <div class="col-6" align="right">
+            <a href="#" class="btn btn-success btn-sm" onclick="backToList()">Back to list</a>
+            <a href="{% url 'api_quickbook_soap:matched_customers' %}" class="btn btn-success btn-sm">Matched Customers</a>
+        </div>
+    </div>
+
+    <div class="row mt-3">
+        <div class="col-12">
+            <p class="alert alert-info">
+                There are {{ similar_customers|length }} customers found.
+            </p>
+        </div>
+    </div>
+    
+    <div class="row justify-content-center">
+        <div class="col-12">
+            <div class="table-responsive">
+                <table id="myTable" class="table table-bordered table-striped">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th>Quick Book Customer</th>
+                            <th>QB Email</th>
+                            <th>QB Phone</th>
+                            <th>Zoho Customer</th>
+                            <th>Zoho Email Matching</th>
+                            <th>Zoho Phone Matching</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in similar_customers %}
+                            {% if item.coincidences_by_order %}
+                                {% for coincidence in item.coincidences_by_order %}
+                                    {% if forloop.first %}
+                                        <tr>
+                                            <td>{{ item.qb_customer_name }}</td>
+                                            <td>{{ item.qb_customer_email }}</td>
+                                            <td>{{ item.qb_customer_phone }}</td>
+                                            <td class="highlight">{{ coincidence.zoho_customer }}</td>
+                                            <td class="highlight">{{ coincidence.email }}<br/>({{ coincidence.coincidence_email }})</td>
+                                            <td class="highlight">{{ coincidence.phone }}<br/>({{ coincidence.coincidence_phone }})</td>
+                                            <td class="text-center align-middle" class="highlight">
+                                                <button class="btn btn-info btn-sm" onclick="matchRow(this, '{{ item.qb_customer_list_id }}', '{{ coincidence.zoho_customer_id }}')">
+                                                    Match
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    {% else %}
+                                        <tr>
+                                            <td>{{ item.qb_customer_name }}</td>
+                                            <td>{{ item.qb_customer_email }}</td>
+                                            <td>{{ item.qb_customer_phone }}</td>
+                                            <td>{{ coincidence.zoho_customer }}<br/>(ID: {{ coincidence.zoho_customer_id }})</td>
+                                            <td>{{ coincidence.email }}<br/>(Match: {{ coincidence.coincidence_email }})</td>
+                                            <td>{{ coincidence.phone }}<br/>(Match: {{ coincidence.coincidence_phone }})</td>
+                                            <td class="text-center align-middle">
+                                                <button class="btn btn-info btn-sm" onclick="matchRow(this, '{{ item.qb_customer_list_id }}', '{{ coincidence.zoho_customer_id }}')">
+                                                    Match
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    {% endif %}
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td>{{ item.qb_customer_name }}</td>
+                                    <td>{{ item.qb_customer_email }}</td>
+                                    <td>{{ item.qb_customer_phone }}</td>
+                                    <td>No coincidences</td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                </tr>
+                            {% endif %}
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+    
+{% endblock %}
+    
+{% block scripts %} 
+
+<script type="text/javascript">
+
+    function editRow(qb_customer_list_id, zoho_customer) {
+        alert('Edit item: ' + qb_customer_list_id + ' with Zoho item: ' + zoho_customer);
+    }
+
+    function matchRow(button, qb_customer_list_id, zoho_customer_id) {
+        Swal.fire({
+            title: 'Are you sure?',
+            text: 'Do you want to match this customer?',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, match it!',
+            cancelButtonText: 'Cancel'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                var csrftoken = getCookie('csrftoken');
+                $.ajax({
+                    url: '/api_quickbook_soap/match_one_customer_ajax/',
+                    type: 'POST',
+                    data: {
+                        'csrfmiddlewaretoken': csrftoken,
+                        'qb_customer_list_id': qb_customer_list_id,
+                        'zoho_customer_id': zoho_customer_id,
+                        'action': 'match'
+                    },
+                    success: function(response) {
+                        console.log(response);
+                        Swal.fire(
+                            'Matched!',
+                            'Customer has been matched.',
+                            'success'
+                        ).then(() => {
+                            window.location.reload();
+                        });
+                    },
+                    error: function(response) {
+                        Swal.fire(
+                            'Error!',
+                            'Error matching items for customer.',
+                            'error'
+                        );
+                    }
+                });
+            }
+        });
+    }
+
+    function matchAllFirst(button) {
+        if (confirm('Are you sure you want to match all first customers?')) {
+            var csrftoken = getCookie('csrftoken');
+            $.ajax({
+                 url: '/api_quickbook_soap/match_all_first_customers_ajax/',
+                 type: 'POST',
+                 data: {
+                    'csrfmiddlewaretoken': csrftoken,
+                    'action': 'match'
+                 },
+                 success: function(response) {
+                     window.location.reload();
+                 },
+                 error: function(response) {
+                     alert('Error matching items for customer');
+                 }
+             });
+        }
+    }
+    
+</script>
+
+{% endblock %}

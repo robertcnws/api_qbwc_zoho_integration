@@ -1,0 +1,125 @@
+{% extends 'api_zoho/base.html'%}
+
+{% block content %}
+
+<div class="container-fluid mt-5">
+
+    {% if invoice %}
+        <h3 class="mb-4">Invoice Details</h3>
+        <table class="table table-bordered">
+            <tbody>
+                <tr>
+                    <th scope="row">Invoice Number</th>
+                    <td>{{ invoice.invoice_number }}</td>
+                </tr>
+                <tr>
+                    <th scope="row">Customer</th>
+                    <td>{{ invoice.customer_name }}</td>
+                </tr>
+                <tr>
+                    <th scope="row">Date</th>
+                    <td>{{ invoice.date|date:"Y-m-d" }}</td>
+                </tr>
+                <tr>
+                    <th scope="row">Total Amount</th>
+                    <td>{{ invoice.total }}</td>
+                </tr>
+                <tr>
+                    <th scope="row">Last Sync Date</th>
+                    <td>{{ invoice.last_sync_date|date:"Y-m-d" }}</td>
+                </tr>
+                <tr>
+                    <th scope="row">Number of attemps to sync</th>
+                    <td>{{ invoice.number_of_times_synced }}</td>
+                </tr>
+                
+                <tr>
+                    <th scope="row">Items</th>
+                    <td>
+                        {% if invoice.line_items|length > 0 %}
+                            <table class="table table-striped table-sm">
+                                <thead class="thead-light">
+                                    <tr>
+                                        <th>Item Desc</th>
+                                        <th>Amount</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for item in invoice.line_items %}
+                                        <tr>
+                                            <td>{{ item.description }}</td>
+                                            <td>{{ item.item_total }}</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        {% else %}
+                            No coincidences found.
+                        {% endif %}
+                    </td>
+                </tr>
+
+                <tr>
+                    <th scope="row">Errors sync Items</th>
+                    <td>
+                        {% if invoice.items_unmatched|length > 0 %}
+                            <table class="table table-striped table-sm">
+                                <thead class="thead-light">
+                                    <tr>
+                                        <th>Item from Zoho</th>
+                                        <th>Reason</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for item in invoice.items_unmatched %}
+                                        <tr>
+                                            <td>{{ item.zoho_item_unmatched }}</td>
+                                            <td><div class="alert alert-danger"><b>{{ item.reason }}</b></div></td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        {% else %}
+                            <div class="alert alert-success">No unmatched items found.</div>
+                        {% endif %}
+                    </td>
+                </tr>
+
+                <tr>
+                    <th scope="row">Errors sync Customer</th>
+                    <td>
+                        {% if invoice.customer_unmatched|length > 0 %}
+                            <table class="table table-striped table-sm">
+                                <thead class="thead-light">
+                                    <tr>
+                                        <th>Customer from Zoho</th>
+                                        <th>Reason</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for customer in invoice.customer_unmatched %}
+                                        <tr>
+                                            <td>{{ customer.zoho_customer_unmatched  }}</td>
+                                            <td><div class="alert alert-danger"><b>{{ customer.reason }}</b></div></td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        {% else %}
+                            <div class="alert alert-success">No unmatched customer found.</div>
+                        {% endif %}
+                    </td>
+                </tr>
+
+            </tbody>
+        </table>
+    {% else %}
+        <div class="alert alert-warning" role="alert">
+            No customer found.
+        </div>
+    {% endif %}
+    <a class="btn btn-success btn-sm" href="#" onclick="backToList()">Back to list</a>
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,167 @@
+{% extends 'api_zoho/base.html' %}
+{% block styles %}
+    <style>
+        pre {
+            background-color: #f4f4f4;
+            padding: 10px;
+            border: 1px solid #ccc;
+            overflow: auto;
+        }
+    </style>
+{% endblock %}
+{% block content %}
+
+<div class="container-fluid mt-5"> <!-- Cambiado a container-fluid para ocupar todo el ancho -->
+    {% csrf_token %}
+    <div class="row col-12" role="alert">
+        <div class="col-6 d-flex justify-content-between align-items-center mb-3">
+            <h3>Similar Items</h3>
+        </div>
+        <div class="col-6" align="right">
+            <a href="#" class="btn btn-success btn-sm" onclick="backToList()">Back to list</a>
+            <a href="{% url 'api_quickbook_soap:matched_items' %}" class="btn btn-success btn-sm">Matched Items</a>
+        </div>
+    </div>
+
+    <div class="row mt-3">
+        <div class="col-12">
+            <p class="alert alert-info">
+                There are {{ similar_items|length }} items found.
+            </p>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-12">
+            <div class="table-responsive">
+                <table id="myTable" class="table table-bordered table-striped">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th>Quick Book Item</th>
+                            <th>Zoho Items</th>
+                            <th>Coincidence</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in similar_items %}
+                            {% if item.coincidences_by_order %}
+                                {% for coincidence in item.coincidences_by_order %}
+                                    {% if forloop.first %}
+                                        <tr class="main-row">
+                                            <td>{{ item.qb_item_name }}</td>
+                                            <td style="background-color: #f8d7da; font-weight: bold;">{{ coincidence.zoho_item }} <br/>(SKU: {{ coincidence.zoho_item_sku }})</td>
+                                            <td style="background-color: #f8d7da; font-weight: bold;">{{ coincidence.coincidence }}</td>
+                                            <td class="text-center align-middle" style="background-color: #f8d7da; font-weight: bold;">
+                                                <button class="btn btn-info btn-sm" onclick="matchRow(this, '{{ item.qb_item_list_id }}', '{{ coincidence.zoho_item_id }}')">
+                                                    Match
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    {% else %}
+                                        <tr class="sub-row">
+                                            <td>{{ item.qb_item_name }}</td>
+                                            <td>{{ coincidence.zoho_item }} <br/><b>(SKU: {{ coincidence.zoho_item_sku }})</b></td>
+                                            <td>{{ coincidence.coincidence }}</td>
+                                            <td class="text-center align-middle">
+                                                <button class="btn btn-info btn-sm" onclick="matchRow(this, '{{ item.qb_item_list_id }}', '{{ coincidence.zoho_item_id }}')">
+                                                    Match
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    {% endif %}
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td>{{ item.qb_item_name }}</td>
+                                    <td>No coincidences</td>
+                                    <td></td>
+                                    <td></td>
+                                </tr>
+                            {% endif %}
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+    
+{% endblock %}
+    
+{% block scripts %}
+
+<script type="text/javascript">
+
+    function editRow(qb_item_list_id, zoho_item) {
+        alert('Edit item: ' + qb_item_list_id + ' with Zoho item: ' + zoho_item);
+    }
+
+    function matchRow(button, qb_item_list_id, zoho_item_id) {
+        Swal.fire({
+            title: 'Are you sure?',
+            text: 'Do you want to match this item?',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, match it!',
+            cancelButtonText: 'Cancel'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                var csrftoken = getCookie('csrftoken');
+                $.ajax({
+                    url: '/api_quickbook_soap/match_one_item_ajax/',
+                    type: 'POST',
+                    data: {
+                        'csrfmiddlewaretoken': csrftoken,
+                        'qb_item_list_id': qb_item_list_id,
+                        'zoho_item_id': zoho_item_id,
+                        'action': 'match'
+                    },
+                    success: function(response) {
+                        console.log(response);
+                        Swal.fire(
+                            'Matched!',
+                            'Item has been matched.',
+                            'success'
+                        ).then(() => {
+                            window.location.reload();
+                        });
+                    },
+                    error: function(response) {
+                        Swal.fire(
+                            'Error!',
+                            'Error matching items for the item.',
+                            'error'
+                        );
+                    }
+                });
+            }
+        });
+    }
+
+    function matchAllFirst(button) {
+        if (confirm('Are you sure you want to match all first items?')) {
+            var csrftoken = getCookie('csrftoken');
+            
+            $.ajax({
+                 url: '/api_quickbook_soap/match_all_first_items_ajax/',
+                 type: 'POST',
+                 data: {
+                    'csrfmiddlewaretoken': csrftoken,
+                    'action': 'match'
+                 },
+                 success: function(response) {
+                     window.location.reload();
+                 },
+                 error: function(response) {
+                     alert('Error matching items for customer');
+                 }
+             });
+        }
+    }
+    
+</script>
+    
+{% endblock %}

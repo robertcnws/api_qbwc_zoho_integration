@@ -1,0 +1,16 @@
+
+{% extends 'api_zoho/base.html' %}
+{% block content %}
+    <div class="container mt-5 shadow p-3 mb-5 bg-white rounded">
+        <div class="alert alert-danger d-flex align-items-center mb-0" role="alert">
+            <i class="fas fa-exclamation-triangle text-danger me-2"></i>
+            <p class="mb-0">Error {{ status_code }}!</p>
+        </div>
+        <div class="container mt-3">
+            <p>{{ error }}</p>
+        </div>
+        <div class="container text-end mt-3">
+            <a href="{% url 'api_zoho:zoho_api_settings' %}" class="btn btn-danger btn-sm">Back to settings</a>
+        </div>
+    </div>
+{% endblock %}

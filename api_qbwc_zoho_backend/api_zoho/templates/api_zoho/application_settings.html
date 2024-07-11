@@ -1,0 +1,129 @@
+{% extends 'api_zoho/base.html' %}
+
+{% block styles %}
+
+        <style>
+            .separator {
+                display: flex;
+                align-items: center;
+                text-align: center;
+                margin: 20px 0;
+            }
+            .separator::before,
+            .separator::after {
+                content: '';
+                flex: 1;
+                border-top: 1px solid #ddd;
+            }
+            .separator:not(:empty)::before {
+                margin-right: .25em;
+            }
+            .separator:not(:empty)::after {
+                margin-left: .25em;
+            }
+            .password-container {
+                position: relative;
+            }
+            .password-container .toggle-password {
+                position: absolute;
+                top: 50%;
+                right: 10px;
+                transform: translateY(-50%);
+                cursor: pointer;
+            }
+        </style>
+
+{% endblock %}
+        
+{% block content %}
+        <div class="container-fluid mt-5 shadow p-3 mb-5 bg-white rounded" style="width:90%">
+            <div class="row">
+                <div class="col-md-12 text-center">
+                    <h3 class="mb-4">Settings</h3>
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert {% if 'error' in message.tags %}alert-danger{% elif 'success' in message.tags %}alert-success{% elif 'info' in message.tags %}alert-info{% endif %} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                    <form action="{% url 'api_zoho:application_settings' %}" method="POST">
+                        {% csrf_token %}
+                        <div class="separator alert alert-info">Zoho Section</div>
+                        <div class="form-row">
+                            <div class="form-group col-md-6">
+                                <label for="id_zoho_client_id">Zoho Client ID</label>
+                                {{ form.zoho_client_id }}
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="id_zoho_client_secret">Zoho Client Secret</label>
+                                <div class="password-container">
+                                    {{ form.zoho_client_secret }}
+                                    <i class="fas fa-eye toggle-password" id="toggle_client_secret"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group col-md-6">
+                                <label for="id_zoho_organization_id">Zoho Organization ID</label>
+                                {{ form.zoho_org_id }}
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="id_zoho_redirect_uri">Zoho Redirect URI</label>
+                                {{ form.zoho_redirect_uri }}
+                            </div>
+                        </div>
+                        <div class="separator alert alert-info">QBWC Section</div>
+                        <div class="form-row">
+                            <div class="form-group col-md-6">
+                                <label for="id_qb_username">QB Username</label>
+                                {{ form.qb_username }}
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="id_qb_password">QB Password</label>
+                                <div class="password-container">
+                                    {{ form.qb_password }}
+                                    <i class="fas fa-eye toggle-password" id="toggle_qb_password"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <button type="submit" class="btn btn-primary">Update</button>
+                                <a type="button" href="{% url 'api_zoho:zoho_api_settings' %}" class="btn btn-warning">Cancel</a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+{% endblock %}
+
+{% block scripts %}
+
+        <script>
+
+            $(document).ready(function() {
+                $('#toggle_client_secret').click(function() {
+                    const passwordField = $('#id_zoho_client_secret');
+                    const type = passwordField.attr('type') === 'password' ? 'text' : 'password';
+                    passwordField.attr('type', type);
+                    $(this).toggleClass('fa-eye fa-eye-slash');
+                });
+
+                $('#toggle_qb_password').click(function() {
+                    const passwordField = $('#id_qb_password');
+                    const type = passwordField.attr('type') === 'password' ? 'text' : 'password';
+                    passwordField.attr('type', type);
+                    $(this).toggleClass('fa-eye fa-eye-slash');
+                });
+            });
+        </script>
+        
+{% endblock %}

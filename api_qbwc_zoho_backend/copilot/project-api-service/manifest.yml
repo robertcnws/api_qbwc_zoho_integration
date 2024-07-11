@@ -1,0 +1,88 @@
+name: project-api-service
+type: Load Balanced Web Service
+
+cpu: 256
+memory: 512
+count: 1
+exec: true
+network:
+  connect: true
+
+http:
+  path: /
+  targetContainer: nginx
+  targetPort: 80
+
+containers:
+  django:
+    build:
+      context: ../project_api  # Ruta al contexto de construcción de Docker para Django
+    port: 8000
+    environment:
+      DJANGO_SETTINGS_MODULE: project_api.settings  # Variable de entorno para Django
+    volumes:
+      - name: app-volume
+        path: /app
+      - name: gunicorn-config
+        path: /etc/nginx/gunicorn.conf.py
+        readOnly: true
+
+  nginx:
+    build:
+      context: ../nginx  # Ruta al contexto de construcción de Docker para Nginx
+    port: 80
+    dependencies:
+      - django  # Asegúrate de que el contenedor Django esté en ejecución
+    volumes:
+      - name: nginx-config
+        path: /etc/nginx/nginx.conf
+        readOnly: true
+      - name: certificates
+        path: /etc/nginx/certificates
+        readOnly: true
+
+  postgres:
+    build:
+      context: ../postgres  # Ruta al contexto de construcción de Docker para PostgreSQL
+    port: 5432
+    environment:
+      POSTGRES_DB: api_qbwc_zoho_db  # Nombre de la base de datos
+      POSTGRES_USER: postgres  # Usuario de la base de datos
+      POSTGRES_PASSWORD: postgres  # Contraseña de la base de datos
+    volumes:
+      - name: postgres-data
+        path: /var/lib/postgresql/data
+
+volumes:
+  app-volume:
+    path: ../project_api  # Ruta a la carpeta de tu proyecto Django en el host
+  gunicorn-config:
+    path: ../nginx/gunicorn.conf.py  # Ruta al archivo gunicorn.conf.py en el host
+  nginx-config:
+    path: ../nginx/nginx.conf  # Ruta al archivo nginx.conf en el host
+  certificates:
+    path: ../nginx/certificates  # Ruta a la carpeta de certificados en el host
+  postgres-data:
+    path: ../postgres-data  # Ruta a la carpeta para datos de PostgreSQL (deberás crear esta carpeta en el host si no existe)
+
+environments:
+  production:
+    http:
+      path: /
+      targetContainer: nginx
+      targetPort: 80
+
+# loadBalancers:
+#   - targetGroupArn: arn:aws:elasticloadbalancing:us-east-1:123456789012:targetgroup/my-target-group/abc123def456ghi789
+#     containerName: nginx
+#     containerPort: 80
+
+rds:
+  databaseInstance:
+    dbInstanceIdentifier: project-api-postgres
+    dbInstanceClass: db.t2.micro
+    engine: postgres
+    masterUsername: postgres
+    masterUserPassword: postgres
+    allocatedStorage: 20
+    dbName: api_qbwc_zoho_db

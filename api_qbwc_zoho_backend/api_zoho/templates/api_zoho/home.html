@@ -1,0 +1,144 @@
+{% extends "api_zoho/base.html" %}
+{% block content %}
+    <div class="row">
+                        
+                        <div class="col-md-12 text-center">
+                            <h1 class="mb-4">Zoho - QBWC Integration</h1>
+                            {% comment %} <a href="{% url 'api_zoho:zoho_api_settings' %}" class="btn btn-success btn-lg mb-2">From Zoho</a>
+                            <a href="{% url 'api_quickbook_soap:quickbook_api_settings' %}" class="btn btn-primary btn-lg mb-2">From QBWC</a>
+                            <a href="{% url 'logout' %}" class="btn btn-warning btn-lg mb-2">Logout</a> {% endcomment %}
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12 shadow p-3 bg-white rounded">
+                            <!-- Messages -->
+                            {% if messages %}
+                                {% for message in messages %}
+                                    <div class="alert {% if 'error' in message.tags %}alert-danger{% elif 'success' in message.tags %}alert-success{% elif 'info' in message.tags %}alert-info{% else %}alert-warning{% endif %} alert-dismissible fade show" role="alert">
+                                        {{ message }}
+                                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                    </div>
+                                {% endfor %}
+                            {% endif %}
+
+                            <!-- Main Content -->
+                            <div class="settingsMain">
+                                <div class="heading">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <h5>Integration</h5>
+                                        {% if not connected %}
+                                            <div class="alert alert-warning d-flex align-items-center mb-0" role="alert">
+                                                <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+                                                <p class="mb-0">You are currently not connected to Zoho</p>
+                                            </div>
+                                        {% else %}
+                                            <div class="alert alert-success d-flex align-items-center mb-0" role="alert">
+                                                <i class="fas fa-check-circle text-success me-2"></i>
+                                                <p class="mb-0">Zoho Connection: <span class="badge bg-success">Connected</span></p>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <hr/>
+                                </div>
+
+                                <div class="row mb-3">
+                                    <div class="col-md-7 mt-3">
+                                        <div class="heading">
+                                            <h5><i class="fa-solid fa-dolly me-2"></i> Integration Details</h5>
+                                        </div>
+                                        <div class="dealerMain">
+                                            <!-- Dealer details go here -->
+                                        </div>
+                                    </div>
+                                    <div class="col-md-5 mt-3">
+                                        <div class="heading">
+                                            <h5>Quick Actions</h5>
+                                        </div>
+                                        <div class="list-group">
+                                            {% if not connected %}
+                                                <div class="list-group-item list-group-item-action">
+                                                    <div class="mb-3">
+                                                        <i class="fas fa-exclamation-triangle fa-2x text-warning align-self-center"></i>
+                                                    </div>
+                                                    <div class="alert alert-warning d-flex justify-content-center align-items-center" role="alert">
+                                                        <p class="mb-0">You are currently not connected to Zoho. Click the button below to establish a connection.</p>
+                                                    </div>
+                                                    <div>
+                                                        <a href="{{ auth_url }}" class="btn btn-success">Connect</a>
+                                                    </div>
+                                                </div>
+                                            {% else %}
+                                                <ul class="list-group">
+                                                    <li class="list-group-item">
+                                                        <a href="{% url 'api_zoho_customers:list_customers' %}" class="text-decoration-none">
+                                                            <i class="fas fa-users me-2"></i> Customers
+                                                        </a>
+                                                    </li>
+                                                    <li class="list-group-item">
+                                                        <a href="{% url 'api_zoho_items:list_items' %}" class="text-decoration-none">
+                                                            <i class="fas fa-box me-2"></i> Items
+                                                        </a>
+                                                    </li>
+                                                    <li class="list-group-item">
+                                                        <a href="{% url 'api_zoho_invoices:list_invoices' %}" class="text-decoration-none">
+                                                            <i class="fas fa-file-invoice-dollar me-2"></i> Invoices
+                                                        </a>
+                                                    </li>
+                                                </ul>  
+                                            {% endif %}
+                                            {% comment %} <div class="container text-end mt-3">
+                                                <a href="{% url 'home' %}" class="btn btn-warning">Back</a>
+                                            </div> {% endcomment %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mt-5">
+                        <div class="col-md-12 shadow p-3 bg-white rounded">
+                            <!-- Main Content -->
+                            <div class="settingsMain">
+                                <div class="heading">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <h5>Application</h5>
+                                        <div class="alert alert-warning d-flex align-items-center mb-0" role="alert">
+                                            <a class="mb-0 btn btn-warning btn-sm" type="button" href="#" onclick="confirmLogout()">
+                                                <i class="fa fa-sign-out-alt"></i> Logout
+                                            </a>
+                                        </div>
+                                    </div>
+                                    <hr/>
+                                </div>
+
+                                <div class="row mb-3">
+                                    <div class="col-md-7 mt-3">
+                                        <div class="heading">
+                                            <h5><i class="fa-solid fa-dolly me-2"></i> Settings Details</h5>
+                                        </div>
+                                        <div class="dealerMain">
+                                            <!-- Dealer details go here -->
+                                        </div>
+                                    </div>
+                                    <div class="col-md-5 mt-3">
+                                        <div class="heading">
+                                            <h5>Quick Actions</h5>
+                                        </div>
+                                        <div class="list-group">
+                                            <ul class="list-group">
+                                                <li class="list-group-item">
+                                                    <a href="{% url 'api_zoho:application_settings' %}" class="text-decoration-none">
+                                                        <i class="fas fa-users me-2"></i> Settings
+                                                    </a>
+                                                </li>
+                                            </ul> 
+                                            {% comment %} <div class="container text-end mt-3">
+                                                <a href="{% url 'home' %}" class="btn btn-warning">Back</a>
+                                            </div> {% endcomment %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+{% endblock %}

@@ -1,0 +1,15 @@
+
+{% extends 'api_zoho/base.html' %}
+{% block content %}
+    <div class="container mt-5 shadow p-3 mb-5 bg-white rounded">
+        <div class="alert alert-success d-flex align-items-center mb-0" role="alert">
+            <i class="fas fa-exclamation-triangle text-success me-2"></i>
+            <p class="mb-0">Customers loaded successfully!</p>
+        </div>
+
+        <div class="container text-end mt-3">
+            <a href="{% url 'api_zoho_customers:list_customers' %}" class="btn btn-primary btn-sm">List Customers</a>
+            <a href="{% url 'api_zoho:zoho_loading' %}" class="btn btn-info btn-sm">Loading</a>
+        </div>
+    </div>
+{% endblock %}

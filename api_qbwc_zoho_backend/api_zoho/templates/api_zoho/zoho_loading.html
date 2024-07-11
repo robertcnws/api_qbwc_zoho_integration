@@ -1,0 +1,59 @@
+{% extends 'api_zoho/base.html' %}
+{% block content %}
+    <div class="container mt-5 shadow p-3 mb-5 bg-white rounded">
+        <div class="row col-12" role="alert">
+            <div class="col-6 d-flex justify-content-between align-items-center mb-3">
+                <h3>Load Data from Zoho</h3>
+            </div>
+        </div>
+        <div class="row">
+            <div class="container mt-3">
+                <table>
+                    <tr>
+                        <td>
+                            <a href="{% url 'api_zoho_customers:load_customers' %}" class="btn btn-info btn-sm">Load Customers</a>
+                        </td>
+                        <td>
+                            <a href="{% url 'api_zoho_items:load_items' %}" class="btn btn-info btn-sm">Load Items</a>
+                        </td>
+                        <td>
+                            <a href="{% url 'api_zoho_invoices:load_invoices' %}" class="btn btn-info btn-sm">Load Invoices</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            {% if zoho_loading_customers.zoho_record_updated %}
+                                <div class="alert alert-warning d-flex align-items-center mb-0" role="alert" style="font-size:small">
+                                    <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+                                    <p class="mb-0">Last Time loaded: <br/>{{ zoho_loading_customers.zoho_record_updated|date:"Y-m-d H:i"}}</p>
+                                </div>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if zoho_loading_items.zoho_record_updated %}
+                                <div class="alert alert-warning d-flex align-items-center mb-0" role="alert" style="font-size:small">
+                                    <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+                                    <p class="mb-0">Last Time loaded: <br/>{{ zoho_loading_items.zoho_record_updated|date:"Y-m-d H:i"}}</p>
+                                </div>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if zoho_loading_invoices.zoho_record_updated %}
+                                <div class="alert alert-warning d-flex align-items-center mb-0" role="alert" style="font-size:small">
+                                    <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+                                    <p class="mb-0">Last Time loaded: <br/>{{ zoho_loading_invoices.zoho_record_updated|date:"Y-m-d H:i"}}</p>
+                                </div>
+                            {% endif %}
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <div class="container mt-3">
+            <p>{{ error }}</p>
+        </div>
+        <div class="container text-end mt-3">
+            <a href="{% url 'api_zoho:zoho_api_settings' %}" class="btn btn-success btn-sm">Back to settings</a>
+        </div>
+    </div>
+{% endblock %}

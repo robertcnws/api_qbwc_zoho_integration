@@ -1,0 +1,23 @@
+FROM python:3.12
+
+ENV PYTHONUNBUFFERED 1
+
+WORKDIR /app
+
+COPY requirements.txt /app/
+
+RUN pip install --upgrade pip
+# RUN pip freeze > requirements.txt
+RUN pip install gunicorn
+RUN pip install -r requirements.txt
+
+# Copia el contenido del directorio al contenedor
+COPY . /app/
+
+# Expose port 8000 for the Django application
+EXPOSE 8000
+
+# Ejecuta el script de inicialización y luego arranca Gunicorn
+CMD ["sh", "-c", "python manage.py makemigrations && python manage.py migrate && python init_script.py && gunicorn --bind 0.0.0.0:8000 project_api.wsgi:application"]
+
+# CMD ["/app/project_api/init.sh"]

@@ -1,0 +1,70 @@
+services:
+  django:
+    build:
+      context: ./project_api
+    container_name: project_api
+    volumes:
+      - .:/app
+      - ./nginx/gunicorn.conf.py:/etc/nginx/gunicorn.conf.py
+    ports:
+      - "8000:8000"
+    environment:
+      - DJANGO_SETTINGS_MODULE=project_api.settings
+    env_file:
+      - ./project_api/.env
+    networks:
+      - api_qbwc_zoho_network
+
+  nginx:
+    image: public.ecr.aws/nginx/nginx:stable-perl
+    container_name: nginx_server
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro  
+      - ./nginx/certificates:/etc/nginx/certificates:ro
+    depends_on:
+      - django
+    networks:
+      - api_qbwc_zoho_network
+  
+  # jenkins:
+  #   build: 
+  #     context: ./jenkins
+  #   container_name: jenkins_server
+  #   ports:
+  #     - "8080:8080"
+  #     - "50000:50000"
+  #   volumes:
+  #     - jenkins_home:/var/jenkins_home
+  #     - /var/run/docker.sock:/var/run/docker.sock
+  #   user: jenkins
+  #   environment:
+  #     - JAVA_OPTS=-Duser.timezone=America/New_York  # Opcional: Configura la zona horaria
+  #   restart: unless-stopped
+  #   networks:
+  #     - api_qbwc_zoho_network
+
+  postgres:
+    image: public.ecr.aws/docker/library/postgres:latest
+    container_name: postgres_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=api_qbwc_zoho_db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - "5433:5432"
+    networks:
+      - api_qbwc_zoho_network
+
+volumes:
+  postgres_data:
+  # jenkins_home:
+
+networks:
+  api_qbwc_zoho_network:
+    external: true
+    # driver: bridge
