@@ -8,7 +8,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Instala dependencias
-RUN npm install
+RUN npm ci
 
 # Copia el resto de los archivos del proyecto
 COPY . .
@@ -27,3 +27,4 @@ EXPOSE 80
 
 # Comando por defecto para ejecutar Nginx
 CMD ["nginx", "-g", "daemon off;"]
+# CMD ["npm", "start"]

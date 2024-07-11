@@ -28,7 +28,7 @@ services:
       - "80:80"
       - "443:443"
     volumes:
-      - ./api_qbwc_zoho_backend/nginx/nginx_react.conf:/etc/nginx/nginx.conf:ro  
+      - ./api_qbwc_zoho_backend/nginx/nginx_react.conf:/etc/nginx/nginx.conf:ro
       - ./api_qbwc_zoho_backend/nginx/certificates:/etc/nginx/certificates:ro
     depends_on:
       - django_app
@@ -40,32 +40,16 @@ services:
     build:
       context: ./api_qbwc_zoho_frontend
     container_name: react_app
-    ports:
-      - "3000:3000"
-    stdin_open: true
-    tty: true
+    # ports:
+    #   - "3000:3000"
+    # stdin_open: true
+    # tty: true
     volumes:
       - ./api_qbwc_zoho_frontend:/app
+      # - ./api_qbwc_zoho_frontend/build:/usr/share/nginx/html
     networks:
       - api_qbwc_zoho_network
   
-  # jenkins:
-  #   build: 
-  #     context: ./jenkins
-  #   container_name: jenkins_server
-  #   ports:
-  #     - "8080:8080"
-  #     - "50000:50000"
-  #   volumes:
-  #     - jenkins_home:/var/jenkins_home
-  #     - /var/run/docker.sock:/var/run/docker.sock
-  #   user: jenkins
-  #   environment:
-  #     - JAVA_OPTS=-Duser.timezone=America/New_York  # Opcional: Configura la zona horaria
-  #   restart: unless-stopped
-  #   networks:
-  #     - api_qbwc_zoho_network
-
   postgres:
     image: postgres:16.0
     container_name: postgres_server
@@ -82,7 +66,6 @@ services:
 
 volumes:
   postgres_data:
-  # jenkins_home:
 
 networks:
   api_qbwc_zoho_network:

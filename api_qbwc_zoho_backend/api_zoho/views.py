@@ -1,9 +1,11 @@
 from django.shortcuts import redirect, render
 from django.conf import settings
 from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
 import requests
 import os
 import logging
+import json
 from django.urls import reverse
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
@@ -19,24 +21,27 @@ from .forms import ApiZohoForm, LoginForm, AppConfigForm
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
-
+@csrf_exempt
 def login_view(request):
     if request.method == 'POST':
-        form = LoginForm(data=request.POST)
-        if form.is_valid():
-            username = form.clean().get('username')
-            password = form.clean().get('password')
+        try:
+            data = json.loads(request.body)  # Carga los datos JSON del cuerpo de la solicitud
+            username = data.get('username')  # Obtiene el nombre de usuario del JSON
+            password = data.get('password')  # Obtiene la contraseña del JSON
+
+            # Verifica si se recibieron los datos necesarios
+            if not username or not password:
+                return JsonResponse({'error': 'Username and password required'}, status=400)
             user = authenticate(request, username=username, password=password)
+            logger.info(user)   
             if user is not None:
                 login(request, user)
-                return redirect('api_zoho:zoho_api_settings')
-            else:
-                form.add_error(None, 'Username or password is incorrect')
-        else:
-            logging.error(form.errors)  
-    else:
-        form = LoginForm()
-    return render(request, 'api_zoho/login.html', {'form': form})
+                logger.info('User logged in')
+                return JsonResponse({'status': 'success'}, status=200)
+            return JsonResponse({'error': 'Invalid credentials'}, status=400)
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON'}, status=400)
+    return JsonResponse({'error': 'Method not allowed'}, status=405)
 
 
 @login_required(login_url='login')
@@ -132,40 +137,23 @@ def get_refresh_token(request):
 @login_required(login_url='login')
 def zoho_api_settings(request):
     app_config = AppConfig.objects.first()
-    
     if not app_config:
         app_config = AppConfig.objects.create()
+
     connected = (
         app_config.zoho_connection_configured
         and app_config.zoho_refresh_token is not None
         or ""
     )
-    if request.method == "GET":
-        form = ApiZohoForm(instance=app_config)
-    elif request.method == "POST":
-        form = ApiZohoForm(request.POST, instance=app_config)
-        if form.is_valid():
-            form.save()
-            messages.success(
-                request, "Zoho API settings have been updated successfully."
-            )
-            return redirect("zoho_api:zoho_api_settings")
-        else:
-            messages.error(
-                request,
-                "There was an error updating Zoho API settings. Please correct the errors below.",
-            )
     auth_url = None
     if not connected:
         auth_url = reverse("api_zoho:generate_auth_url")
-    context = {
+    data = {
         "connected": connected,
         "auth_url": auth_url,
         "zoho_connection_configured": app_config.zoho_connection_configured,
-        "active_page": "settings",
     }
-    # return render(request, "api_zoho/zoho_api_settings.html", context)
-    return render(request, "api_zoho/home.html", context)
+    return JsonResponse(data)
 
 
 @login_required(login_url='login')

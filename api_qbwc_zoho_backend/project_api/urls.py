@@ -16,16 +16,12 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-import api_zoho.views as zoho_views
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('logout/', zoho_views.logout_view, name='logout'),
-    path('', zoho_views.login_view, name='login'),
-    path('home/', zoho_views.home, name='home'),
-    path('api_zoho/', include('api_zoho.urls')), 
-    path('api_zoho_customers/', include('api_zoho_customers.urls')), 
-    path('api_zoho_items/', include('api_zoho_items.urls')), 
-    path('api_zoho_invoices/', include('api_zoho_invoices.urls')), 
-    path('api_quickbook_soap/', include('api_quickbook_soap.urls')),
+    path('api_qbwc_zoho/admin/', admin.site.urls),
+    path('api_qbwc_zoho/', include('api_zoho.urls')), 
+    path('api_qbwc_zoho/api_zoho_customers/', include('api_zoho_customers.urls')), 
+    path('api_qbwc_zoho/api_zoho_items/', include('api_zoho_items.urls')), 
+    path('api_qbwc_zoho/api_zoho_invoices/', include('api_zoho_invoices.urls')), 
+    path('api_qbwc_zoho/api_quickbook_soap/', include('api_quickbook_soap.urls')),
 ]
