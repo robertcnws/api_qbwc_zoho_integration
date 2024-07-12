@@ -59,7 +59,8 @@ def generate_auth_url(request):
         redirect_uri = app_config.zoho_redirect_uri
         scopes = settings.ZOHO_SCOPE_INVOICES + ',' + settings.ZOHO_SCOPE_ITEMS + ',' + settings.ZOHO_SCOPE_CUSTOMERS
         auth_url = f"https://accounts.zoho.com/oauth/v2/auth?scope={scopes}&client_id={client_id}&response_type=code&access_type=offline&redirect_uri={redirect_uri}"
-        return redirect(auth_url)
+        # return redirect(auth_url)
+        return JsonResponse({'auth_url': auth_url})
     return JsonResponse({'error': 'Method not allowed'}, status=405)
 
 
@@ -103,11 +104,12 @@ def refresh_zoho_token():
         raise Exception("Failed to refresh Zoho token")
 
 
+@csrf_exempt
 def get_refresh_token(request):
     authorization_code = request.GET.get("code", None)
     if not authorization_code:
-        messages.error(request, "Authorization code is missing")
-        return redirect(reverse("api_zoho:zoho_api_connect"))
+        return JsonResponse({'error': 'Authorization code is missing'}, status=400)
+    
     app_config = AppConfig.objects.first()
     token_url = "https://accounts.zoho.com/oauth/v2/token"
     data = {
@@ -117,26 +119,25 @@ def get_refresh_token(request):
         "redirect_uri": app_config.zoho_redirect_uri,
         "grant_type": "authorization_code",
     }
-    response = requests.post(token_url, data=data)
-    response.raise_for_status()
-    response_json = response.json()
-    access_token = response_json.get("access_token", None)
-    refresh_token = response_json.get("refresh_token", None)
 
-    if access_token and refresh_token:
-        app_config = AppConfig.objects.first()
-        if app_config:
+    try:
+        response = requests.post(token_url, data=data)
+        response.raise_for_status()
+        response_json = response.json()
+        access_token = response_json.get("access_token", None)
+        refresh_token = response_json.get("refresh_token", None)
+
+        if access_token and refresh_token:
             app_config.zoho_refresh_token = refresh_token
+            app_config.zoho_access_token = access_token
             app_config.save()
-        return redirect(reverse("api_zoho:zoho_api_connect"))
-    else:
-        messages.error(
-            request,
-            "Failed to obtain access_token and/or refresh_token: {}".format(
-                response_json
-            ),
-        )
-        return redirect(reverse("api_zoho:zoho_api_connect"))
+            # Redirige a una página de éxito o muestra un mensaje
+            return redirect(f'{settings.FRONTEND_URL}/integration')
+        else:
+            return JsonResponse({'error': 'Failed to obtain access_token and/or refresh_token'}, status=400)
+
+    except requests.exceptions.RequestException as e:
+        return JsonResponse({'error': f'An error occurred: {str(e)}'}, status=500)
 
 
 # GET THE ZOHO API ACCESS TOKEN
@@ -182,7 +183,8 @@ def zoho_api_connect(request):
             messages.error(request, f"Error connecting to Zoho API: {str(e)}")
     else:
         messages.warning(request, "Zoho API connection is not configured yet.")
-    return redirect("api_zoho:zoho_api_settings")
+    return JsonResponse({'message': 'Zoho API connected successfully.'}, status=200)
+    # return redirect("api_zoho:zoho_api_settings")
 
 
 def config_headers(request):

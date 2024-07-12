@@ -6,6 +6,7 @@ import LoginForm from './components/LoginForm/LoginForm';
 import Dashboard from './components/Dashboard/Dashboard';
 import ApplicationSettingsContainer from './components/ApplicationSettings/components/ApplicationSettingsContainer/ApplicationSettingsContainer';
 import MainContent from './components/MainContent/MainContent';
+import ZohoLoading from './components/ZohoLoading/ZohoLoading';
 
 const HomeRedirect = () => {
   const { isAuthenticated } = useAuth();
@@ -26,6 +27,7 @@ const App = () => {
           <Route path="/integration/*" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} >
             <Route path="" element={<MainContent />} />
             <Route path="application_settings" element={<ApplicationSettingsContainer />} />
+            <Route path="zoho" element={<ZohoLoading />} />
           </Route>
         </Routes>
       </Router>

@@ -61,6 +61,7 @@ DB_PASSWORD = env('DB_PASSWORD')
 DB_HOST = env('DB_HOST')
 DB_PORT = env('DB_PORT')
 DB_ENGINE = env('DB_ENGINE')
+FRONTEND_URL = env('FRONTEND_URL')
 
 CSRF_TRUSTED_ORIGINS = [
     'https://127.0.0.1',
@@ -69,6 +70,8 @@ CSRF_TRUSTED_ORIGINS = [
     'http://localhost',
     'https://tu-dominio.com',
     'https://10.1.10.216',
+    'http://localhost:3000',
+    'http://127.0.0.1:3000',
 ]
 
 CSRF_COOKIE_SECURE = True
@@ -84,8 +87,7 @@ SESSION_COOKIE_SECURE = True
 CORS_ALLOW_CREDENTIALS = True
 
 CORS_ALLOWED_ORIGINS = [
-    "https://127.0.0.1:8000",
-    "https://10.1.10.216:8000",
+    "https://10.1.10.216",
     "http://localhost:3000",
     "http://127.0.0.1:3000",
     "https://127.0.0.1",

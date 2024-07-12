@@ -9,6 +9,7 @@ from django.db import transaction
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from django.shortcuts import render, get_object_or_404
+from django.views.decorators.csrf import csrf_exempt
 from datetime import datetime, timezone
 from api_quickbook_soap.models import QbItem  
 import pandas as pd
@@ -150,83 +151,79 @@ def list_items(request):
     return render(request, 'api_zoho_items/list_items.html', context)
 
 
-@login_required(login_url='login')  
+@login_required(login_url='login')
 def load_items(request):
-    app_config = AppConfig.objects.first()
-    try:
-        headers = api_zoho_views.config_headers(request)  # Asegúrate de que esto esté configurado correctamente
-    except Exception as e:
-        logger.error(f"Error connecting to Zoho API: {str(e)}")
-        context = {
-            'error': f"Error connecting to Zoho API (Load Items): {str(e)}",
-            'status_code': 500
-        }
-        return render(request, 'api_zoho/error.html', context)
-    items_saved = list(ZohoItem.objects.all())
-    
-    params = {
-        'organization_id': app_config.zoho_org_id,
-        'page': 1,       # Página inicial
-        'per_page': 200,  # Cantidad de resultados por página
-        'status': 'active'  # Solo items activos
-    }
-        
-    url = f'{settings.ZOHO_URL_READ_ITEMS}'
-    items_to_save = []
-    items_to_get = []
-    
-    while True:
+    if request.method == 'POST':
+        app_config = AppConfig.objects.first()
         try:
-            response = requests.get(url, headers=headers, params=params)
-            if response.status_code == 401:  # Si el token ha expirado
-                new_token = api_zoho_views.refresh_zoho_token()
-                headers['Authorization'] = f'Zoho-oauthtoken {new_token}'
-                response = requests.get(url, headers=headers, params=params)  # Reintenta la solicitud
-            elif response.status_code != 200:
-                logger.error(f"Error fetching customers: {response.text}")
-                context = {
-                    'error': response.text,
-                    'status_code': response.status_code
-                }
-                return render(request, 'api_zoho/error.html', context)
-            else:
-                response.raise_for_status()
-                items = response.json()
-                if items.get('items', []):
-                    items_to_get.extend(items['items'])
-                # Verifica si hay más páginas para obtener
-                if 'page_context' in items and 'has_more_page' in items['page_context'] and items['page_context']['has_more_page']:
-                    params['page'] += 1  # Avanza a la siguiente página
+            headers = api_zoho_views.config_headers(request)  # Asegúrate de que esto esté configurado correctamente
+        except Exception as e:
+            logger.error(f"Error connecting to Zoho API: {str(e)}")
+            return JsonResponse({'error': f"Error connecting to Zoho API (Load Items): {str(e)}"}, status=500)
+        
+        items_saved = list(ZohoItem.objects.all())
+        
+        params = {
+            'organization_id': app_config.zoho_org_id,
+            'page': 1,       # Página inicial
+            'per_page': 200,  # Cantidad de resultados por página
+            'status': 'active'  # Solo items activos
+        }
+        
+        url = f'{settings.ZOHO_URL_READ_ITEMS}'
+        items_to_save = []
+        items_to_get = []
+        
+        while True:
+            try:
+                response = requests.get(url, headers=headers, params=params)
+                if response.status_code == 401:  # Si el token ha expirado
+                    new_token = api_zoho_views.refresh_zoho_token()
+                    headers['Authorization'] = f'Zoho-oauthtoken {new_token}'
+                    response = requests.get(url, headers=headers, params=params)  # Reintenta la solicitud
+                elif response.status_code != 200:
+                    logger.error(f"Error fetching items: {response.text}")
+                    return JsonResponse({'error': response.text}, status=response.status_code)
                 else:
-                    break  # Sal del bucle si no hay más páginas
-        except requests.exceptions.RequestException as e:
-            logger.error(f"Error fetching items: {e}")
-            return JsonResponse({"error": "Failed to fetch items"}, status=500)
-    
-    existing_items = {item.item_id: item for item in items_saved}
+                    response.raise_for_status()
+                    items = response.json()
+                    if items.get('items', []):
+                        items_to_get.extend(items['items'])
+                    # Verifica si hay más páginas para obtener
+                    if 'page_context' in items and 'has_more_page' in items['page_context'] and items['page_context']['has_more_page']:
+                        params['page'] += 1  # Avanza a la siguiente página
+                    else:
+                        break  # Sal del bucle si no hay más páginas
+            except requests.exceptions.RequestException as e:
+                logger.error(f"Error fetching items: {e}")
+                return JsonResponse({'error': 'Failed to fetch items'}, status=500)
+        
+        existing_items = {item.item_id: item for item in items_saved}
 
-    for data in items_to_get:
-        new_item = create_item_instance(data)
-        if new_item.item_id not in existing_items:
-            items_to_save.append(new_item)
+        for data in items_to_get:
+            new_item = create_item_instance(data)
+            if new_item.item_id not in existing_items:
+                items_to_save.append(new_item)
+        
+        def save_items_in_batches(items, batch_size=100):
+            for i in range(0, len(items), batch_size):
+                batch = items[i:i + batch_size]
+                with transaction.atomic():
+                    ZohoItem.objects.bulk_create(batch)
+        
+        save_items_in_batches(items_to_save, batch_size=100)
+        
+        if len(items_to_get) > 0:
+            zoho_loading, created = ZohoLoading.objects.update_or_create(
+                zoho_module='items',
+                defaults={'zoho_record_created': timezone.now(), 'zoho_record_updated': timezone.now()}
+            )
+            if created:
+                zoho_loading.save()
+                
+        return JsonResponse({'message': 'Items loaded successfully'}, status=200)
     
-    def save_items_in_batches(items, batch_size=100):
-        for i in range(0, len(items), batch_size):
-            batch = items[i:i + batch_size]
-            with transaction.atomic():
-                ZohoItem.objects.bulk_create(batch)
-    
-    save_items_in_batches(items_to_save, batch_size=100)
-    
-    if len(items_to_get) > 0:
-        zoho_loading = ZohoLoading.objects.filter(zoho_module='items', zoho_record_created=datetime.now(timezone.utc)).first()
-        if not zoho_loading:
-            zoho_loading = api_zoho_views.create_zoho_loading_instance('items')
-        else:
-            zoho_loading.zoho_record_updated = datetime.now(timezone.utc)
-        zoho_loading.save()
-    
-    return render(request, 'api_zoho_items/load_items.html')
+    return JsonResponse({'error': 'Invalid request method'}, status=405)
 
     
 

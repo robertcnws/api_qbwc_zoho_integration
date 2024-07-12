@@ -12,10 +12,11 @@ const MainContent = () => {
   const [error, setError] = useState('');
 
   const handleZohoOauth = async () => {
+    setLoading(true);
     try {
       const response = await fetch(`${apiUrl}/generate_auth_url/`, {
         method: 'GET',
-        credentials: 'include',
+        credentials: 'include',  // Asegúrate de incluir las credenciales
         headers: {
           'Content-Type': 'application/json',
         },
@@ -24,7 +25,7 @@ const MainContent = () => {
         throw new Error('Failed to fetch authentication URL');
       }
       const data = await response.json();
-      window.location.href = data.auth_url;  // Redirige a la URL de autenticación de Zoho
+      window.location.href = data.auth_url; 
     } catch (err) {
       setError(err.message);
     } finally {
@@ -33,30 +34,29 @@ const MainContent = () => {
   };
 
 
-
-useEffect(() => {
-  const fetchConfig = async () => {
-    try {
-      const response = await fetch(`${apiUrl}/zoho_api_settings/`, {
-        method: 'GET',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-      if (!response.ok) {
-        throw new Error('Failed to fetch configuration');
+  useEffect(() => {
+    const fetchConfig = async () => {
+      try {
+        const response = await fetch(`${apiUrl}/zoho_api_settings/`, {
+          method: 'GET',
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+        if (!response.ok) {
+          throw new Error('Failed to fetch configuration');
+        }
+        const data = await response.json();
+        setConfig(data);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
       }
-      const data = await response.json();
-      setConfig(data);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-  fetchConfig();
-}, []);
+    };
+    fetchConfig();
+  }, []);
 
   if (loading) return <Typography>Loading...</Typography>;
   if (error) return <Typography color="error">{error}</Typography>;
