@@ -1,32 +1,62 @@
 import React, { useEffect, useState } from 'react';
 import { Box, Typography, Button, Alert, AlertTitle } from '@mui/material';
 import { Link } from 'react-router-dom';
-
 const apiUrl = process.env.REACT_APP_BACKEND_URL;
+// const ZOHO_SCOPE_INVOICES = process.env.REACT_APP_ZOHO_SCOPE_INVOICES;
+// const ZOHO_SCOPE_CUSTOMERS = process.env.REACT_APP_ZOHO_SCOPE_CUSTOMERS;
+// const ZOHO_SCOPE_ITEMS = process.env.REACT_APP_ZOHO_SCOPE_ITEMS;
 
 const MainContent = () => {
   const [config, setConfig] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    const fetchConfig = async () => {
-      try {
-        const response = await fetch(`${apiUrl}/zoho_api_settings/`);
-        if (!response.ok) {
-          throw new Error('Failed to fetch configuration');
-        }
-        const data = await response.json();
-        setConfig(data);
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
+  const handleZohoOauth = async () => {
+    try {
+      const response = await fetch(`${apiUrl}/generate_auth_url/`, {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch authentication URL');
       }
-    };
+      const data = await response.json();
+      window.location.href = data.auth_url;  // Redirige a la URL de autenticación de Zoho
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    fetchConfig();
-  }, []);
+
+
+useEffect(() => {
+  const fetchConfig = async () => {
+    try {
+      const response = await fetch(`${apiUrl}/zoho_api_settings/`, {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch configuration');
+      }
+      const data = await response.json();
+      setConfig(data);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+  fetchConfig();
+}, []);
 
   if (loading) return <Typography>Loading...</Typography>;
   if (error) return <Typography color="error">{error}</Typography>;
@@ -51,7 +81,8 @@ const MainContent = () => {
             variant="contained"
             color="success"
             component={Link}
-            to={config.auth_url} 
+            onClick={() => handleZohoOauth()}
+            // to={`${apiUrl}/generate_auth_url`}
             sx={{ mb: 2 }}
             size='small'
           >

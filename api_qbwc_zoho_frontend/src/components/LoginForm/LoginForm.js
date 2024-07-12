@@ -17,9 +17,6 @@ const LoginForm = () => {
     e.preventDefault();
 
     try {
-      console.log('Login');
-      console.log('username:', username);
-      console.log('apiUrl:', apiUrl)
       const response = await fetch(`${apiUrl}/login/`, {
         method: 'POST',
         headers: {

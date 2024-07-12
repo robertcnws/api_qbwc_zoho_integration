@@ -71,19 +71,48 @@ CSRF_TRUSTED_ORIGINS = [
     'https://10.1.10.216',
 ]
 
-CORS_ORIGIN_ALLOW_ALL = True  # Permitir todas las solicitudes de origen (para desarrollo)
+CSRF_COOKIE_SECURE = True
+
+SESSION_COOKIE_SECURE = True
+
+# CORS_ORIGIN_ALLOW_ALL = True  # Permitir todas las solicitudes de origen (para desarrollo)
 # o para producción
 # CORS_ORIGIN_WHITELIST = [
 #     'http://localhost:3000',  # React frontend
 # ]
 
+CORS_ALLOW_CREDENTIALS = True
+
 CORS_ALLOWED_ORIGINS = [
     "https://127.0.0.1:8000",
     "https://10.1.10.216:8000",
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "https://127.0.0.1",
 ]
 
-CSRF_COOKIE_SECURE = True
-SESSION_COOKIE_SECURE = True
+CORS_ALLOW_METHODS = [
+    'GET',
+    'POST',
+    'PUT',
+    'PATCH',
+    'DELETE',
+    'OPTIONS',
+]
+
+CORS_ALLOW_HEADERS = [
+    'authorization',
+    'content-type',
+    'x-requested-with',
+    'accept',
+    'origin',
+    'user-agent',
+    'dnt',
+    'cache-control',
+    'x-csrftoken',
+    'x-requested-with',
+    'x-xsrf-token',
+]
 
 # Application definition
 

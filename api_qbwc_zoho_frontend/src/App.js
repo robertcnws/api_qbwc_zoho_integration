@@ -10,8 +10,6 @@ import MainContent from './components/MainContent/MainContent';
 const HomeRedirect = () => {
   const { isAuthenticated } = useAuth();
 
-  console.log('isAuthenticated', isAuthenticated);
-
   if (isAuthenticated) {
     return <Navigate to="/integration" />;
   }

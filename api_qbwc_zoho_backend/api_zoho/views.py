@@ -2,6 +2,7 @@ from django.shortcuts import redirect, render
 from django.conf import settings
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+from django.core import serializers
 import requests
 import os
 import logging
@@ -50,16 +51,20 @@ def logout_view(request):
     return redirect('login')
 
 
+@csrf_exempt
 def generate_auth_url(request):
-    app_config = AppConfig.objects.first()
-    client_id = app_config.zoho_client_id
-    redirect_uri = app_config.zoho_redirect_uri
-    scopes = settings.ZOHO_SCOPE_INVOICES + ',' + settings.ZOHO_SCOPE_ITEMS + ',' + settings.ZOHO_SCOPE_CUSTOMERS
-    auth_url = f"https://accounts.zoho.com/oauth/v2/auth?scope={scopes}&client_id={client_id}&response_type=code&access_type=offline&redirect_uri={redirect_uri}"
-    return redirect(auth_url)
+    if request.method == 'GET':
+        app_config = AppConfig.objects.first()
+        client_id = app_config.zoho_client_id
+        redirect_uri = app_config.zoho_redirect_uri
+        scopes = settings.ZOHO_SCOPE_INVOICES + ',' + settings.ZOHO_SCOPE_ITEMS + ',' + settings.ZOHO_SCOPE_CUSTOMERS
+        auth_url = f"https://accounts.zoho.com/oauth/v2/auth?scope={scopes}&client_id={client_id}&response_type=code&access_type=offline&redirect_uri={redirect_uri}"
+        return redirect(auth_url)
+    return JsonResponse({'error': 'Method not allowed'}, status=405)
 
 
 def get_access_token(client_id, client_secret, refresh_token):
+    logger.info('Getting access token')
     token_url = "https://accounts.zoho.com/oauth/v2/token"
     if not refresh_token:
         raise Exception("Refresh token is missing")
@@ -74,7 +79,8 @@ def get_access_token(client_id, client_secret, refresh_token):
         access_token = response.json()["access_token"]
     else:
         raise Exception("Error retrieving access token")
-
+    logger.info(access_token)
+    logger.info(refresh_token)
     return access_token
 
 
@@ -149,7 +155,10 @@ def zoho_api_settings(request):
         auth_url = None
         if not connected:
             auth_url = reverse("api_zoho:generate_auth_url")
+        app_config_json = serializers.serialize('json', [app_config])
+        app_config_data = json.loads(app_config_json)[0]['fields']
         data = {
+            "app_config": app_config_data,
             "connected": connected,
             "auth_url": auth_url,
             "zoho_connection_configured": app_config.zoho_connection_configured,
@@ -230,12 +239,28 @@ def application_settings(request):
         return JsonResponse(data)
 
     elif request.method == 'POST':
-        form = AppConfigForm(request.data, instance=app_config)
+        try:
+            data = json.loads(request.body) 
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON.'}, status=400)
+
+        logger.info(f'POST Data: {data}')
+
+        form = AppConfigForm(data, instance=app_config)
         if form.is_valid():
             form.save()
             return JsonResponse({'message': 'Application settings have been updated successfully.'}, status=200)
         else:
+            logger.error(f'Form Errors: {form.errors}')
             return JsonResponse(form.errors, status=400)
+
+    elif request.method == 'OPTIONS':
+        response = JsonResponse({})
+        response['Access-Control-Allow-Origin'] = 'http://localhost:3000'
+        response['Access-Control-Allow-Credentials'] = 'true'
+        response['Access-Control-Allow-Methods'] = 'GET, POST, PUT, PATCH, DELETE, OPTIONS'
+        response['Access-Control-Allow-Headers'] = 'content-type, authorization, x-csrftoken'
+        return response
 
 
 @login_required(login_url='login')

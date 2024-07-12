@@ -23,16 +23,19 @@ const ApplicationSettingsContainer = () => {
     }, []);
 
     const handleSubmit = (data) => {
-        axios.post('/api/application-settings/', data, { withCredentials: true })
-            .then(response => {
+        axios.post(`${apiUrl}/application_settings/`, JSON.stringify(data), { 
+            withCredentials: true,
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        }).then(response => {
                 setSuccess(response.data.message);
                 setError(null);
-            })
-            .catch(error => {
+        }).catch(error => {
                 console.error('Error updating application settings:', error);
                 setError('Error updating application settings.');
                 setSuccess(null);
-            });
+        });
     };
 
     return (
