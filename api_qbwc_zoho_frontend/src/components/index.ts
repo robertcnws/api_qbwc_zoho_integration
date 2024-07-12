@@ -4,3 +4,7 @@ export {Sidebar} from './Sidebar';
 export {MainContent} from './MainContent';
 export {ProtectedRoutes} from './ProtectedRoutes';
 export {AuthContext} from './AuthContext';
+export {ListCustomers} from './ListCustomers';
+export {ApplicationConfig} from './ApplicationConfig';
+export {ApplicationSettings} from './ApplicationSettings';
+export {InitialPage} from './InitialPage';

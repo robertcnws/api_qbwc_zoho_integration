@@ -4,12 +4,16 @@ import { AuthProvider, useAuth } from './components/AuthContext/AuthContext';
 import ProtectedRoute from './components/ProtectedRoutes/ProtectedRoutes';
 import LoginForm from './components/LoginForm/LoginForm';
 import Dashboard from './components/Dashboard/Dashboard';
+import ApplicationSettingsContainer from './components/ApplicationSettings/components/ApplicationSettingsContainer/ApplicationSettingsContainer';
+import MainContent from './components/MainContent/MainContent';
 
 const HomeRedirect = () => {
   const { isAuthenticated } = useAuth();
 
+  console.log('isAuthenticated', isAuthenticated);
+
   if (isAuthenticated) {
-    return <Navigate to="/dashboard" />;
+    return <Navigate to="/integration" />;
   }
 
   return <LoginForm />;
@@ -21,7 +25,10 @@ const App = () => {
       <Router>
         <Routes>
           <Route path="/" element={<HomeRedirect />} />
-          <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+          <Route path="/integration/*" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} >
+            <Route path="" element={<MainContent />} />
+            <Route path="application_settings" element={<ApplicationSettingsContainer />} />
+          </Route>
         </Routes>
       </Router>
     </AuthProvider>

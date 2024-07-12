@@ -3,6 +3,8 @@ import { Container, TextField, Button, Typography, Box, Alert } from '@mui/mater
 import { useAuth } from '../AuthContext/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
+const apiUrl = process.env.REACT_APP_BACKEND_URL;
+
 const LoginForm = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -16,7 +18,9 @@ const LoginForm = () => {
 
     try {
       console.log('Login');
-      const response = await fetch('/api_qbwc_zoho/login/', {
+      console.log('username:', username);
+      console.log('apiUrl:', apiUrl)
+      const response = await fetch(`${apiUrl}/login/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -29,8 +33,8 @@ const LoginForm = () => {
       } else {
         setSuccess('Login successful');
         login();
-        console.log('Navigating to /dashboard');  // Añadir este log
-        navigate('/dashboard');
+        console.log('Navigating to /integration');  // Añadir este log
+        navigate('/integration');
       }
 
     } catch (err) {

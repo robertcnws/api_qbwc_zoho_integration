@@ -5,6 +5,7 @@ services:
     container_name: django_app
     volumes:
       - ./api_qbwc_zoho_backend:/app
+      # - ./api_qbwc_zoho_backend/static:/app/static  # Monta la carpeta estática de Django
       - ./api_qbwc_zoho_backend/nginx/gunicorn.conf.py:/etc/nginx/gunicorn.conf.py
     ports:
       - "8000:8000"
@@ -21,35 +22,15 @@ services:
     networks:
       - api_qbwc_zoho_network
 
-  nginx:
-    image: nginx:latest
-    container_name: nginx_server
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./api_qbwc_zoho_backend/nginx/nginx_react.conf:/etc/nginx/nginx.conf:ro
-      - ./api_qbwc_zoho_backend/nginx/certificates:/etc/nginx/certificates:ro
-    depends_on:
-      - django_app
-      - react_app
-    networks:
-      - api_qbwc_zoho_network
+  # react_app:
+  #   build:
+  #     context: ./api_qbwc_zoho_frontend
+  #   container_name: react_app
+  #   volumes:
+  #   - ./api_qbwc_zoho_frontend/build:/app/build  # Monta el directorio build de React
+  #   networks:
+  #     - api_qbwc_zoho_network
 
-  react_app:
-    build:
-      context: ./api_qbwc_zoho_frontend
-    container_name: react_app
-    # ports:
-    #   - "3000:3000"
-    # stdin_open: true
-    # tty: true
-    volumes:
-      - ./api_qbwc_zoho_frontend:/app
-      # - ./api_qbwc_zoho_frontend/build:/usr/share/nginx/html
-    networks:
-      - api_qbwc_zoho_network
-  
   postgres:
     image: postgres:16.0
     container_name: postgres_server
@@ -61,6 +42,22 @@ services:
       - POSTGRES_PASSWORD=postgres
     ports:
       - "5433:5432"
+    networks:
+      - api_qbwc_zoho_network
+
+  nginx:
+    image: nginx:latest
+    container_name: nginx_server
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./api_qbwc_zoho_backend/nginx/nginx_react_django.conf:/etc/nginx/nginx.conf:ro
+      - ./api_qbwc_zoho_backend/nginx/certificates:/etc/nginx/certificates:ro
+      # - ./api_qbwc_zoho_frontend/build:/usr/share/nginx/html 
+    depends_on:
+      - django_app
+      # - react_app
     networks:
       - api_qbwc_zoho_network
 

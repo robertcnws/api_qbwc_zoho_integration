@@ -134,26 +134,28 @@ def get_refresh_token(request):
 
 
 # GET THE ZOHO API ACCESS TOKEN
-@login_required(login_url='login')
+@csrf_exempt
 def zoho_api_settings(request):
-    app_config = AppConfig.objects.first()
-    if not app_config:
-        app_config = AppConfig.objects.create()
+    if request.method == 'GET':
+        app_config = AppConfig.objects.first()
+        if not app_config:
+            app_config = AppConfig.objects.create()
 
-    connected = (
-        app_config.zoho_connection_configured
-        and app_config.zoho_refresh_token is not None
-        or ""
-    )
-    auth_url = None
-    if not connected:
-        auth_url = reverse("api_zoho:generate_auth_url")
-    data = {
-        "connected": connected,
-        "auth_url": auth_url,
-        "zoho_connection_configured": app_config.zoho_connection_configured,
-    }
-    return JsonResponse(data)
+        connected = (
+            app_config.zoho_connection_configured
+            and app_config.zoho_refresh_token is not None
+            or ""
+        )
+        auth_url = None
+        if not connected:
+            auth_url = reverse("api_zoho:generate_auth_url")
+        data = {
+            "connected": connected,
+            "auth_url": auth_url,
+            "zoho_connection_configured": app_config.zoho_connection_configured,
+        }
+        return JsonResponse(data)
+    return JsonResponse({'error': 'Method not allowed'}, status=405)
 
 
 @login_required(login_url='login')
@@ -215,25 +217,25 @@ def home(request):
 #     return render(request, 'api_zoho/application_settings.html', context=context)
 
 
-@login_required(login_url='login')  
+@csrf_exempt  
 def application_settings(request):
-    app_config = AppConfig.objects.first()
+    try:
+        app_config = AppConfig.objects.first()  # Obtén la primera instancia de AppConfig
+    except AppConfig.DoesNotExist:
+        return JsonResponse({'error': 'No configuration found.'}, status=404)
 
-    if request.method == "POST":
-        form = AppConfigForm(request.POST, instance=app_config)
+    if request.method == 'GET':
+        form = AppConfigForm(instance=app_config)
+        data = form.initial
+        return JsonResponse(data)
+
+    elif request.method == 'POST':
+        form = AppConfigForm(request.data, instance=app_config)
         if form.is_valid():
             form.save()
-            messages.success(request, 'Application settings have been updated successfully.')
-            return redirect('api_zoho:application_settings')  # Asegúrate de redirigir a la misma página o a otra página de éxito
+            return JsonResponse({'message': 'Application settings have been updated successfully.'}, status=200)
         else:
-            messages.error(request, 'There was an error updating application settings. Please correct the errors below.')
-    else:
-        form = AppConfigForm(instance=app_config)
-
-    context = {
-        'form': form,  # Cambia app_config a form para pasar el formulario al template
-    }
-    return render(request, 'api_zoho/application_settings.html', context)
+            return JsonResponse(form.errors, status=400)
 
 
 @login_required(login_url='login')

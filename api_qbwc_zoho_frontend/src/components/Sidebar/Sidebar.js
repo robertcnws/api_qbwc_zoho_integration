@@ -20,19 +20,19 @@ const Sidebar = ({ expanded, toggleSubmenu, handleLogout }) => {
         <Typography variant="h5">Mi App</Typography>
       </Box>
       <List>
-        <ListItemButton component={Link} to="/dashboard">
+        <ListItemButton component={Link} to="/integration">
           <ListItemIcon><Dashboard sx={{ color: '#fff' }} /></ListItemIcon>
           <ListItemText primary="Dashboard" />
         </ListItemButton>
-        <ListItemButton component={Link} to="/customers">
+        <ListItemButton component={Link} to="/integration/customers">
           <ListItemIcon><People sx={{ color: '#fff' }} /></ListItemIcon>
           <ListItemText primary="Customers" />
         </ListItemButton>
-        <ListItemButton component={Link} to="/items">
+        <ListItemButton component={Link} to="/integration/items">
           <ListItemIcon><Box sx={{ color: '#fff' }} /></ListItemIcon>
           <ListItemText primary="Items" />
         </ListItemButton>
-        <ListItemButton component={Link} to="/invoices">
+        <ListItemButton component={Link} to="/integration/invoices">
           <ListItemIcon><Receipt sx={{ color: '#fff' }} /></ListItemIcon>
           <ListItemText primary="Invoices" />
         </ListItemButton>
@@ -45,15 +45,15 @@ const Sidebar = ({ expanded, toggleSubmenu, handleLogout }) => {
           <>
             <Divider />
             <List>
-              <ListItemButton component={Link} to="/zoho">
+              <ListItemButton component={Link} to="/integration/zoho">
                 <ListItemIcon><Box sx={{ color: '#fff' }} /></ListItemIcon>
                 <ListItemText primary="Zoho" />
               </ListItemButton>
-              <ListItemButton component={Link} to="/quickbooks">
+              <ListItemButton component={Link} to="/integration/quickbooks">
                 <ListItemIcon><Box sx={{ color: '#fff' }} /></ListItemIcon>
                 <ListItemText primary="Quickbooks" />
               </ListItemButton>
-              <ListItemButton component={Link} to="/settings">
+              <ListItemButton component={Link} to="/integration/application_settings">
                 <ListItemIcon><Settings sx={{ color: '#fff' }} /></ListItemIcon>
                 <ListItemText primary="Settings" />
               </ListItemButton>

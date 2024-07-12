@@ -1,8 +1,9 @@
 import React from 'react';
+import { Outlet } from 'react-router-dom';
 import { Box } from '@mui/material';
 import Swal from 'sweetalert2';
 import Sidebar from '../Sidebar/Sidebar';
-import MainContent from '../MainContent/MainContent';
+
 
 const Dashboard = () => {
   const [expanded, setExpanded] = React.useState(false);
@@ -31,7 +32,9 @@ const Dashboard = () => {
   return (
     <Box sx={{ display: 'flex', height: '100vh', backgroundColor: '#f4f4f4' }}>
       <Sidebar expanded={expanded} toggleSubmenu={toggleSubmenu} handleLogout={handleLogout} />
-      <MainContent />
+      <Box sx={{ flexGrow: 1, p: 2, marginLeft: '13%', padding: 2, width: '100%' }}>
+        <Outlet />
+      </Box>
     </Box>
   );
 };

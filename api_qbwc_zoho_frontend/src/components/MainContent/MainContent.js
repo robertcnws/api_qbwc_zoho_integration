@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Typography, Button, Alert, AlertTitle, List, ListItemButton, ListItemText } from '@mui/material';
+import { Box, Typography, Button, Alert, AlertTitle } from '@mui/material';
 import { Link } from 'react-router-dom';
+
+const apiUrl = process.env.REACT_APP_BACKEND_URL;
 
 const MainContent = () => {
   const [config, setConfig] = useState({});
@@ -10,7 +12,7 @@ const MainContent = () => {
   useEffect(() => {
     const fetchConfig = async () => {
       try {
-        const response = await fetch('/api_qbwc_zoho/zoho_api_settings/');
+        const response = await fetch(`${apiUrl}/zoho_api_settings/`);
         if (!response.ok) {
           throw new Error('Failed to fetch configuration');
         }
@@ -30,7 +32,7 @@ const MainContent = () => {
   if (error) return <Typography color="error">{error}</Typography>;
 
   return (
-    <Box sx={{ marginLeft: 250, padding: 2, width: '100%' }}>
+    <Box>
       <Typography variant="h4" sx={{ mb: 4, textAlign: 'center' }}>Zoho - QBWC Integration</Typography>
       {config.connected ? (
         <Alert severity="success">
@@ -49,24 +51,25 @@ const MainContent = () => {
             variant="contained"
             color="success"
             component={Link}
-            to={config.auth_url}  // Use the auth_url from the configuration
+            to={config.auth_url} 
             sx={{ mb: 2 }}
+            size='small'
           >
             Connect to Zoho
           </Button>
         )}
-        <List>
-          <ListItemButton component={Link} to="/customers">
-            <ListItemText primary="View Customers" />
-          </ListItemButton>
-          <ListItemButton component={Link} to="/items">
-            <ListItemText primary="View Items" />
-          </ListItemButton>
-          <ListItemButton component={Link} to="/invoices">
-            <ListItemText primary="View Invoices" />
-          </ListItemButton>
-        </List>
+        <Button
+            variant="contained"
+            color="primary"
+            component={Link}
+            to="/integration/application_settings" 
+            size='small'
+            sx={{ mb: 2 }}
+          >
+            Settings
+        </Button>
       </Box>
+      
     </Box>
   );
 };
