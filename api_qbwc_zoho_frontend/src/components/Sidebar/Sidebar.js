@@ -24,15 +24,15 @@ const Sidebar = ({ expanded, toggleSubmenu, handleLogout }) => {
           <ListItemIcon><Dashboard sx={{ color: '#fff' }} /></ListItemIcon>
           <ListItemText primary="Dashboard" />
         </ListItemButton>
-        <ListItemButton component={Link} to="/integration/customers">
+        <ListItemButton component={Link} to="/integration/list_customers">
           <ListItemIcon><People sx={{ color: '#fff' }} /></ListItemIcon>
           <ListItemText primary="Customers" />
         </ListItemButton>
-        <ListItemButton component={Link} to="/integration/items">
+        <ListItemButton component={Link} to="/integration/list_items">
           <ListItemIcon><Box sx={{ color: '#fff' }} /></ListItemIcon>
           <ListItemText primary="Items" />
         </ListItemButton>
-        <ListItemButton component={Link} to="/integration/invoices">
+        <ListItemButton component={Link} to="/integration/list_invoices">
           <ListItemIcon><Receipt sx={{ color: '#fff' }} /></ListItemIcon>
           <ListItemText primary="Invoices" />
         </ListItemButton>

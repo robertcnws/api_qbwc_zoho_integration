@@ -8,7 +8,7 @@ from django.db import transaction
 from django.contrib.auth.decorators import login_required
 from api_zoho.models import AppConfig, ZohoLoading   
 from api_zoho_invoices.models import ZohoFullInvoice
-from datetime import datetime, timezone 
+import datetime
 import requests
 import json
 import logging
@@ -124,11 +124,12 @@ def load_invoices(request):
     save_invoices_in_batches(invoices_to_save, batch_size=100)
     
     if len(invoices_to_get) > 0:
-        zoho_loading = ZohoLoading.objects.filter(zoho_module='invoices', zoho_record_created=datetime.now(timezone.utc)).first()
+        current_time_utc = datetime.datetime.now(datetime.timezone.utc)
+        zoho_loading = ZohoLoading.objects.filter(zoho_module='invoices', zoho_record_created=current_time_utc).first()
         if not zoho_loading:
             zoho_loading = api_zoho_views.create_zoho_loading_instance('invoices')
         else:
-            zoho_loading.zoho_record_updated = datetime.now(timezone.utc)
+            zoho_loading.zoho_record_updated = current_time_utc
         zoho_loading.save()
     
     return render(request, 'api_zoho_invoices/load_invoices.html')

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Typography, Button, Alert, AlertTitle } from '@mui/material';
+import { Box, Typography, Button, Alert, AlertTitle, Container } from '@mui/material';
 import { Link } from 'react-router-dom';
 const apiUrl = process.env.REACT_APP_BACKEND_URL;
 // const ZOHO_SCOPE_INVOICES = process.env.REACT_APP_ZOHO_SCOPE_INVOICES;
@@ -62,7 +62,7 @@ const MainContent = () => {
   if (error) return <Typography color="error">{error}</Typography>;
 
   return (
-    <Box>
+    <Container component="main" maxWidth="md" sx={{ mt: 5, p: 2, bgcolor: 'background.paper', boxShadow: 3, borderRadius: 2 }}>
       <Typography variant="h4" sx={{ mb: 4, textAlign: 'center' }}>Zoho - QBWC Integration</Typography>
       {config.connected ? (
         <Alert severity="success">
@@ -101,7 +101,7 @@ const MainContent = () => {
         </Button>
       </Box>
       
-    </Box>
+    </Container>
   );
 };
 

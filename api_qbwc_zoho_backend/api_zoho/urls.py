@@ -13,4 +13,6 @@ urlpatterns = [
     path("application_settings/", views.application_settings, name="application_settings"),
     path("generate_auth_url/", views.generate_auth_url, name="generate_auth_url"),
     path("get_refresh_token/", views.get_refresh_token, name="get_refresh_token"),
+    path("get_csrf_token/", views.csrf_token_view, name="get_csrf_token"),
+
 ]

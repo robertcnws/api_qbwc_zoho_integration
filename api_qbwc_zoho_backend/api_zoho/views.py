@@ -2,6 +2,7 @@ from django.shortcuts import redirect, render
 from django.conf import settings
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+from django.middleware.csrf import get_token
 from django.core import serializers
 import requests
 import os
@@ -21,6 +22,10 @@ from .forms import ApiZohoForm, LoginForm, AppConfigForm
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
+
+def csrf_token_view(request):
+    csrf_token = get_token(request)
+    return JsonResponse({'csrfToken': csrf_token})
 
 @csrf_exempt
 def login_view(request):

@@ -40,7 +40,7 @@ environ.Env.read_env()
 # SECRET_KEY = env('SECRET_KEY')
 
 # Configuración adicional, por ejemplo:
-ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['localhost', '10.1.10.216', '127.0.0.1'])
+# ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['localhost', '10.1.10.216', '127.0.0.1'])
 
 # ALLOWED_HOSTS = []
 ALLOWED_HOSTS = ['localhost', '10.1.10.216', '127.0.0.1']
@@ -75,6 +75,8 @@ CSRF_TRUSTED_ORIGINS = [
 ]
 
 CSRF_COOKIE_SECURE = True
+
+CSRF_COOKIE_HTTPONLY = False
 
 SESSION_COOKIE_SECURE = True
 

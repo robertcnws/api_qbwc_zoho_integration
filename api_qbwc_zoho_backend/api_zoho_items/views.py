@@ -10,8 +10,9 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from django.shortcuts import render, get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
-from datetime import datetime, timezone
+from django.core import serializers
 from api_quickbook_soap.models import QbItem  
+import datetime
 import pandas as pd
 import rapidfuzz  
 import requests
@@ -129,32 +130,35 @@ def view_item(request, item_id):
     return render(request, 'api_zoho_items/view_item.html', context)
 
 
-@login_required(login_url='login')  
+@csrf_exempt 
 def list_items(request):
-    items_list_query = ZohoItem.objects.all()
-    batch_size = 200  # Ajusta este tamaño según tus necesidades
-    items_list = []
+    if request.method == 'GET':
+        items_list_query = ZohoItem.objects.all()
+        batch_size = 200  # Ajusta este tamaño según tus necesidades
+        items_list = []
+        
+        # Dividir en partes y procesar cada parte
+        for i in range(0, items_list_query.count(), batch_size):
+            batch = items_list_query[i:i + batch_size]
+            items_list.extend(batch) 
+            
+        regex = re.compile(r'^[A-Za-z0-9]{8}-\d{10}$')  # Cambia esto según tu necesidad
+
+        # Añadir atributo 'matched' a cada item si cumple con la expresión regular
+        for item in items_list:
+            item.matched = bool(regex.match(item.qb_list_id)) if item.qb_list_id else False
+
+        items_data = serializers.serialize('json', items_list)
+        return JsonResponse(items_data, safe=False)
     
-    # Dividir en partes y procesar cada parte
-    for i in range(0, items_list_query.count(), batch_size):
-        batch = items_list_query[i:i + batch_size]
-        items_list.extend(batch) 
-        
-    regex = re.compile(r'^[A-Za-z0-9]{8}-\d{10}$')  # Cambia esto según tu necesidad
-
-    # Añadir atributo 'matched' a cada item si cumple con la expresión regular
-    for item in items_list:
-        item.matched = bool(regex.match(item.qb_list_id)) if item.qb_list_id else False
-        # logger.debug(f"Item {item.item_id} name: {item.name} matched: {item.matched} qb_list_id: {item.qb_list_id}") 
-        
-    context = {'items': items_list}
-    return render(request, 'api_zoho_items/list_items.html', context)
+    return JsonResponse({'error': 'Invalid request method'}, status=405) 
 
 
-@login_required(login_url='login')
+@csrf_exempt
 def load_items(request):
     if request.method == 'POST':
         app_config = AppConfig.objects.first()
+        logger.debug(app_config)
         try:
             headers = api_zoho_views.config_headers(request)  # Asegúrate de que esto esté configurado correctamente
         except Exception as e:
@@ -214,9 +218,10 @@ def load_items(request):
         save_items_in_batches(items_to_save, batch_size=100)
         
         if len(items_to_get) > 0:
+            current_time_utc = datetime.datetime.now(datetime.timezone.utc)
             zoho_loading, created = ZohoLoading.objects.update_or_create(
                 zoho_module='items',
-                defaults={'zoho_record_created': timezone.now(), 'zoho_record_updated': timezone.now()}
+                defaults={'zoho_record_created': current_time_utc, 'zoho_record_updated': current_time_utc}
             )
             if created:
                 zoho_loading.save()

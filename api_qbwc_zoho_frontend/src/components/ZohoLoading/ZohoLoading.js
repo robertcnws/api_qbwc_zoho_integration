@@ -3,19 +3,19 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button, Container, Grid, Typography, Alert, CircularProgress } from '@mui/material';
 import { Warning } from '@mui/icons-material';
-
-const apiUrl = process.env.REACT_APP_BACKEND_URL;
+import { getCsrfToken } from '../../utils';
 
 const ZohoLoading = () => {
   const [loadingCustomers, setLoadingCustomers] = useState(false);
   const [loadingItems, setLoadingItems] = useState(false);
   const [loadingInvoices, setLoadingInvoices] = useState(false);
   const [error, setError] = useState(null);
+  const apiUrl = process.env.REACT_APP_BACKEND_URL;
 
-  const loadData = async (module, endpoint, setLoading) => {
+  const loadData = async (element, module, endpoint, setLoading) => {
     setLoading(true);
     try {
-      const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+      const csrfToken = await getCsrfToken();
       const response = await fetch(`${apiUrl}/${module}/${endpoint}/`, {
         method: 'POST',
         credentials: 'include',
@@ -27,6 +27,7 @@ const ZohoLoading = () => {
       if (!response.ok) {
         throw new Error('Failed to load data');
       }
+      window.location.href =  `/integration/list_${element}`
     } catch (err) {
       setError(err.message);
     } finally {
@@ -34,9 +35,9 @@ const ZohoLoading = () => {
     }
   };
 
-  const handleLoadCustomers = () => loadData('api_zoho_customers', 'load_customers', setLoadingCustomers);
-  const handleLoadItems = () => loadData('api_zoho_items', 'load_items', setLoadingItems);
-  const handleLoadInvoices = () => loadData('api_zoho_invoices', 'load_invoices', setLoadingInvoices);
+  const handleLoadCustomers = () => loadData('customers', 'api_zoho_customers', 'load_customers', setLoadingCustomers);
+  const handleLoadItems = () => loadData('items', 'api_zoho_items', 'load_items', setLoadingItems);
+  const handleLoadInvoices = () => loadData('invoices', 'api_zoho_invoices', 'load_invoices', setLoadingInvoices);
 
   useEffect(() => {
     // Puedes implementar la lógica para obtener las últimas fechas de carga si tienes endpoints disponibles

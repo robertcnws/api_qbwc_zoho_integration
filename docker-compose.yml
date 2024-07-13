@@ -36,6 +36,7 @@ services:
     container_name: postgres_server
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./api_qbwc_zoho_backend/scripts_db:/docker-entrypoint-initdb.d
     environment:
       - POSTGRES_DB=api_qbwc_zoho_dev_db
       - POSTGRES_USER=postgres
@@ -66,5 +67,5 @@ volumes:
 
 networks:
   api_qbwc_zoho_network:
-    external: true
-    # driver: bridge
+    # external: true
+    driver: bridge

@@ -11,7 +11,7 @@ from django.views.decorators.http import require_POST
 from django.db import transaction
 from django.db.models import Q
 from api_quickbook_soap.models import QbCustomer
-from datetime import datetime, timezone
+import datetime
 import pandas as pd
 import rapidfuzz
 import requests
@@ -221,11 +221,12 @@ def load_customers(request):
     save_customers_in_batches(customers_to_save, batch_size=100)
     
     if len(customers_to_get) > 0:
-        zoho_loading = ZohoLoading.objects.filter(zoho_module='customers', zoho_record_created=datetime.now(timezone.utc)).first()
+        current_time_utc = datetime.datetime.now(datetime.timezone.utc)
+        zoho_loading = ZohoLoading.objects.filter(zoho_module='customers', zoho_record_created=current_time_utc).first()
         if not zoho_loading:
             zoho_loading = api_zoho_views.create_zoho_loading_instance('customers')
         else:
-            zoho_loading.zoho_record_updated = datetime.now(timezone.utc)
+            zoho_loading.zoho_record_updated = current_time_utc
         zoho_loading.save()
     
     return render(request, 'api_zoho_customers/load_customers.html')
