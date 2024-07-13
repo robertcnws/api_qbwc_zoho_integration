@@ -16,7 +16,8 @@ const ItemsListPage = () => {
     useEffect(() => {
         axios.get(`${apiUrl}/api_zoho_items/list_items/`)
             .then(response => {
-                setItems(response.data);
+                const jsonData = JSON.parse(response.data); 
+                setItems(jsonData);  
             })
             .catch(error => {
                 console.error('Error fetching items:', error);
@@ -29,7 +30,12 @@ const ItemsListPage = () => {
 
     if (loading) {
         return (
-            <Alert severity="info" xs={12}>
+            <Alert severity="info" xs={12} sx={{
+                mt: 5,
+                p: 2,
+                marginLeft: isSmallScreen ? '0' : '3%',
+                transition: 'margin-left 0.3s ease', 
+            }}>
                 Loading...
             </Alert>
         );
@@ -37,7 +43,12 @@ const ItemsListPage = () => {
 
     if (error) {
         return (
-            <Alert severity="danger" xs={12}>
+            <Alert severity="danger" xs={12} sx={{
+                mt: 5,
+                p: 2,
+                marginLeft: isSmallScreen ? '0' : '3%',
+                transition: 'margin-left 0.3s ease', 
+            }}>
                 {error}
             </Alert>
         );

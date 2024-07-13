@@ -63,7 +63,21 @@ const MainContent = () => {
 
   return (
     <Container component="main" maxWidth="md" sx={{ mt: 5, p: 2, bgcolor: 'background.paper', boxShadow: 3, borderRadius: 2 }}>
-      <Typography variant="h4" sx={{ mb: 4, textAlign: 'center' }}>Zoho - QBWC Integration</Typography>
+      <Typography
+                variant="h6"
+                align="center"
+                gutterBottom
+                sx={{
+                    borderBottom: '2px solid #2196F3',
+                    paddingBottom: '8px',
+                    marginBottom: '20px',
+                    textTransform: 'uppercase',
+                    color: '#2196F3',
+                    fontWeight: 'bold',
+                }}
+      >
+        Zoho - QBWC Integration
+      </Typography>
       {config.connected ? (
         <Alert severity="success">
           <AlertTitle>Zoho Connection</AlertTitle>

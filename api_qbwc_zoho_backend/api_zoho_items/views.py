@@ -11,6 +11,7 @@ from django.views.decorators.http import require_POST
 from django.shortcuts import render, get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
 from django.core import serializers
+from django.forms.models import model_to_dict
 from api_quickbook_soap.models import QbItem  
 import datetime
 import pandas as pd
@@ -83,51 +84,62 @@ def unmatch_all_items_ajax(request):
 #############################################
 
 
-@login_required(login_url='login')
+@csrf_exempt
 def view_item(request, item_id):
 
-    zoho_item = ZohoItem.objects.get(id=item_id)
+    if request.method == 'GET':
 
-    # Consultar los datos necesarios de las tablas
-    qb_items = QbItem.objects.filter(matched=False, never_match=False).values_list('list_id', 'name')
+        zoho_item = ZohoItem.objects.get(item_id=item_id)
 
-    # Convertir a DataFrames de Pandas
-    qb_df = pd.DataFrame(list(qb_items), columns=['list_id', 'name'])
+        # Consultar los datos necesarios de las tablas
+        qb_items = QbItem.objects.filter(matched=False, never_match=False).values_list('list_id', 'name')
 
-    # Preparar arrays para comparación
-    qb_items_data = qb_df[['list_id', 'name']].to_dict(orient='records')
-    zoho_name = zoho_item.name
-    dependences_list = []
+        # Convertir a DataFrames de Pandas
+        qb_df = pd.DataFrame(list(qb_items), columns=['list_id', 'name'])
 
-    # Comparar items usando `rapidfuzz` para comparación de cadenas
-    for qb_item_data in qb_items_data:
-        qb_name = qb_item_data['name']
-            
-        if zoho_name and qb_name:
-                # Comparar nombres usando `rapidfuzz`
-            seem_name = rapidfuzz.fuzz.ratio(zoho_name, qb_name) / 100 if zoho_name and qb_name else 0
+        # Preparar arrays para comparación
+        qb_items_data = qb_df[['list_id', 'name']].to_dict(orient='records')
+        zoho_name = zoho_item.name
+        dependences_list = []
+
+        # Comparar items usando `rapidfuzz` para comparación de cadenas
+        for qb_item_data in qb_items_data:
+            qb_name = qb_item_data['name']
                 
-            # logger.debug(f"Comparing {zoho_name} with {qb_name}")
-            # logger.debug(f"Name similarity: {seem_name}")
+            if zoho_name and qb_name:
+                    # Comparar nombres usando `rapidfuzz`
+                seem_name = rapidfuzz.fuzz.ratio(zoho_name, qb_name) / 100 if zoho_name and qb_name else 0
+                    
+                # logger.debug(f"Comparing {zoho_name} with {qb_name}")
+                # logger.debug(f"Name similarity: {seem_name}")
 
-            if seem_name > 0.7:
-                    # Agregar coincidencias a la lista
-                dependences_list.append({
-                        'qb_item_list_id': qb_item_data['list_id'],
-                        'qb_item_name': qb_name,
-                        'seem_name': seem_name,
-                        'coincidence_name': f'{round(seem_name * 100, 2)} %',
-                })
+                if seem_name > 0.7:
+                        # Agregar coincidencias a la lista
+                    dependences_list.append({
+                            'qb_item_list_id': qb_item_data['list_id'],
+                            'qb_item_name': qb_name,
+                            'seem_name': seem_name,
+                            'coincidence_name': f'{round(seem_name * 100, 2)} %',
+                    })
 
-    if dependences_list:
-            # Ordenar dependencias por `seem_name`
-        sorted_dependences_list = sorted(dependences_list, key=lambda x: x['seem_name'], reverse=True)
-    else:
-        sorted_dependences_list = []
+        if dependences_list:
+                # Ordenar dependencias por `seem_name`
+            sorted_dependences_list = sorted(dependences_list, key=lambda x: x['seem_name'], reverse=True)
+        else:
+            sorted_dependences_list = []
+            
+        zoho_item = model_to_dict(zoho_item)
+
+        zoho_item['coincidences'] = sorted_dependences_list
+
+        # zoho_item = serializers.serialize('json', [zoho_item])
+        # sorted_dependences_list = serializers.serialize('json', sorted_dependences_list)
+        
+        # context = {'item': zoho_item }
+        
+        return JsonResponse(zoho_item)
     
-    context = {'item': zoho_item, 'coincidences' : sorted_dependences_list}
-    
-    return render(request, 'api_zoho_items/view_item.html', context)
+    return JsonResponse({'error': 'Invalid request method'}, status=405)  
 
 
 @csrf_exempt 
