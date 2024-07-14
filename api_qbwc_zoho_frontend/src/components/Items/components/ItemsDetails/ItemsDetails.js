@@ -80,13 +80,14 @@ const ItemsDetails = () => {
         });
     };
     return (
-      <Container maxWidth="lg" sx={{ mt: 5, p: 2, marginLeft: '3%', transition: 'margin-left 0.3s ease' }}>
+      <Container maxWidth="lg" sx={{ mt: 5, p: 2, marginLeft: '1%', marginTop: '1%', transition: 'margin-left 0.3s ease' }}>
+      {/* <Container component="main" maxWidth="md" sx={{ mt: 5, p: 3, bgcolor: '#FFFFFF', boxShadow: 3, borderRadius: 2 }}> */}
           {!item ? (
-              <Grid container spacing={2}>
+              <Grid container spacing={1}>
                   <Grid item xs={12}>
                       <Alert severity="warning">No item found.</Alert>
                   </Grid>
-                  <Grid item xs={12}>
+                  <Grid item xs={6} container>
                       <Button variant="contained" color="success" size="small" onClick={() => navigate(-1)}>
                           Back to list
                       </Button>
@@ -185,9 +186,11 @@ const ItemsDetails = () => {
                       </TableContainer>
                   </Grid>
                   <Grid item xs={12}>
-                      <Button variant="contained" color="success" size="small" onClick={() => navigate(-1)}>
-                          Back to list
-                      </Button>
+                    <Grid item xs={6}>
+                        <Button variant="contained" color="success" size="small" onClick={() => navigate(-1)}>
+                            Back to list
+                        </Button>
+                    </Grid>
                   </Grid>
               </Grid>
           )}

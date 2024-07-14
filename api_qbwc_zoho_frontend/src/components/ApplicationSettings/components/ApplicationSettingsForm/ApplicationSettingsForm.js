@@ -9,17 +9,31 @@ const ApplicationSettingsForm = ({ formData, onSubmit, error, success }) => {
     const [showZohoSecret, setShowZohoSecret] = useState(false);
     const [showQBPassword, setShowQBPassword] = useState(false);
     const [errors, setErrors] = useState({});
-    
+    const [formChanged, setFormChanged] = useState(false); // Estado para verificar cambios en el formulario
+
     useEffect(() => {
         setData(formData);
     }, [formData]);
+
+    useEffect(() => {
+        // Verificar si hay cambios comparando con formData
+        const isFormChanged =
+            data.zoho_client_id !== formData.zoho_client_id ||
+            data.zoho_client_secret !== formData.zoho_client_secret ||
+            data.zoho_org_id !== formData.zoho_org_id ||
+            data.zoho_redirect_uri !== formData.zoho_redirect_uri ||
+            data.qb_username !== formData.qb_username ||
+            data.qb_password !== formData.qb_password;
+
+        setFormChanged(isFormChanged);
+    }, [data, formData]);
 
     const handleChange = (event) => {
         const { name, value } = event.target;
         setData({ ...data, [name]: value });
         setErrors((prevErrors) => ({
             ...prevErrors,
-            [name]: value ? '' : prevErrors[name], 
+            [name]: value ? '' : prevErrors[name],
         }));
     };
 
@@ -70,8 +84,8 @@ const ApplicationSettingsForm = ({ formData, onSubmit, error, success }) => {
             >
                 Application Settings
             </Typography>
-            {success && <Alert severity="success">{success}</Alert>}
-            {error && <Alert severity="error">{error}</Alert>}
+            {success && <Alert severity="success">{success}<br/></Alert>}
+            {error && <Alert severity="error">{error}<br/></Alert>}
             <form onSubmit={handleSubmit}>
                 <Box sx={{ mb: 3, bgcolor: '#E3F2FD'}}>
                     <Typography variant="h6" className="separator">Zoho Section</Typography>
@@ -185,11 +199,21 @@ const ApplicationSettingsForm = ({ formData, onSubmit, error, success }) => {
                         />
                     </Grid>
                 </Grid>
+                <Typography
+                    sx={{
+                        borderBottom: '2px solid #2196F3',
+                        paddingBottom: '8px',
+                        marginBottom: '20px',
+                        color: '#2196F3',
+                        fontWeight: 'bold',
+                    }}
+                ></Typography>
                 <Box sx={{ mt: 3 }}>
                     <Button
                         type="submit"
                         variant="contained"
                         color="primary"
+                        disabled={!formChanged} // Deshabilitar si no hay cambios
                         sx={{ mr: 2 }}
                         size='small'
                     >

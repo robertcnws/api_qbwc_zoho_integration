@@ -23,7 +23,8 @@ const ItemsList = ({ items }) => {
     };
 
     const filteredItems = items.filter(item =>
-        item.fields.name.toLowerCase().includes(searchTerm.toLowerCase())
+        item.fields.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.fields.sku.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     const handleViewItem = (item) => {
@@ -31,7 +32,7 @@ const ItemsList = ({ items }) => {
     };
 
     return (
-        <Grid container spacing={2} alignItems="center">
+        <Grid container spacing={2} alignItems="center" sx={{ marginLeft: '-3%', marginTop: '-5%'}}>
             <Grid item xs={6}>
             <Typography
                 variant="h6"
@@ -98,14 +99,14 @@ const ItemsList = ({ items }) => {
                                     <TableCell>{item.fields.rate}</TableCell>
                                     <TableCell>{item.fields.sku}</TableCell>
                                     <TableCell style={{ width: '100px' }}>
-                                        <Alert severity={item.fields.matched ? "success" : "error"} 
+                                        <Alert severity={!item.fields.qb_list_id || item.fields.qb_list_id === "" ? "error" : "success"} 
                                                 style={{ 
                                                     fontSize: '0.80rem',  
                                                     padding: '4px 8px', 
                                                     borderRadius: '4px',
                                                     maxHeight: '30px'
                                                 }}>
-                                            <b>{item.fields.matched ? "YES" : "NO"}</b>
+                                            <b>{!item.fields.qb_list_id || item.fields.qb_list_id === "" ? "NO" : "YES"}</b>
                                         </Alert>
                                     </TableCell>
                                     <TableCell className="text-center align-middle">

@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { Container, CircularProgress, Alert, useMediaQuery, useTheme } from '@mui/material';
-import ItemsList from '../ItemsList/ItemsList'; // Importa el componente ItemsList
-// import { getCsrfToken } from '../../../../utils';
+import { Container, CircularProgress, useMediaQuery, useTheme } from '@mui/material';
+import ItemsList from '../ItemsList/ItemsList';
 import axios from 'axios';
+import { AlertLoading } from '../../../Utils/components/AlertLoading/AlertLoading';
+import { AlertError } from '../../../Utils/components/AlertError/AlertError';
 
 const apiUrl = process.env.REACT_APP_BACKEND_URL
 
@@ -30,27 +31,13 @@ const ItemsListPage = () => {
 
     if (loading) {
         return (
-            <Alert severity="info" xs={12} sx={{
-                mt: 5,
-                p: 2,
-                marginLeft: isSmallScreen ? '0' : '3%',
-                transition: 'margin-left 0.3s ease', 
-            }}>
-                Loading...
-            </Alert>
+            <AlertLoading isSmallScreen={isSmallScreen} />
         );
     }
 
     if (error) {
         return (
-            <Alert severity="danger" xs={12} sx={{
-                mt: 5,
-                p: 2,
-                marginLeft: isSmallScreen ? '0' : '3%',
-                transition: 'margin-left 0.3s ease', 
-            }}>
-                {error}
-            </Alert>
+            <AlertError isSmallScreen={isSmallScreen} error={error}/>
         );
     }
 

@@ -1,14 +1,14 @@
 import React from 'react';
 import type {Meta, StoryObj} from '@storybook/react';
 
-import {ItemsList} from './ItemsList';
+import {Topbar} from './Topbar';
 
-const meta: Meta<typeof ItemsList> = {
-  component: ItemsList,
+const meta: Meta<typeof Topbar> = {
+  component: Topbar,
 };
 
 export default meta;
 
-type Story = StoryObj<typeof ItemsList>;
+type Story = StoryObj<typeof Topbar>;
 
 export const Basic: Story = {args: {}};

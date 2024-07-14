@@ -9,3 +9,4 @@ export {ApplicationConfig} from './ApplicationConfig';
 export {ApplicationSettings} from './ApplicationSettings';
 export {InitialPage} from './InitialPage';
 export {ZohoLoading} from './ZohoLoading';
+export {Topbar} from './Topbar';

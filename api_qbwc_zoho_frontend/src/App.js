@@ -9,6 +9,7 @@ import MainContent from './components/MainContent/MainContent';
 import ZohoLoading from './components/ZohoLoading/ZohoLoading';
 import ItemsListPage from './components/Items/components/ItemsListPage/ItemsListPage';
 import ItemsDetails from './components/Items/components/ItemsDetails/ItemsDetails';
+import CustomersListPage from './components/Customers/components/CustomersListPage/CustomersListPage';
 
 const HomeRedirect = () => {
   const { isAuthenticated } = useAuth();
@@ -32,6 +33,7 @@ const App = () => {
             <Route path="zoho" element={<ZohoLoading />} />
             <Route path="list_items" element={<ItemsListPage />} />
             <Route path="item_details" element={<ItemsDetails />} />
+            <Route path="list_customers" element={<CustomersListPage />} />
           </Route>
         </Routes>
       </Router>

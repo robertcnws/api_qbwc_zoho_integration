@@ -10,6 +10,8 @@ from django.shortcuts import get_object_or_404
 from django.views.decorators.http import require_POST
 from django.db import transaction
 from django.db.models import Q
+from django.core import serializers
+from django.views.decorators.csrf import csrf_exempt
 from api_quickbook_soap.models import QbCustomer
 import datetime
 import pandas as pd
@@ -80,7 +82,7 @@ def unmatch_all_customers_ajax(request):
 #############################################
 
 
-@login_required(login_url='login')
+@csrf_exempt
 def view_customer(request, customer_id):
     zoho_customer = ZohoCustomer.objects.get(id=customer_id)
 
@@ -137,99 +139,105 @@ def view_customer(request, customer_id):
     return render(request, 'api_zoho_customers/view_customer.html', context)
 
 
-@login_required(login_url='login')
+@csrf_exempt
 def  list_customers(request):
-    # Después de obtener todos los clientes, renderiza la plantilla con la lista de clientes
-    customers_list_query = ZohoCustomer.objects.all()
-    batch_size = 200  # Ajusta este tamaño según tus necesidades
-    customers_list = []
+    if request.method == 'GET':
+        customers_list_query = ZohoCustomer.objects.all()
+        batch_size = 200  # Ajusta este tamaño según tus necesidades
+        customers_list = []
+        
+        # Dividir en partes y procesar cada parte
+        for i in range(0, customers_list_query.count(), batch_size):
+            batch = customers_list_query[i:i + batch_size]
+            customers_list.extend(batch)  # Agregar datos al acumulador
+        
+        items_data = serializers.serialize('json', customers_list)
+        
+        return JsonResponse(items_data, safe=False)
     
-    # Dividir en partes y procesar cada parte
-    for i in range(0, customers_list_query.count(), batch_size):
-        batch = customers_list_query[i:i + batch_size]
-        customers_list.extend(batch)  # Agregar datos al acumulador
-    
-    context = {'customers': customers_list}
-    return render(request, 'api_zoho_customers/list_customers.html', context)
+    return JsonResponse({'error': 'Invalid request method'}, status=405)
 
 
-@login_required(login_url='login')
+@csrf_exempt
 def load_customers(request):
-    app_config = AppConfig.objects.first()
-    try:
-        headers = api_zoho_views.config_headers(request)  # Asegúrate de que esto esté configurado correctamente
-    except Exception as e:
-        logger.error(f"Error connecting to Zoho API: {str(e)}")
-        context = {
-            'error': f"Error connecting to Zoho API (Load Customers): {str(e)}",
-            'status_code': 500
-        }
-        return render(request, 'api_zoho/error.html', context)
-    customers_saved = list(ZohoCustomer.objects.all())
-
-    params = {
-        'page': 1,
-        'per_page': 200,  # Asegúrate de que este sea el valor máximo permitido por la API
-        'organization_id': app_config.zoho_org_id,
-    }
-
-    url = f'{settings.ZOHO_URL_READ_CUSTOMERS}'
-    customers_to_save = []
-    customers_to_get = [] 
-
-    while True:
+    if request.method == 'POST':
+        app_config = AppConfig.objects.first()
         try:
-            response = requests.get(url, headers=headers, params=params)
-            if response.status_code == 401:  # Si el token ha expirado
-                new_token = api_zoho_views.refresh_zoho_token()
-                headers['Authorization'] = f'Zoho-oauthtoken {new_token}'
-                response = requests.get(url, headers=headers, params=params)  # Reintenta la solicitud
-            elif response.status_code != 200:
-                logger.error(f"Error fetching customers: {response.text}")
-                context = {
-                    'error': response.text,
-                    'status_code': response.status_code
-                }
-                return render(request, 'api_zoho/error.html', context)
-            else:
-                response.raise_for_status()
-                customers = response.json()
-                if customers.get('contacts', []):
-                    customers_to_get.extend(customers['contacts'])
-                if 'page_context' in customers and 'has_more_page' in customers['page_context'] and customers['page_context']['has_more_page']:
-                    params['page'] += 1  # Avanza a la siguiente página
+            headers = api_zoho_views.config_headers(request)  # Asegúrate de que esto esté configurado correctamente
+        except Exception as e:
+            logger.error(f"Error connecting to Zoho API: {str(e)}")
+            context = {
+                'error': f"Error connecting to Zoho API (Load Customers): {str(e)}",
+                'status_code': 500
+            }
+            return render(request, 'api_zoho/error.html', context)
+        customers_saved = list(ZohoCustomer.objects.all())
+
+        params = {
+            'page': 1,
+            'per_page': 200,  # Asegúrate de que este sea el valor máximo permitido por la API
+            'organization_id': app_config.zoho_org_id,
+        }
+
+        url = f'{settings.ZOHO_URL_READ_CUSTOMERS}'
+        customers_to_save = []
+        customers_to_get = [] 
+
+        while True:
+            try:
+                response = requests.get(url, headers=headers, params=params)
+                if response.status_code == 401:  # Si el token ha expirado
+                    new_token = api_zoho_views.refresh_zoho_token()
+                    headers['Authorization'] = f'Zoho-oauthtoken {new_token}'
+                    response = requests.get(url, headers=headers, params=params)  # Reintenta la solicitud
+                elif response.status_code != 200:
+                    logger.error(f"Error fetching customers: {response.text}")
+                    context = {
+                        'error': response.text,
+                        'status_code': response.status_code
+                    }
+                    return render(request, 'api_zoho/error.html', context)
                 else:
-                    break  # Sal del bucle si no hay más páginas
-        except requests.exceptions.RequestException as e:
-            logger.error(f"Error fetching customers: {e}")
-            return JsonResponse({"error": "Failed to fetch customers"}, status=500)
-    
-    existing_customers = {customer.contact_id: customer for customer in customers_saved}
-    existing_emails = {customer.email: customer for customer in customers_saved}
+                    response.raise_for_status()
+                    customers = response.json()
+                    if customers.get('contacts', []):
+                        customers_to_get.extend(customers['contacts'])
+                    if 'page_context' in customers and 'has_more_page' in customers['page_context'] and customers['page_context']['has_more_page']:
+                        params['page'] += 1  # Avanza a la siguiente página
+                    else:
+                        break  # Sal del bucle si no hay más páginas
+            except requests.exceptions.RequestException as e:
+                logger.error(f"Error fetching customers: {e}")
+                return JsonResponse({"error": "Failed to fetch customers"}, status=500)
+        
+        existing_customers = {customer.contact_id: customer for customer in customers_saved}
+        existing_emails = {customer.email: customer for customer in customers_saved}
 
-    for data in customers_to_get:
-        new_customer = create_customer_instance(data)
-        if new_customer.contact_id not in existing_customers and new_customer.email not in existing_emails and new_customer.status == 'active':
-            customers_to_save.append(new_customer)
+        for data in customers_to_get:
+            new_customer = create_customer_instance(data)
+            if new_customer.contact_id not in existing_customers and new_customer.email not in existing_emails and new_customer.status == 'active':
+                customers_to_save.append(new_customer)
 
-    def save_customers_in_batches(customers, batch_size=100):
-        for i in range(0, len(customers), batch_size):
-            batch = customers[i:i + batch_size]
-            with transaction.atomic():
-                ZohoCustomer.objects.bulk_create(batch)
+        def save_customers_in_batches(customers, batch_size=100):
+            for i in range(0, len(customers), batch_size):
+                batch = customers[i:i + batch_size]
+                with transaction.atomic():
+                    ZohoCustomer.objects.bulk_create(batch)
+        
+        save_customers_in_batches(customers_to_save, batch_size=100)
+        
+        if len(customers_to_get) > 0:
+            current_time_utc = datetime.datetime.now(datetime.timezone.utc)
+            zoho_loading = ZohoLoading.objects.filter(zoho_module='customers', zoho_record_created=current_time_utc).first()
+            if not zoho_loading:
+                zoho_loading = api_zoho_views.create_zoho_loading_instance('customers')
+            else:
+                zoho_loading.zoho_record_updated = current_time_utc
+            zoho_loading.save()
     
-    save_customers_in_batches(customers_to_save, batch_size=100)
+        return JsonResponse({'message': 'Customers loaded successfully'}, status=200)
     
-    if len(customers_to_get) > 0:
-        current_time_utc = datetime.datetime.now(datetime.timezone.utc)
-        zoho_loading = ZohoLoading.objects.filter(zoho_module='customers', zoho_record_created=current_time_utc).first()
-        if not zoho_loading:
-            zoho_loading = api_zoho_views.create_zoho_loading_instance('customers')
-        else:
-            zoho_loading.zoho_record_updated = current_time_utc
-        zoho_loading.save()
-    
-    return render(request, 'api_zoho_customers/load_customers.html')
+    return JsonResponse({'error': 'Invalid request method'}, status=405)
 
 
 @login_required(login_url='login')

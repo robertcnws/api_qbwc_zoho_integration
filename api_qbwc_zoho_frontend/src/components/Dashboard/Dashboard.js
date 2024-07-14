@@ -3,6 +3,7 @@ import { Outlet } from 'react-router-dom';
 import { Box } from '@mui/material';
 import Swal from 'sweetalert2';
 import Sidebar from '../Sidebar/Sidebar';
+import Topbar from '../Topbar/Topbar';
 
 
 const Dashboard = () => {
@@ -32,7 +33,8 @@ const Dashboard = () => {
   return (
     <Box sx={{ display: 'flex', height: '100vh', backgroundColor: '#f4f4f4' }}>
       <Sidebar expanded={expanded} toggleSubmenu={toggleSubmenu} handleLogout={handleLogout} />
-      <Box sx={{ flexGrow: 1, p: 2, marginLeft: '13%', padding: 2, width: '100%' }}>
+      <Box sx={{ flexDirection: 'column', flexGrow: 1, width: '100%' }}>
+        <Topbar handleLogout={handleLogout} />
         <Outlet />
       </Box>
     </Box>

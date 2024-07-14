@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Typography, Button, Alert, AlertTitle, Container } from '@mui/material';
+import { Grid, Box, Typography, Button, Alert, AlertTitle, Container } from '@mui/material';
 import { Link } from 'react-router-dom';
 const apiUrl = process.env.REACT_APP_BACKEND_URL;
 // const ZOHO_SCOPE_INVOICES = process.env.REACT_APP_ZOHO_SCOPE_INVOICES;
@@ -103,17 +103,33 @@ const MainContent = () => {
             Connect to Zoho
           </Button>
         )}
-        <Button
-            variant="contained"
-            color="primary"
-            component={Link}
-            to="/integration/application_settings" 
-            size='small'
-            sx={{ mb: 2 }}
-          >
-            Settings
-        </Button>
       </Box>
+
+      <Grid>
+          <Typography
+                  sx={{
+                      borderBottom: '2px solid #2196F3',
+                      paddingBottom: '8px',
+                      marginBottom: '20px',
+                      color: '#2196F3',
+                      fontWeight: 'bold',
+                  }}
+              ></Typography>
+          <Grid item xs={6} container>
+            <Grid item>
+              <Button
+                  variant="contained"
+                  color="primary"
+                  component={Link}
+                  to="/integration/application_settings" 
+                  size='small'
+                  sx={{ mb: 2 }}
+                >
+                  Settings
+              </Button>
+            </Grid>
+          </Grid>
+        </Grid>
       
     </Container>
   );

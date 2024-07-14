@@ -130,17 +130,28 @@ const ZohoLoading = () => {
                     {error}
                 </Alert>
             )}
-            <Container sx={{ mt: 3, textAlign: 'center' }}>
-                <Button
-                    component={Link}
-                    to="/integration"
-                    variant="contained"
-                    color="success"
-                    size="small"
-                >
-                    Back to Integration
-                </Button>
-            </Container>
+            <Typography
+                sx={{
+                    borderBottom: '2px solid #2196F3',
+                    paddingBottom: '8px',
+                    marginBottom: '20px',
+                    color: '#2196F3',
+                    fontWeight: 'bold',
+                }}
+            ></Typography>
+                <Grid item xs={6} container>
+                        <Grid item>
+                            <Button
+                                component={Link}
+                                to="/integration"
+                                variant="contained"
+                                color="success"
+                                size="small"
+                            >
+                                Back to Integration
+                            </Button>
+                        </Grid>
+                </Grid>
         </Container>
   );
 };
