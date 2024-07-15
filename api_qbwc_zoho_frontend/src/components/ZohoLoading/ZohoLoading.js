@@ -4,13 +4,19 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Button, Container, Grid, Typography, Alert, CircularProgress } from '@mui/material';
 import { Warning } from '@mui/icons-material';
 import { getCsrfToken } from '../../utils';
+import axios from 'axios'
+import moment from 'moment'
+
+const apiUrl = process.env.REACT_APP_BACKEND_URL;
 
 const ZohoLoading = () => {
   const [loadingCustomers, setLoadingCustomers] = useState(false);
   const [loadingItems, setLoadingItems] = useState(false);
   const [loadingInvoices, setLoadingInvoices] = useState(false);
+  const [lastDateLoadedCustomers, setLastDateLoadedCustomers] = useState(null);
+  const [lastDateLoadedItems, setlastDateLoadedItems] = useState(null);
+  const [lastDateLoadedInvoices, setlastDateLoadedInvoices] = useState(null);
   const [error, setError] = useState(null);
-  const apiUrl = process.env.REACT_APP_BACKEND_URL;
   const navigate = useNavigate();
 
   const loadData = async (element, module, endpoint, setLoading) => {
@@ -41,7 +47,16 @@ const ZohoLoading = () => {
   const handleLoadInvoices = () => loadData('invoices', 'api_zoho_invoices', 'load_invoices', setLoadingInvoices);
 
   useEffect(() => {
-    // Puedes implementar la lógica para obtener las últimas fechas de carga si tienes endpoints disponibles
+    axios.get(`${apiUrl}/zoho_loading/`)
+            .then(response => {
+                setLastDateLoadedCustomers(response.data.zoho_loading_customers.zoho_record_updated)
+                setlastDateLoadedItems(response.data.zoho_loading_items.zoho_record_updated)
+                setlastDateLoadedInvoices(response.data.zoho_loading_invoices.zoho_record_updated)
+            })
+            .catch(error => {
+                console.error('Error fetching items:', error);
+                setError(`Failed to fetch items: ${error}`);
+            })
   }, []);
 
   return (
@@ -62,7 +77,7 @@ const ZohoLoading = () => {
                 Load Data from Zoho
             </Typography>
             <Grid container spacing={2} alignItems="center" justifyContent="center" mb={3}>
-                <Grid item>
+                <Grid item xs={4} sx={{ textAlign: 'center' }}>
                     <Button
                         onClick={handleLoadCustomers}
                         variant="contained"
@@ -74,7 +89,7 @@ const ZohoLoading = () => {
                         {loadingCustomers ? 'Loading Customers...' : 'Load Customers'}
                     </Button>
                 </Grid>
-                <Grid item>
+                <Grid item xs={4} sx={{ textAlign: 'center' }}>
                     <Button
                         onClick={handleLoadItems}
                         variant="contained"
@@ -86,7 +101,7 @@ const ZohoLoading = () => {
                         {loadingItems ? 'Loading Items...' : 'Load Items'}
                     </Button>
                 </Grid>
-                <Grid item>
+                <Grid item xs={4} sx={{ textAlign: 'center' }}>
                     <Button
                         onClick={handleLoadInvoices}
                         variant="contained"
@@ -99,30 +114,33 @@ const ZohoLoading = () => {
                     </Button>
                 </Grid>
             </Grid>
-            <Grid container spacing={2} mt={3}>
+            <Grid container spacing={2} alignItems="center" justifyContent="center" mb={3}>
                 <Grid item xs={4}>
-                    {/* Aquí puedes reemplazar con datos reales si los tienes */}
-                    {false && (
+                    {lastDateLoadedCustomers ? (
                         <Alert severity="warning" icon={<Warning />}>
-                            Last Time loaded: <br />{new Date().toLocaleString()}
+                            Last loaded: <br/>
+                            Date: <b>{moment(lastDateLoadedCustomers).format('DD/MM/YYYY')}</b><br/>
+                            Time: <b>{moment(lastDateLoadedCustomers).format('hh:mm a')}</b><br/>
                         </Alert>
-                    )}
+                    ) : null}
                 </Grid>
                 <Grid item xs={4}>
-                    {/* Aquí puedes reemplazar con datos reales si los tienes */}
-                    {false && (
+                    {lastDateLoadedItems ? (
                         <Alert severity="warning" icon={<Warning />}>
-                            Last Time loaded: <br />{new Date().toLocaleString()}
+                            Last loaded: <br/>
+                            Date: <b>{moment(lastDateLoadedItems).format('DD/MM/YYYY')}</b><br/>
+                            Time: <b>{moment(lastDateLoadedItems).format('hh:mm a')}</b><br/>
                         </Alert>
-                    )}
+                    ) : null}
                 </Grid>
                 <Grid item xs={4}>
-                    {/* Aquí puedes reemplazar con datos reales si los tienes */}
-                    {false && (
+                    {lastDateLoadedInvoices ? (
                         <Alert severity="warning" icon={<Warning />}>
-                            Last Time loaded: <br />{new Date().toLocaleString()}
+                            Last loaded: <br/>
+                            Date: <b>{moment(lastDateLoadedInvoices).format('DD/MM/YYYY')}</b><br/>
+                            Time: <b>{moment(lastDateLoadedInvoices).format('hh:mm a')}</b><br/>
                         </Alert>
-                    )}
+                    ) : null}
                 </Grid>
             </Grid>
             {error && (

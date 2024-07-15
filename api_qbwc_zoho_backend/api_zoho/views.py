@@ -4,6 +4,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.middleware.csrf import get_token
 from django.core import serializers
+from django.forms.models import model_to_dict
 import requests
 import os
 import logging
@@ -50,10 +51,12 @@ def login_view(request):
     return JsonResponse({'error': 'Method not allowed'}, status=405)
 
 
-@login_required(login_url='login')
+@csrf_exempt
 def logout_view(request):
-    logout(request)  # Cierra la sesión del usuario
-    return redirect('login')
+    if request.method == 'GET':
+        logout(request) 
+        return JsonResponse({'status': 'success'}, status=200)
+    return JsonResponse({'error': 'Method not allowed'}, status=405)
 
 
 @csrf_exempt
@@ -270,17 +273,20 @@ def application_settings(request):
         return response
 
 
-@login_required(login_url='login')
+@csrf_exempt
 def zoho_loading(request):
-    zoho_loading_items = ZohoLoading.objects.filter(zoho_module='items').order_by('-zoho_record_created').first()
-    zoho_loading_invoices = ZohoLoading.objects.filter(zoho_module='invoices').order_by('-zoho_record_created').first()
-    zoho_loading_customers = ZohoLoading.objects.filter(zoho_module='customers').order_by('-zoho_record_created').first()
-    context = {
-        'zoho_loading_items': zoho_loading_items,
-        'zoho_loading_invoices': zoho_loading_invoices,
-        'zoho_loading_customers': zoho_loading_customers
-    }
-    return render(request, 'api_zoho/zoho_loading.html', context)   
+    if request.method == 'GET':
+        zoho_loading_items = ZohoLoading.objects.filter(zoho_module='items').order_by('-zoho_record_created').first()
+        zoho_loading_invoices = ZohoLoading.objects.filter(zoho_module='invoices').order_by('-zoho_record_created').first()
+        zoho_loading_customers = ZohoLoading.objects.filter(zoho_module='customers').order_by('-zoho_record_created').first()
+        context = {
+            'zoho_loading_items': model_to_dict(zoho_loading_items),
+            'zoho_loading_invoices': model_to_dict(zoho_loading_invoices),
+            'zoho_loading_customers': model_to_dict(zoho_loading_customers)
+        }
+        return JsonResponse(context)
+    
+    return JsonResponse({'error': 'Invalid request method'}, status=405)  
 
 
 def create_zoho_loading_instance(module):

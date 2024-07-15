@@ -1,8 +1,5 @@
-// src/components/AuthContext/AuthContext.js
-
 import React, { createContext, useState, useEffect, useContext } from 'react';
 
-// Crea el contexto de autenticación
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
@@ -36,7 +33,6 @@ export const AuthProvider = ({ children }) => {
   );
 };
 
-// Hook personalizado para usar el contexto de autenticación
 export const useAuth = () => {
   return useContext(AuthContext);
 };

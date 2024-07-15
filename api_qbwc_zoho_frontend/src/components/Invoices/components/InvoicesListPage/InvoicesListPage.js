@@ -1,28 +1,28 @@
 import React, { useEffect, useState } from 'react';
 import { Container, CircularProgress, useMediaQuery, useTheme } from '@mui/material';
-import CustomersList from '../CustomersList/CustomersList';
+import InvoicesList from '../InvoicesList/InvoicesList';
 import axios from 'axios';
 import { AlertLoading } from '../../../Utils/components/AlertLoading/AlertLoading';
 import { AlertError } from '../../../Utils/components/AlertError/AlertError';
 
 const apiUrl = process.env.REACT_APP_BACKEND_URL
 
-const CustomersListPage = () => {
-    const [customers, setCustomers] = useState([]);
+const InvoicesListPage = () => {
+    const [invoices, setInvoices] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const theme = useTheme();
     const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
 
     useEffect(() => {
-        axios.get(`${apiUrl}/api_zoho_customers/list_customers/`)
+        axios.get(`${apiUrl}/api_quickbook_soap/matched_invoices/`)
             .then(response => {
                 const jsonData = JSON.parse(response.data); 
-                setCustomers(jsonData);  
+                setInvoices(jsonData);  
             })
             .catch(error => {
-                console.error('Error fetching customers:', error);
-                setError(`Failed to fetch customers: ${error}`);
+                console.error('Error fetching invoices:', error);
+                setError(`Failed to fetch invoices: ${error}`);
             })
             .finally(() => {
                 setLoading(false);
@@ -55,10 +55,10 @@ const CustomersListPage = () => {
             {loading ? (
                 <CircularProgress />
             ) : (
-                <CustomersList customers={customers} />
+                <InvoicesList invoices={invoices} />
             )}
         </Container>
     );
 };
 
-export default CustomersListPage;
+export default InvoicesListPage;

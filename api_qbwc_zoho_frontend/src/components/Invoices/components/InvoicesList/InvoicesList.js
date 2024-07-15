@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Grid, Typography, Alert, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, TablePagination, TextField } from '@mui/material';
 import { useNavigate } from 'react-router-dom'; 
 
-const CustomersList = ({ customers }) => {
+const InvoicesList = ({ invoices }) => {
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
     const [searchTerm, setSearchTerm] = useState('');
@@ -22,7 +22,7 @@ const CustomersList = ({ customers }) => {
         setPage(0);
     };
 
-    const filteredCustomers = customers.filter(customer =>
+    const filteredInvoices = invoices.filter(customer =>
         customer.fields.contact_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         customer.fields.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
         customer.fields.company_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -45,25 +45,25 @@ const CustomersList = ({ customers }) => {
                     fontWeight: 'bold',
                 }}
             >
-                Customers List
+                Invoices List
             </Typography>
             </Grid>
             <Grid item xs={6} container justifyContent="flex-end" spacing={1}>
                 <Grid item>
-                    <Button variant="contained" color="primary" size="small" href="{% url 'api_quickbook_soap:matching_customers' %}">
-                        Similar Customers
+                    <Button variant="contained" color="primary" size="small" href="{% url 'api_quickbook_soap:matching_invoices' %}">
+                        Similar Invoices
                     </Button>
                 </Grid>
                 <Grid item>
-                    <Button variant="contained" color="success" size="small" href="{% url 'api_quickbook_soap:matched_customers' %}">
-                        Matched Customers
+                    <Button variant="contained" color="success" size="small" href="{% url 'api_quickbook_soap:matched_invoices' %}">
+                        Matched Invoices
                     </Button>
                 </Grid>
             </Grid>
             <Grid item xs={12} container justifyContent="flex-end" spacing={1}>
                 <Grid item xs={8}>
                     <Alert severity="info" sx={{ mb: 2 }}>
-                        There are {filteredCustomers.length} customers found.
+                        There are {filteredInvoices.length} invoices found.
                     </Alert>
                 </Grid>
                 <Grid item xs={4}>
@@ -79,7 +79,7 @@ const CustomersList = ({ customers }) => {
             </Grid>
             <Grid item xs={12}>
                 <TableContainer component={Paper}>
-                    <Table id="myTable" aria-label="customers table" sx={{ minWidth: 650 }}>
+                    <Table id="myTable" aria-label="invoices table" sx={{ minWidth: 650 }}>
                         <TableHead sx={{ backgroundColor: '#e0e0e0' }}> 
                             <TableRow>
                                 <TableCell sx={{ fontWeight: 'bold', color: '#333', borderBottom: '1px solid #ccc' }}>Name</TableCell>
@@ -92,8 +92,8 @@ const CustomersList = ({ customers }) => {
                         </TableHead>
                         <TableBody>
                             {(rowsPerPage > 0
-                                ? filteredCustomers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                                : filteredCustomers
+                                ? filteredInvoices.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                                : filteredInvoices
                             ).map((customer, index) => (
                                 <TableRow key={index} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
                                     <TableCell>{customer.fields.contact_name}</TableCell>
@@ -126,7 +126,7 @@ const CustomersList = ({ customers }) => {
                 <TablePagination
                     rowsPerPageOptions={[5, 10, 25, 50]}
                     component="div"
-                    count={filteredCustomers.length}
+                    count={filteredInvoices.length}
                     rowsPerPage={rowsPerPage}
                     page={page}
                     onPageChange={handleChangePage}
@@ -138,4 +138,4 @@ const CustomersList = ({ customers }) => {
     );
 };
 
-export default CustomersList;
+export default InvoicesList;

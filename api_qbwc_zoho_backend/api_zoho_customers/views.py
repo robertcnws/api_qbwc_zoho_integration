@@ -12,6 +12,7 @@ from django.db import transaction
 from django.db.models import Q
 from django.core import serializers
 from django.views.decorators.csrf import csrf_exempt
+from django.forms.models import model_to_dict
 from api_quickbook_soap.models import QbCustomer
 import datetime
 import pandas as pd
@@ -84,59 +85,64 @@ def unmatch_all_customers_ajax(request):
 
 @csrf_exempt
 def view_customer(request, customer_id):
-    zoho_customer = ZohoCustomer.objects.get(id=customer_id)
+    if request.method == 'GET':
+        zoho_customer = ZohoCustomer.objects.get(contact_id=customer_id)
 
-    # Consultar los datos necesarios de las tablas
-    qb_customers = QbCustomer.objects.filter(matched=False, never_match=False).values_list('list_id', 'name', 'email', 'phone')
+        # Consultar los datos necesarios de las tablas
+        qb_customers = QbCustomer.objects.filter(matched=False, never_match=False).values_list('list_id', 'name', 'email', 'phone')
 
-    # Convertir a DataFrames de Pandas
-    qb_df = pd.DataFrame(list(qb_customers), columns=['list_id', 'name', 'email', 'phone'])
+        # Convertir a DataFrames de Pandas
+        qb_df = pd.DataFrame(list(qb_customers), columns=['list_id', 'name', 'email', 'phone'])
 
-    # Preparar arrays para comparación
-    qb_customers_data = qb_df[['list_id', 'name', 'email', 'phone']].to_dict(orient='records')
-    zoho_email = zoho_customer.email
-    zoho_phone = zoho_customer.phone
-    dependences_list = []
-    sorted_dependences_list = []
+        # Preparar arrays para comparación
+        qb_customers_data = qb_df[['list_id', 'name', 'email', 'phone']].to_dict(orient='records')
+        zoho_email = zoho_customer.email
+        zoho_phone = zoho_customer.phone
+        dependences_list = []
+        sorted_dependences_list = []
 
-    # Comparar clientes usando `rapidfuzz` para comparación de cadenas
-        
-    if not zoho_customer.qb_list_id or zoho_customer.qb_list_id == '':
-        for qb_customer_data in qb_customers_data:
-            qb_email = qb_customer_data['email']
-            qb_phone = qb_customer_data['phone']
+        # Comparar clientes usando `rapidfuzz` para comparación de cadenas
             
-            if (zoho_email or zoho_phone) and (qb_email or qb_phone):
-                    # Comparar email y teléfono usando `rapidfuzz`
-                seem_email = rapidfuzz.fuzz.ratio(zoho_email, qb_email) / 100 if zoho_email and qb_email else 0
-                seem_phone = rapidfuzz.fuzz.ratio(zoho_phone, qb_phone) / 100 if zoho_phone and qb_phone else 0
+        if not zoho_customer.qb_list_id or zoho_customer.qb_list_id == '':
+            for qb_customer_data in qb_customers_data:
+                qb_email = qb_customer_data['email']
+                qb_phone = qb_customer_data['phone']
                 
-                logger.debug(f"Comparing {zoho_email} with {qb_email} and {zoho_phone} with {qb_phone}")
-                logger.debug(f"Email similarity: {seem_email}, Phone similarity: {seem_phone}")
+                if (zoho_email or zoho_phone) and (qb_email or qb_phone):
+                        # Comparar email y teléfono usando `rapidfuzz`
+                    seem_email = rapidfuzz.fuzz.ratio(zoho_email, qb_email) / 100 if zoho_email and qb_email else 0
+                    seem_phone = rapidfuzz.fuzz.ratio(zoho_phone, qb_phone) / 100 if zoho_phone and qb_phone else 0
+                    
+                    logger.debug(f"Comparing {zoho_email} with {qb_email} and {zoho_phone} with {qb_phone}")
+                    logger.debug(f"Email similarity: {seem_email}, Phone similarity: {seem_phone}")
 
-                if seem_email > 0.7 or seem_phone > 0.7:
-                        # Agregar coincidencias a la lista
-                    dependences_list.append({
-                            'qb_customer_list_id': qb_customer_data['list_id'],
-                            'qb_customer_name': qb_customer_data['name'],
-                            'email': qb_email,
-                            'seem_email': seem_email,
-                            'coincidence_email': f'{round(seem_email * 100, 2)} %',
-                            'phone': qb_phone,
-                            'seem_phone': seem_phone,
-                            'coincidence_phone': f'{round(seem_phone * 100, 2)} %',
-                            'company_name': qb_customer_data['name']  # Asegúrate de usar el campo correcto si es necesario
-                    })
+                    if seem_email > 0.7 or seem_phone > 0.7:
+                            # Agregar coincidencias a la lista
+                        dependences_list.append({
+                                'qb_customer_list_id': qb_customer_data['list_id'],
+                                'qb_customer_name': qb_customer_data['name'],
+                                'email': qb_email,
+                                'seem_email': seem_email,
+                                'coincidence_email': f'{round(seem_email * 100, 2)} %',
+                                'phone': qb_phone,
+                                'seem_phone': seem_phone,
+                                'coincidence_phone': f'{round(seem_phone * 100, 2)} %',
+                                'company_name': qb_customer_data['name']  # Asegúrate de usar el campo correcto si es necesario
+                        })
 
-            if dependences_list:
-                # Ordenar dependencias por `seem_email`
-                sorted_dependences_list = sorted(dependences_list, key=lambda x: x['seem_email'], reverse=True)
-            else:
-                sorted_dependences_list = []
+                if dependences_list:
+                    # Ordenar dependencias por `seem_email`
+                    sorted_dependences_list = sorted(dependences_list, key=lambda x: x['seem_email'], reverse=True)
+                else:
+                    sorted_dependences_list = []
+        
+        zoho_customer = model_to_dict(zoho_customer)
+
+        zoho_customer['coincidences'] = sorted_dependences_list
+        
+        return JsonResponse(zoho_customer)
     
-    context = {'customer': zoho_customer, 'coincidences' : sorted_dependences_list}
-    
-    return render(request, 'api_zoho_customers/view_customer.html', context)
+    return JsonResponse({'error': 'Invalid request method'}, status=405)
 
 
 @csrf_exempt
