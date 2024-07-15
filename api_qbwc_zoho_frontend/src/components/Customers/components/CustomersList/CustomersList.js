@@ -1,5 +1,20 @@
 import React, { useState } from 'react';
-import { Grid, Typography, Alert, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, TablePagination, TextField } from '@mui/material';
+import { 
+    Container, 
+    Grid, 
+    Typography, 
+    Alert, 
+    Button, 
+    Table, 
+    TableBody, 
+    TableCell, 
+    TableContainer, 
+    TableHead, 
+    TableRow, 
+    Paper, 
+    TablePagination, 
+    TextField 
+} from '@mui/material';
 import { useNavigate } from 'react-router-dom'; 
 
 const CustomersList = ({ customers }) => {
@@ -34,107 +49,109 @@ const CustomersList = ({ customers }) => {
     };
 
     return (
-        <Grid container spacing={2} alignItems="center" sx={{ marginLeft: '-3%', marginTop: '-5%'}}>
-            <Grid item xs={6}>
-            <Typography
-                variant="h6"
-                gutterBottom
-                sx={{
-                    textTransform: 'uppercase',
-                    color: 'info.main',
-                    fontWeight: 'bold',
-                }}
-            >
-                Customers List
-            </Typography>
-            </Grid>
-            <Grid item xs={6} container justifyContent="flex-end" spacing={1}>
-                <Grid item>
-                    <Button variant="contained" color="primary" size="small" href="{% url 'api_quickbook_soap:matching_customers' %}">
-                        Similar Customers
-                    </Button>
+        <Container sx={{ marginLeft: '-3%', marginTop: '-5%'}}>
+            <Grid container spacing={2} alignItems="center" justifyContent="space-between" mb={3}>
+                <Grid item xs={6}>
+                <Typography
+                    variant="h6"
+                    gutterBottom
+                    sx={{
+                        textTransform: 'uppercase',
+                        color: 'info.main',
+                        fontWeight: 'bold',
+                    }}
+                >
+                    Customers List
+                </Typography>
                 </Grid>
-                <Grid item>
-                    <Button variant="contained" color="success" size="small" href="{% url 'api_quickbook_soap:matched_customers' %}">
-                        Matched Customers
-                    </Button>
+                <Grid item xs={6} container justifyContent="flex-end" spacing={1}>
+                    <Grid item>
+                        <Button variant="contained" color="primary" size="small" href="{% url 'api_quickbook_soap:matching_customers' %}">
+                            Similar Customers
+                        </Button>
+                    </Grid>
+                    <Grid item>
+                        <Button variant="contained" color="success" size="small" href="{% url 'api_quickbook_soap:matched_customers' %}">
+                            Matched Customers
+                        </Button>
+                    </Grid>
                 </Grid>
-            </Grid>
-            <Grid item xs={12} container justifyContent="flex-end" spacing={1}>
-                <Grid item xs={8}>
-                    <Alert severity="info" sx={{ mb: 2 }}>
-                        There are {filteredCustomers.length} customers found.
-                    </Alert>
+                <Grid item xs={12} container justifyContent="flex-end" spacing={1}>
+                    <Grid item xs={8}>
+                        <Alert severity="info" sx={{ mb: 2 }}>
+                            There are {filteredCustomers.length} customers found.
+                        </Alert>
+                    </Grid>
+                    <Grid item xs={4}>
+                        <TextField
+                            label="Search"
+                            variant="outlined"
+                            size="small"
+                            value={searchTerm}
+                            onChange={handleSearchChange}
+                            sx={{ width: '100%', mb: 2 }}
+                        />
+                    </Grid>
                 </Grid>
-                <Grid item xs={4}>
-                    <TextField
-                        label="Search"
-                        variant="outlined"
-                        size="small"
-                        value={searchTerm}
-                        onChange={handleSearchChange}
-                        sx={{ width: '100%', mb: 2 }}
+                <Grid item xs={12}>
+                    <TableContainer component={Paper}>
+                        <Table id="myTable" aria-label="customers table" sx={{ minWidth: 650 }}>
+                            <TableHead sx={{ backgroundColor: '#e0e0e0' }}> 
+                                <TableRow>
+                                    <TableCell sx={{ fontWeight: 'bold', color: '#333', borderBottom: '1px solid #ccc' }}>Name</TableCell>
+                                    <TableCell sx={{ fontWeight: 'bold', color: '#333', borderBottom: '1px solid #ccc' }}>Email</TableCell>
+                                    <TableCell sx={{ fontWeight: 'bold', color: '#333', borderBottom: '1px solid #ccc' }}>Phone</TableCell>
+                                    <TableCell sx={{ fontWeight: 'bold', color: '#333', borderBottom: '1px solid #ccc' }}>Company Name</TableCell>
+                                    <TableCell sx={{ fontWeight: 'bold', color: '#333', borderBottom: '1px solid #ccc' }}>Matched</TableCell>
+                                    <TableCell sx={{ fontWeight: 'bold', color: '#333', borderBottom: '1px solid #ccc' }}>Actions</TableCell>
+                                </TableRow>
+                            </TableHead>
+                            <TableBody>
+                                {(rowsPerPage > 0
+                                    ? filteredCustomers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                                    : filteredCustomers
+                                ).map((customer, index) => (
+                                    <TableRow key={index} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
+                                        <TableCell>{customer.fields.contact_name}</TableCell>
+                                        <TableCell>{customer.fields.email}</TableCell>
+                                        <TableCell>{customer.fields.phone}</TableCell>
+                                        <TableCell>{customer.fields.company_name}</TableCell>
+                                        <TableCell style={{ width: '100px' }}>
+                                            <Alert severity={!customer.fields.qb_list_id || customer.fields.qb_list_id === "" ? "error" : "success"} 
+                                                    style={{ 
+                                                        fontSize: '0.80rem',  
+                                                        padding: '4px 8px', 
+                                                        borderRadius: '4px',
+                                                        maxHeight: '30px'
+                                                    }}>
+                                                <b>{!customer.fields.qb_list_id || customer.fields.qb_list_id === "" ? "NO" : "YES"}</b>
+                                            </Alert>
+                                        </TableCell>
+                                        <TableCell className="text-center align-middle">
+                                            <Button 
+                                                onClick={() => handleViewCustomer(customer)} 
+                                                variant="contained" 
+                                                color="info" 
+                                                size="small">View</Button>
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </TableContainer>
+                    <TablePagination
+                        rowsPerPageOptions={[5, 10, 25, 50]}
+                        component="div"
+                        count={filteredCustomers.length}
+                        rowsPerPage={rowsPerPage}
+                        page={page}
+                        onPageChange={handleChangePage}
+                        onRowsPerPageChange={handleChangeRowsPerPage}
+                        sx={{ mt: 2 }}
                     />
                 </Grid>
             </Grid>
-            <Grid item xs={12}>
-                <TableContainer component={Paper}>
-                    <Table id="myTable" aria-label="customers table" sx={{ minWidth: 650 }}>
-                        <TableHead sx={{ backgroundColor: '#e0e0e0' }}> 
-                            <TableRow>
-                                <TableCell sx={{ fontWeight: 'bold', color: '#333', borderBottom: '1px solid #ccc' }}>Name</TableCell>
-                                <TableCell sx={{ fontWeight: 'bold', color: '#333', borderBottom: '1px solid #ccc' }}>Email</TableCell>
-                                <TableCell sx={{ fontWeight: 'bold', color: '#333', borderBottom: '1px solid #ccc' }}>Phone</TableCell>
-                                <TableCell sx={{ fontWeight: 'bold', color: '#333', borderBottom: '1px solid #ccc' }}>Company Name</TableCell>
-                                <TableCell sx={{ fontWeight: 'bold', color: '#333', borderBottom: '1px solid #ccc' }}>Matched</TableCell>
-                                <TableCell sx={{ fontWeight: 'bold', color: '#333', borderBottom: '1px solid #ccc' }}>Actions</TableCell>
-                            </TableRow>
-                        </TableHead>
-                        <TableBody>
-                            {(rowsPerPage > 0
-                                ? filteredCustomers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                                : filteredCustomers
-                            ).map((customer, index) => (
-                                <TableRow key={index} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
-                                    <TableCell>{customer.fields.contact_name}</TableCell>
-                                    <TableCell>{customer.fields.email}</TableCell>
-                                    <TableCell>{customer.fields.phone}</TableCell>
-                                    <TableCell>{customer.fields.company_name}</TableCell>
-                                    <TableCell style={{ width: '100px' }}>
-                                        <Alert severity={!customer.fields.qb_list_id || customer.fields.qb_list_id === "" ? "error" : "success"} 
-                                                style={{ 
-                                                    fontSize: '0.80rem',  
-                                                    padding: '4px 8px', 
-                                                    borderRadius: '4px',
-                                                    maxHeight: '30px'
-                                                }}>
-                                            <b>{!customer.fields.qb_list_id || customer.fields.qb_list_id === "" ? "NO" : "YES"}</b>
-                                        </Alert>
-                                    </TableCell>
-                                    <TableCell className="text-center align-middle">
-                                        <Button 
-                                            onClick={() => handleViewCustomer(customer)} 
-                                            variant="contained" 
-                                            color="info" 
-                                            size="small">View</Button>
-                                    </TableCell>
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
-                </TableContainer>
-                <TablePagination
-                    rowsPerPageOptions={[5, 10, 25, 50]}
-                    component="div"
-                    count={filteredCustomers.length}
-                    rowsPerPage={rowsPerPage}
-                    page={page}
-                    onPageChange={handleChangePage}
-                    onRowsPerPageChange={handleChangeRowsPerPage}
-                    sx={{ mt: 2 }}
-                />
-            </Grid>
-        </Grid>
+        </Container>
     );
 };
 

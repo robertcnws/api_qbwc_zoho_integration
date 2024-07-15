@@ -5,6 +5,8 @@ from django.shortcuts import render, get_object_or_404
 from django.db import transaction, IntegrityError
 from django.db.models import Q, Count
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.csrf import csrf_exempt
+from django.core import serializers
 from datetime import datetime, timezone
 from api_zoho_customers.models import ZohoCustomer
 from api_zoho_items.models import ZohoItem
@@ -356,32 +358,35 @@ def matched_customers(request):
     return render(request, 'api_quickbook_soap/matched_customers.html', context)
 
 
-@login_required(login_url='login')
+@csrf_exempt
 def matched_invoices(request):
-    # Obtener estadísticas directamente desde la base de datos
-    stats = ZohoFullInvoice.objects.aggregate(
-        matched_number=Count('id', filter=Q(inserted_in_qb=True)),
-        total_items_unmatched=Count('id', filter=Q(items_unmatched__isnull=False, items_unmatched__gt=0)),
-        total_customers_unmatched=Count('id', filter=Q(customer_unmatched__isnull=False, customer_unmatched__gt=0)),
-        unprocessed_number=Count('id', filter=Q(inserted_in_qb=False))
-    )
+    if request.method == 'GET':
+        stats = ZohoFullInvoice.objects.aggregate(
+            matched_number=Count('id', filter=Q(inserted_in_qb=True)),
+            total_items_unmatched=Count('id', filter=Q(items_unmatched__isnull=False, items_unmatched__gt=0)),
+            total_customers_unmatched=Count('id', filter=Q(customer_unmatched__isnull=False, customer_unmatched__gt=0)),
+            unprocessed_number=Count('id', filter=Q(inserted_in_qb=False))
+        )
+        
+        matched_number = stats['matched_number']
+        total_items_unmatched = stats['total_items_unmatched']
+        total_customers_unmatched = stats['total_customers_unmatched']
+        unmatched_number = max(total_items_unmatched, total_customers_unmatched)
+        unprocessed_number = stats['unprocessed_number'] - unmatched_number
+
+        # Obtener todas las facturas que necesitamos mostrar
+        invoices = ZohoFullInvoice.objects.all()
+
+        context = {
+            'invoices': serializers.serialize('json', invoices),
+            'matched_number': matched_number,
+            'unmatched_number': unmatched_number,
+            'unprocessed_number': unprocessed_number,
+        }
+        return JsonResponse(context, safe=False)
     
-    matched_number = stats['matched_number']
-    total_items_unmatched = stats['total_items_unmatched']
-    total_customers_unmatched = stats['total_customers_unmatched']
-    unmatched_number = max(total_items_unmatched, total_customers_unmatched)
-    unprocessed_number = stats['unprocessed_number'] - unmatched_number
-
-    # Obtener todas las facturas que necesitamos mostrar
-    invoices = ZohoFullInvoice.objects.all()
-
-    context = {
-        'invoices': invoices,
-        'matched_number': matched_number,
-        'unmatched_number': unmatched_number,
-        'unprocessed_number': unprocessed_number,
-    }
-    return render(request, 'api_quickbook_soap/matched_invoices.html', context=context)
+    return JsonResponse({'error': 'Invalid request method'}, status=405) 
+    
 
 
 #############################################

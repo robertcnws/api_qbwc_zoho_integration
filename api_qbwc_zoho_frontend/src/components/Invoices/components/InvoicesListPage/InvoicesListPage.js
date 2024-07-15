@@ -17,8 +17,10 @@ const InvoicesListPage = () => {
     useEffect(() => {
         axios.get(`${apiUrl}/api_quickbook_soap/matched_invoices/`)
             .then(response => {
-                const jsonData = JSON.parse(response.data); 
-                setInvoices(jsonData);  
+                let data = response.data; 
+                const invoices = JSON.parse(data.invoices)
+                data.invoices = invoices
+                setInvoices(data);  
             })
             .catch(error => {
                 console.error('Error fetching invoices:', error);
@@ -55,7 +57,7 @@ const InvoicesListPage = () => {
             {loading ? (
                 <CircularProgress />
             ) : (
-                <InvoicesList invoices={invoices} />
+                <InvoicesList data={invoices} />
             )}
         </Container>
     );

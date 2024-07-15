@@ -11,6 +11,7 @@ import ItemsListPage from './components/Items/components/ItemsListPage/ItemsList
 import ItemsDetails from './components/Items/components/ItemsDetails/ItemsDetails';
 import CustomersListPage from './components/Customers/components/CustomersListPage/CustomersListPage';
 import CustomersDetails from './components/Customers/components/CustomersDetails/CustomersDetails';
+import InvoicesListPage from './components/Invoices/components/InvoicesListPage/InvoicesListPage';
 
 const HomeRedirect = () => {
   const { isAuthenticated } = useAuth();
@@ -36,6 +37,7 @@ const App = () => {
             <Route path="item_details" element={<ItemsDetails />} />
             <Route path="list_customers" element={<CustomersListPage />} />
             <Route path="customer_details" element={<CustomersDetails />} />
+            <Route path="list_invoices" element={<InvoicesListPage />} />
           </Route>
         </Routes>
       </Router>
