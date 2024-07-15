@@ -80,7 +80,7 @@ const ItemsDetails = () => {
         });
     };
     return (
-      <Container maxWidth="lg" sx={{ mt: 5, p: 2, marginLeft: '1%', marginTop: '1%', transition: 'margin-left 0.3s ease' }}>
+      <Container maxWidth="lg" sx={{ marginLeft: '1%', marginTop: '1%', transition: 'margin-left 0.3s ease', minWidth:'97%' }}>
       {/* <Container component="main" maxWidth="md" sx={{ mt: 5, p: 3, bgcolor: '#FFFFFF', boxShadow: 3, borderRadius: 2 }}> */}
           {!item ? (
               <Grid container spacing={1}>
@@ -174,7 +174,6 @@ const ItemsDetails = () => {
                                                       fontSize: '0.80rem',  
                                                       padding: '4px 8px', 
                                                       borderRadius: '4px',
-                                                      maxHeight: '30px'
                                                   }}>
                                                   <b>No coincidences found.</b>
                                               </Alert>

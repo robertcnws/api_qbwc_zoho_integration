@@ -10,3 +10,4 @@ export {ApplicationSettings} from './ApplicationSettings';
 export {InitialPage} from './InitialPage';
 export {ZohoLoading} from './ZohoLoading';
 export {Topbar} from './Topbar';
+export {QbwcGetting} from './QbwcGetting';

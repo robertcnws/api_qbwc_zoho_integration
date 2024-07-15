@@ -11,16 +11,20 @@ import {
     TableContainer, 
     TableHead, 
     TableRow, 
+    TableSortLabel,
     Paper, 
     TablePagination, 
     TextField 
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom'; 
+import { stableSort, getComparator } from '../../../../utils';
 
 const CustomersList = ({ customers }) => {
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
     const [searchTerm, setSearchTerm] = useState('');
+    const [orderBy, setOrderBy] = useState('');
+    const [order, setOrder] = useState('asc');
     const navigate = useNavigate();
 
     const handleChangePage = (event, newPage) => {
@@ -46,10 +50,27 @@ const CustomersList = ({ customers }) => {
 
     const handleViewCustomer = (customer) => {
         navigate('/integration/customer_details', { state: { customer } })
+    }
+
+    const handleSortChange = (columnId) => {
+        const isAsc = orderBy === columnId && order === 'asc';
+        setOrder(isAsc ? 'desc' : 'asc');
+        setOrderBy(columnId);
     };
 
+    const sortedCustomers = stableSort(filteredCustomers, getComparator(order, orderBy));
+
+    const columns = [
+        { id: 'name', label: 'Name' },
+        { id: 'email', label: 'Email' },
+        { id: 'phone', label: 'Phone' },
+        { id: 'company_name', label: 'Company Name' },
+        { id: 'matched', label: 'Matched' },
+        { id: 'actions', label: 'Actions' }
+    ];
+
     return (
-        <Container sx={{ marginLeft: '-3%', marginTop: '-5%'}}>
+        <Container sx={{ marginLeft: '-3%', marginTop: '-5%', minWidth:'130%'}}>
             <Grid container spacing={2} alignItems="center" justifyContent="space-between" mb={3}>
                 <Grid item xs={6}>
                 <Typography
@@ -98,34 +119,35 @@ const CustomersList = ({ customers }) => {
                         <Table id="myTable" aria-label="customers table" sx={{ minWidth: 650 }}>
                             <TableHead sx={{ backgroundColor: '#e0e0e0' }}> 
                                 <TableRow>
-                                    <TableCell sx={{ fontWeight: 'bold', color: '#333', borderBottom: '1px solid #ccc' }}>Name</TableCell>
-                                    <TableCell sx={{ fontWeight: 'bold', color: '#333', borderBottom: '1px solid #ccc' }}>Email</TableCell>
-                                    <TableCell sx={{ fontWeight: 'bold', color: '#333', borderBottom: '1px solid #ccc' }}>Phone</TableCell>
-                                    <TableCell sx={{ fontWeight: 'bold', color: '#333', borderBottom: '1px solid #ccc' }}>Company Name</TableCell>
-                                    <TableCell sx={{ fontWeight: 'bold', color: '#333', borderBottom: '1px solid #ccc' }}>Matched</TableCell>
-                                    <TableCell sx={{ fontWeight: 'bold', color: '#333', borderBottom: '1px solid #ccc' }}>Actions</TableCell>
+                                {columns.map((column) => (
+                                        <TableCell key={column.id} sx={{ fontWeight: 'bold', color: '#333', borderBottom: '1px solid #ccc' }}>
+                                            <TableSortLabel
+                                                active={orderBy === column.id}
+                                                direction={orderBy === column.id ? order : 'asc'}
+                                                onClick={() => handleSortChange(column.id)}
+                                            >
+                                                {column.label}
+                                            </TableSortLabel>
+                                        </TableCell>
+                                    ))}
                                 </TableRow>
                             </TableHead>
                             <TableBody>
                                 {(rowsPerPage > 0
-                                    ? filteredCustomers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                                    : filteredCustomers
+                                    ? sortedCustomers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                                    : sortedCustomers
                                 ).map((customer, index) => (
                                     <TableRow key={index} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
                                         <TableCell>{customer.fields.contact_name}</TableCell>
                                         <TableCell>{customer.fields.email}</TableCell>
                                         <TableCell>{customer.fields.phone}</TableCell>
                                         <TableCell>{customer.fields.company_name}</TableCell>
-                                        <TableCell style={{ width: '100px' }}>
-                                            <Alert severity={!customer.fields.qb_list_id || customer.fields.qb_list_id === "" ? "error" : "success"} 
-                                                    style={{ 
-                                                        fontSize: '0.80rem',  
-                                                        padding: '4px 8px', 
-                                                        borderRadius: '4px',
-                                                        maxHeight: '30px'
-                                                    }}>
+                                        <TableCell sx={(theme) => ({
+                                                    color: !customer.fields.qb_list_id || customer.fields.qb_list_id === "" ? theme.palette.error.main : theme.palette.success.main,
+                                                    fontWeight: 'bold',
+                                                    borderBottom: '1px solid #ccc'
+                                                })}>
                                                 <b>{!customer.fields.qb_list_id || customer.fields.qb_list_id === "" ? "NO" : "YES"}</b>
-                                            </Alert>
                                         </TableCell>
                                         <TableCell className="text-center align-middle">
                                             <Button 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, Typography, List, ListItemButton, ListItemIcon, ListItemText, Divider } from '@mui/material';
+import { Container, Box, Typography, List, ListItemButton, ListItemIcon, ListItemText, Divider } from '@mui/material';
 import { Dashboard, People, Receipt, RocketLaunch, Settings, ExpandMore, ExpandLess } from '@mui/icons-material';
 import InventoryIcon from '@mui/icons-material/Inventory';
 import AppsIcon from '@mui/icons-material/Apps';
@@ -10,14 +10,17 @@ import { Link } from 'react-router-dom';
 const Sidebar = ({ expanded, toggleSubmenu, handleLogout }) => {
   return (
     
-    <Box sx={{
+    <Container maxWidth="lg" sx={{
       width: 250,
       backgroundColor: '#3a3f51',
       color: '#fff',
       top: 0,
       left: 0,
-      height: '100%',
-      paddingTop: 2
+      paddingTop: 2,
+      minHeight: '100vh',
+      height: '100vh',
+      display: 'flex',
+      flexDirection: 'column',
     }}>
       <Box sx={{ padding: 1, textAlign: 'center', backgroundColor: '#2c2f3d' }}>
         <Typography variant="h5">Zoho - QBWC</Typography>
@@ -52,7 +55,7 @@ const Sidebar = ({ expanded, toggleSubmenu, handleLogout }) => {
                 <ListItemIcon><AppsIcon sx={{ color: '#fff' }} /></ListItemIcon>
                 <ListItemText primary="Zoho" />
               </ListItemButton>
-              <ListItemButton component={Link} to="/integration/quickbooks">
+              <ListItemButton component={Link} to="/integration/qbwc">
                 <ListItemIcon><AccountBalanceWalletIcon sx={{ color: '#fff' }} /></ListItemIcon>
                 <ListItemText primary="Quickbooks" />
               </ListItemButton>
@@ -64,7 +67,7 @@ const Sidebar = ({ expanded, toggleSubmenu, handleLogout }) => {
           </>
         )}
       </List>
-    </Box>
+    </Container>
   );
 };
 

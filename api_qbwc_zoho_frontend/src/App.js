@@ -12,6 +12,9 @@ import ItemsDetails from './components/Items/components/ItemsDetails/ItemsDetail
 import CustomersListPage from './components/Customers/components/CustomersListPage/CustomersListPage';
 import CustomersDetails from './components/Customers/components/CustomersDetails/CustomersDetails';
 import InvoicesListPage from './components/Invoices/components/InvoicesListPage/InvoicesListPage';
+import InvoicesDetails from './components/Invoices/components/InvoicesDetails/InvoicesDetails';
+import QbwcItemsListPage from './components/QbwcItems/components/QbwcItemsListPage/QbwcItemsListPage';
+import QbwcGetting from './components/QbwcGetting/QbwcGetting';
 
 const HomeRedirect = () => {
   const { isAuthenticated } = useAuth();
@@ -38,6 +41,9 @@ const App = () => {
             <Route path="list_customers" element={<CustomersListPage />} />
             <Route path="customer_details" element={<CustomersDetails />} />
             <Route path="list_invoices" element={<InvoicesListPage />} />
+            <Route path="invoice_details" element={<InvoicesDetails />} />
+            <Route path="qbwc" element={<QbwcGetting />} />
+            <Route path="qbwc_list_items" element={<QbwcItemsListPage />} />
           </Route>
         </Routes>
       </Router>

@@ -280,9 +280,9 @@ def zoho_loading(request):
         zoho_loading_invoices = ZohoLoading.objects.filter(zoho_module='invoices').order_by('-zoho_record_created').first()
         zoho_loading_customers = ZohoLoading.objects.filter(zoho_module='customers').order_by('-zoho_record_created').first()
         context = {
-            'zoho_loading_items': model_to_dict(zoho_loading_items),
-            'zoho_loading_invoices': model_to_dict(zoho_loading_invoices),
-            'zoho_loading_customers': model_to_dict(zoho_loading_customers)
+            'zoho_loading_items': model_to_dict(zoho_loading_items) if zoho_loading_items else {},
+            'zoho_loading_invoices': model_to_dict(zoho_loading_invoices) if zoho_loading_invoices else {},
+            'zoho_loading_customers': model_to_dict(zoho_loading_customers) if zoho_loading_customers else {},
         }
         return JsonResponse(context)
     

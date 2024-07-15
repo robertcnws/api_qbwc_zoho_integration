@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<QBWCXML>
+    <AppName>API Zoho - QBWC Invoices</AppName>
+    <AppID>1</AppID>
+    <AppURL>https://127.0.0.1/api_qbwc_zoho/api_quickbook_soap/invoice_add_request/</AppURL>
+	<CertURL>https://127.0.0.1/</CertURL>
+    <AppDescription>Integration with QBWC for API consumption (Add Invoices)</AppDescription>
+    <AppSupport>https://127.0.0.1/</AppSupport>
+    <UserName>Admin</UserName>
+	<OwnerID>{87E04FB9-293F-4DE4-A917-7C9894E1C717}</OwnerID>
+	<FileID>{AA9D7A4C-567D-41EE-8F10-9C785EB6EFAA}</FileID>
+    <QBType>QBFS</QBType>
+	<Style>Document</Style>
+	<AuthFlags>0xF</AuthFlags>
+</QBWCXML>
+

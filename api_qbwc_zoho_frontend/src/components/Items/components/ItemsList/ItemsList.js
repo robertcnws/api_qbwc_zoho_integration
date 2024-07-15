@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Container, Grid, Typography, Alert, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, TablePagination, TextField, TableSortLabel } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+import { stableSort, getComparator } from '../../../../utils';
 
 const ItemsList = ({ items }) => {
     const [page, setPage] = useState(0);
@@ -51,7 +52,7 @@ const ItemsList = ({ items }) => {
     ];
 
     return (
-        <Container sx={{ marginLeft: '-3%', marginTop: '-5%'}}>
+        <Container sx={{ marginLeft: '-3%', marginTop: '-5%', minWidth:'130%' }}>
             <Grid container spacing={2} alignItems="center" justifyContent="space-between" mb={3}>
                 <Grid item xs={6}>
                     <Typography
@@ -123,16 +124,12 @@ const ItemsList = ({ items }) => {
                                         <TableCell>{item.fields.status}</TableCell>
                                         <TableCell>{item.fields.rate}</TableCell>
                                         <TableCell>{item.fields.sku}</TableCell>
-                                        <TableCell style={{ width: '100px' }}>
-                                            <Alert severity={!item.fields.qb_list_id || item.fields.qb_list_id === "" ? "error" : "success"} 
-                                                style={{ 
-                                                    fontSize: '0.80rem',  
-                                                    padding: '4px 8px', 
-                                                    borderRadius: '4px',
-                                                    maxHeight: '30px'
-                                                }}>
-                                                <b>{!item.fields.qb_list_id || item.fields.qb_list_id === "" ? "NO" : "YES"}</b>
-                                            </Alert>
+                                        <TableCell sx={(theme) => ({
+                                            color: !item.fields.qb_list_id || item.fields.qb_list_id === "" ? theme.palette.error.main : theme.palette.success.main,
+                                            fontWeight: 'bold',
+                                            borderBottom: '1px solid #ccc'
+                                        })}>
+                                            <b>{!item.fields.qb_list_id || item.fields.qb_list_id === "" ? "NO" : "YES"}</b>
                                         </TableCell>
                                         <TableCell className="text-center align-middle">
                                             <Button 
@@ -167,28 +164,4 @@ const ItemsList = ({ items }) => {
 
 export default ItemsList;
 
-function stableSort(array, comparator) {
-    const stabilizedThis = array.map((el, index) => [el, index]);
-    stabilizedThis.sort((a, b) => {
-        const order = comparator(a[0], b[0]);
-        if (order !== 0) return order;
-        return a[1] - b[1];
-    });
-    return stabilizedThis.map((el) => el[0]);
-}
 
-function getComparator(order, orderBy) {
-    return order === 'desc'
-        ? (a, b) => descendingComparator(a, b, orderBy)
-        : (a, b) => -descendingComparator(a, b, orderBy);
-}
-
-function descendingComparator(a, b, orderBy) {
-    if (b.fields[orderBy] < a.fields[orderBy]) {
-        return -1;
-    }
-    if (b.fields[orderBy] > a.fields[orderBy]) {
-        return 1;
-    }
-    return 0;
-}

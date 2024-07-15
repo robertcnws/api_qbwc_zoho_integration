@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<QBWCXML>
+    <AppName>API Zoho - QBWC Items</AppName>
+    <AppID>2</AppID>
+    <AppURL>https://127.0.0.1/api_qbwc_zoho/api_quickbook_soap/item_query/</AppURL>
+	<CertURL>https://127.0.0.1/</CertURL>
+    <AppDescription>Integration with QBWC for API consumption (Items Query)</AppDescription>
+    <AppSupport>https://127.0.0.1/</AppSupport>
+    <UserName>Admin</UserName>
+	<OwnerID>{90A44FB7-33D9-4815-AC85-AC86A7E7D1EB}</OwnerID>
+    <FileID>{57F3B9B6-86F1-4FCC-B1FF-967DE1813D01}</FileID>
+    <QBType>QBFS</QBType>
+	<Style>Document</Style>
+	<AuthFlags>0xF</AuthFlags>
+</QBWCXML>
+

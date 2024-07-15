@@ -20,13 +20,15 @@ logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 
-@login_required(login_url='login')
+@csrf_exempt
 def view_invoice(request, invoice_id):
-    zoho_invoice = ZohoFullInvoice.objects.get(id=invoice_id)
-    context = {
-        'invoice': zoho_invoice
-    }
-    return render(request, 'api_zoho_invoices/view_invoice.html', context)
+    if request.method == 'GET':
+        zoho_invoice = ZohoFullInvoice.objects.get(invoice_id=invoice_id)
+        context = {
+            'invoice': model_to_dict(zoho_invoice)
+        }
+        return JsonResponse(context, status=200)
+    return JsonResponse({'error': 'Invalid request method'}, status=405)
 
 
 @login_required(login_url='login')

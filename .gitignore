@@ -177,6 +177,7 @@ cython_debug/
 
 # certificates
 */nginx/certificates
+*/nginx/nginx_react_django.conf
 
 # misc
 *.DS_Store

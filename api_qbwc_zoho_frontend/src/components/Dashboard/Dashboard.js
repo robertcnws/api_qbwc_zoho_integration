@@ -1,6 +1,6 @@
 import React from 'react';
 import { Outlet , useNavigate } from 'react-router-dom';
-import { Box } from '@mui/material';
+import { Container, Box } from '@mui/material';
 import Swal from 'sweetalert2';
 import Sidebar from '../Sidebar/Sidebar';
 import Topbar from '../Topbar/Topbar';
@@ -44,13 +44,42 @@ const Dashboard = () => {
   };
 
   return (
-    <Box sx={{ display: 'flex', height: '100vh', backgroundColor: '#f4f4f4' }}>
-      <Sidebar expanded={expanded} toggleSubmenu={toggleSubmenu} handleLogout={handleLogout} />
-      <Box sx={{ flexDirection: 'column', flexGrow: 1, width: '100%' }}>
+    <Container 
+      maxWidth={false}
+      disableGutters
+      sx={{ 
+        display: 'flex', 
+        minHeight: '100vh', 
+        backgroundColor: '#f4f4f4' 
+      }}
+    >
+      <Sidebar 
+        expanded={expanded} 
+        toggleSubmenu={toggleSubmenu} 
+        handleLogout={handleLogout} 
+      />
+      <Box 
+        sx={{ 
+          display: 'flex', 
+          flexDirection: 'column', 
+          flexGrow: 1, 
+          width: '100%' 
+        }}
+      >
         <Topbar handleLogout={handleLogout} />
-        <Outlet />
+        <Box 
+          sx={{ 
+            flexGrow: 1, 
+            overflow: 'auto', 
+            p: 3,
+            display: 'flex',
+            flexDirection: 'column'
+          }}
+        >
+          <Outlet />
+        </Box>
       </Box>
-    </Box>
+    </Container>
   );
 };
 

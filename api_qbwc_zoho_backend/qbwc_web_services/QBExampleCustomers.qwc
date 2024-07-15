@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<QBWCXML>
+    <AppName>API Zoho - QBWC Customers</AppName>
+    <AppID>1</AppID>
+    <AppURL>https://127.0.0.1/api_qbwc_zoho/api_quickbook_soap/customer_query/</AppURL>
+	<CertURL>https://127.0.0.1/</CertURL>
+    <AppDescription>Integration with QBWC for API consumption (Customers Query)</AppDescription>
+    <AppSupport>https://127.0.0.1/</AppSupport>
+    <UserName>Admin</UserName>
+	<OwnerID>{D77B8FB5-44F9-4715-BF87-BC87A7E7D1EC}</OwnerID>
+    <FileID>{68G4C8C7-97G2-5GDD-C2GG-978DE1814E21}</FileID>
+    <QBType>QBFS</QBType>
+	<Style>Document</Style>
+	<AuthFlags>0xF</AuthFlags>
+</QBWCXML>
+

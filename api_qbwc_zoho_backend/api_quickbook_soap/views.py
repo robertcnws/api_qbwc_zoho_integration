@@ -73,54 +73,81 @@ def quickbook_api_settings(request):
 # Trying to get elements here
 #############################################
 
-@login_required(login_url='login')
+@csrf_exempt
 def qbwc_items(request):
-    soap_items_query = QbItem.objects.filter(never_match=False)
-    batch_size = 200  # Ajusta este tamaño según tus necesidades
-    soap_items = []
-    # Dividir en partes y procesar cada parte
-    for i in range(0, soap_items_query.count(), batch_size):
-        batch = soap_items_query[i:i + batch_size]
-        soap_items.extend(batch)  # Agregar datos al acumulador
-    context = {
-        'qbwc_items': soap_items
-    }
-    return render(request, 'api_quickbook_soap/qbwc_items.html', context=context)
+    
+    if request.method == 'GET':
+        
+        soap_items_query = QbItem.objects.filter(never_match=False)
+        batch_size = 200  
+        soap_items = []
+        
+        for i in range(0, soap_items_query.count(), batch_size):
+            batch = soap_items_query[i:i + batch_size]
+            soap_items.extend(batch)  # Agregar datos al acumulador
+            
+        items_data = serializers.serialize('json', soap_items)
+        
+        return JsonResponse(items_data, safe=False)
+    
+    return JsonResponse({'error': 'Invalid request method'}, status=405)
 
-@login_required(login_url='login')
+@csrf_exempt
 def qbwc_customers(request):
-    soap_customers_query = QbCustomer.objects.filter(never_match=False)
-    batch_size = 200  # Ajusta este tamaño según tus necesidades
-    soap_customers = []
     
-    # Dividir en partes y procesar cada parte
-    for i in range(0, soap_customers_query.count(), batch_size):
-        batch = soap_customers_query[i:i + batch_size]
-        soap_customers.extend(batch)  # Agregar datos al acumulador
+    if request.method == 'GET':
+        soap_customers_query = QbCustomer.objects.filter(never_match=False)
+        batch_size = 200  # Ajusta este tamaño según tus necesidades
+        soap_customers = []
+        
+        # Dividir en partes y procesar cada parte
+        for i in range(0, soap_customers_query.count(), batch_size):
+            batch = soap_customers_query[i:i + batch_size]
+            soap_customers.extend(batch)  # Agregar datos al acumulador
+        
+        customers_data = serializers.serialize('json', soap_customers)
+        
+        return JsonResponse(customers_data, safe=False)
     
-    context = {
-        'qbwc_customers': soap_customers
-    }
-    return render(request, 'api_quickbook_soap/qbwc_customers.html', context=context)
+    return JsonResponse({'error': 'Invalid request method'}, status=405)
 
 
 #############################################
 # Force to sync AJAX methods
 #############################################
 
-@require_POST
-def force_to_sync_invoices_ajax(request):
-    try:
-        invoices_json = request.POST.get('invoices', '[]')  # Obtener los datos del POST
-        list_id = json.loads(invoices_json)  # Convertir JSON a lista
-        for invoice in list_id:
-            invoice_model = get_object_or_404(ZohoFullInvoice, id=invoice)
-            invoice_model.force_to_sync = True
+@csrf_exempt
+def force_to_sync_one_invoice_ajax(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            invoice_id = data.get('invoice', '')
+            force_to_sync = data.get('force_to_sync', False)
+            invoice_model = get_object_or_404(ZohoFullInvoice, invoice_id=invoice_id)
+            invoice_model.force_to_sync = force_to_sync
             invoice_model.save()
-        return JsonResponse({'status': 'success'})
-    except Exception as e:
-        logger.error(f"An error occurred: {e}")
-        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+            return JsonResponse({'status': 'success'}, status=200)
+        except Exception as e:
+            logger.error(f"An error occurred: {e}")
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+    return JsonResponse({'status': 'error', 'message': 'Invalid request method'}, status=405)
+
+@csrf_exempt
+def force_to_sync_invoices_ajax(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            list_id = data.get('invoices', [])
+            print(f"List ID: {list_id}")
+            for invoice in list_id:
+                invoice_model = get_object_or_404(ZohoFullInvoice, invoice_id=invoice)
+                invoice_model.force_to_sync = True
+                invoice_model.save()
+            return JsonResponse({'status': 'success'}, status=200)
+        except Exception as e:
+            logger.error(f"An error occurred: {e}")
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+    return JsonResponse({'status': 'error', 'message': 'Invalid request method'}, status=405)
 
 
 #############################################
