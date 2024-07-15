@@ -19,7 +19,7 @@ import {
   FormControlLabel,
   Checkbox
 } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { stableSort, getComparator } from '../../../../utils';
 
 const QbwcItemsList = ({ items }) => {
@@ -89,7 +89,7 @@ const QbwcItemsList = ({ items }) => {
 
   const filteredItems = items.filter(item =>
       item.fields.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.fields.sku.toLowerCase().includes(searchTerm.toLowerCase())
+      item.fields.list_id.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const sortedItems = stableSort(filteredItems, getComparator(order, orderBy));
@@ -118,7 +118,7 @@ const QbwcItemsList = ({ items }) => {
             </Grid>
             <Grid item xs={6} container justifyContent="flex-end" spacing={1}>
                 <Grid item>
-                    <Button variant="contained" color="success" size="small" href="{% url 'api_quickbook_soap:matching_items' %}">
+                    <Button variant="contained" color="success" size="small" component={Link} to="/integration/qbwc">
                         Back to QBWC
                     </Button>
                 </Grid>

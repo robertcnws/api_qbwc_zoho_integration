@@ -191,198 +191,206 @@ def never_match_customers_ajax(request):
 # Trying to get matched elements here
 #############################################
 
-@login_required(login_url='login')
+@csrf_exempt
 def matching_items(request):
-    pattern = r'^[A-Za-z0-9]{8}\d-[A-Za-z0-9]{10}$'
+    if request.method == 'GET':
+        pattern = r'^[A-Za-z0-9]{8}\d-[A-Za-z0-9]{10}$'
 
-    # Usar consultas eficientes con `values` y `annotate`
-    qb_items = QbItem.objects.filter(matched=False, never_match=False).values_list('list_id', 'name')
-    zoho_items = ZohoItem.objects.filter(
-        Q(qb_list_id__isnull=True) | Q(qb_list_id='') | ~Q(qb_list_id__regex=pattern)
-    ).values_list('item_id', 'name', 'sku')
+        # Usar consultas eficientes con `values` y `annotate`
+        qb_items = QbItem.objects.filter(matched=False, never_match=False).values_list('list_id', 'name')
+        zoho_items = ZohoItem.objects.filter(
+            Q(qb_list_id__isnull=True) | Q(qb_list_id='') | ~Q(qb_list_id__regex=pattern)
+        ).values_list('item_id', 'name', 'sku')
 
-    # Convertir a DataFrames de Pandas
-    qb_df = pd.DataFrame(list(qb_items), columns=['list_id', 'name'])
-    zoho_df = pd.DataFrame(list(zoho_items), columns=['item_id', 'name', 'sku'])
+        # Convertir a DataFrames de Pandas
+        qb_df = pd.DataFrame(list(qb_items), columns=['list_id', 'name'])
+        zoho_df = pd.DataFrame(list(zoho_items), columns=['item_id', 'name', 'sku'])
 
-    # Preparar los arrays para comparación
-    qb_names = qb_df['name'].to_numpy()
-    zoho_names = zoho_df['name'].to_numpy()
-    zoho_items_data = zoho_df[['item_id', 'name', 'sku']].to_dict(orient='records')
+        # Preparar los arrays para comparación
+        qb_names = qb_df['name'].to_numpy()
+        zoho_names = zoho_df['name'].to_numpy()
+        zoho_items_data = zoho_df[['item_id', 'name', 'sku']].to_dict(orient='records')
 
-    # Crear un array vacío para almacenar los resultados
-    similar_items = []
+        # Crear un array vacío para almacenar los resultados
+        similar_items = []
 
-    # Comparar items usando `rapidfuzz` para comparación de cadenas más eficiente
-    for qb_index, qb_name in enumerate(qb_names):
-        dependences_list = []
-        for zoho_item_data in zoho_items_data:
-            zoho_name = zoho_item_data['name']
-            seem = rapidfuzz.fuzz.ratio(qb_name, zoho_name) / 100  # Normaliza a un rango de 0 a 1
-            if seem > 0.4:
-                # Agregar coincidencias a la lista
-                dependences_list.append({
-                    'zoho_item_id': zoho_item_data['item_id'],
-                    'zoho_item': zoho_item_data['name'],
-                    'zoho_item_sku': zoho_item_data['sku'],
-                    'seem': seem,
-                    'coincidence': f'{round(seem * 100, 2)} %'
-                })
-
-        if dependences_list:
-            # Ordenar dependencias
-            sorted_dependences_list = sorted(dependences_list, key=lambda x: x['seem'], reverse=True)
-            similar_items.append({
-                'qb_item_list_id': qb_df.iloc[qb_index]['list_id'],
-                'qb_item_name': qb_name,
-                'coincidences_by_order': sorted_dependences_list
-            })
-
-    context = {'similar_items': similar_items}
-    return render(request, 'api_quickbook_soap/similar_items.html', context)
-
-
-@login_required(login_url='login')
-def matching_customers(request):
-    global similar_customers
-    similar_customers = []
-    pattern = r'^[A-Za-z0-9]{8}\d-[A-Za-z0-9]{10}$'
-    
-    # Usar consultas eficientes con `values` para obtener solo los datos necesarios
-    qb_customers = QbCustomer.objects.filter(matched=False, never_match=False).values_list('list_id', 'name', 'email', 'phone')
-    zoho_customers = ZohoCustomer.objects.filter(
-        Q(qb_list_id__isnull=True) | Q(qb_list_id='') | ~Q(qb_list_id__regex=pattern)
-    ).values_list('contact_id', 'customer_name', 'email', 'phone')
-
-    # Convertir a DataFrames de Pandas
-    qb_df = pd.DataFrame(list(qb_customers), columns=['list_id', 'name', 'email', 'phone'])
-    zoho_df = pd.DataFrame(list(zoho_customers), columns=['contact_id', 'customer_name', 'email', 'phone'])
-
-    # Preparar arrays para comparación
-    qb_emails = qb_df['email'].to_numpy()
-    qb_phones = qb_df['phone'].to_numpy()
-    zoho_customers_data = zoho_df[['contact_id', 'customer_name', 'email', 'phone']].to_dict(orient='records')
-
-    # Crear una lista para almacenar los resultados
-    similar_customers = []
-
-    # Comparar clientes usando `rapidfuzz` para comparación de cadenas
-    for qb_index, (qb_email, qb_phone) in enumerate(zip(qb_emails, qb_phones)):
-        dependences_list = []
-        for zoho_customer_data in zoho_customers_data:
-            zoho_email = zoho_customer_data['email']
-            zoho_phone = zoho_customer_data['phone']
-
-            # Asegurarse de que al menos uno de los dos campos (email o teléfono) no esté vacío
-            if (qb_email or qb_phone) and (zoho_email or zoho_phone):
-                # Comparar email y teléfono usando `rapidfuzz`
-                seem_email = rapidfuzz.fuzz.ratio(qb_email, zoho_email) / 100  # Normaliza a un rango de 0 a 1
-                seem_phone = rapidfuzz.fuzz.ratio(qb_phone, zoho_phone) / 100  # Normaliza a un rango de 0 a 1
-
-                if (seem_email > 0.7 or seem_phone > 0.7) and (zoho_customer_data['email'] == '' or not re.match(pattern, zoho_customer_data['email'])):
+        # Comparar items usando `rapidfuzz` para comparación de cadenas más eficiente
+        for qb_index, qb_name in enumerate(qb_names):
+            dependences_list = []
+            for zoho_item_data in zoho_items_data:
+                zoho_name = zoho_item_data['name']
+                seem = rapidfuzz.fuzz.ratio(qb_name, zoho_name) / 100  # Normaliza a un rango de 0 a 1
+                if seem > 0.4:
                     # Agregar coincidencias a la lista
                     dependences_list.append({
-                        'zoho_customer_id': zoho_customer_data['contact_id'],
-                        'zoho_customer': zoho_customer_data['customer_name'],
-                        'email': zoho_customer_data['email'],
-                        'seem_email': seem_email,
-                        'coincidence_email': f'{round(seem_email * 100, 2)} %',
-                        'phone': zoho_customer_data['phone'],
-                        'seem_phone': seem_phone,
-                        'coincidence_phone': f'{round(seem_phone * 100, 2)} %'
+                        'zoho_item_id': zoho_item_data['item_id'],
+                        'zoho_item': zoho_item_data['name'],
+                        'zoho_item_sku': zoho_item_data['sku'],
+                        'seem': seem,
+                        'coincidence': f'{round(seem * 100, 2)} %'
                     })
 
-        if dependences_list:
-            # Ordenar dependencias por `seem_email`
-            sorted_dependences_list = sorted(dependences_list, key=lambda x: x['seem_email'], reverse=True)
-            similar_customers.append({
-                'qb_customer_list_id': qb_df.iloc[qb_index]['list_id'],
-                'qb_customer_name': qb_df.iloc[qb_index]['name'],
-                'qb_customer_email': qb_email,
-                'qb_customer_phone': qb_phone,
-                'coincidences_by_order': sorted_dependences_list
-            })
+            if dependences_list:
+                # Ordenar dependencias
+                sorted_dependences_list = sorted(dependences_list, key=lambda x: x['seem'], reverse=True)
+                similar_items.append({
+                    'qb_item_list_id': qb_df.iloc[qb_index]['list_id'],
+                    'qb_item_name': qb_name,
+                    'coincidences_by_order': sorted_dependences_list
+                })
+                
+        return JsonResponse(similar_items, safe=False)
+    
+    return JsonResponse({'error': 'Invalid request method'}, status=405)
 
-    context = {'similar_customers': similar_customers}
-    return render(request, 'api_quickbook_soap/similar_customers.html', context)
+
+@csrf_exempt
+def matching_customers(request):
+    if request.method == 'GET':
+        global similar_customers
+        similar_customers = []
+        pattern = r'^[A-Za-z0-9]{8}\d-[A-Za-z0-9]{10}$'
+        
+        # Usar consultas eficientes con `values` para obtener solo los datos necesarios
+        qb_customers = QbCustomer.objects.filter(matched=False, never_match=False).values_list('list_id', 'name', 'email', 'phone')
+        zoho_customers = ZohoCustomer.objects.filter(
+            Q(qb_list_id__isnull=True) | Q(qb_list_id='') | ~Q(qb_list_id__regex=pattern)
+        ).values_list('contact_id', 'customer_name', 'email', 'phone')
+
+        # Convertir a DataFrames de Pandas
+        qb_df = pd.DataFrame(list(qb_customers), columns=['list_id', 'name', 'email', 'phone'])
+        zoho_df = pd.DataFrame(list(zoho_customers), columns=['contact_id', 'customer_name', 'email', 'phone'])
+
+        # Preparar arrays para comparación
+        qb_emails = qb_df['email'].to_numpy()
+        qb_phones = qb_df['phone'].to_numpy()
+        zoho_customers_data = zoho_df[['contact_id', 'customer_name', 'email', 'phone']].to_dict(orient='records')
+
+        # Crear una lista para almacenar los resultados
+        similar_customers = []
+
+        # Comparar clientes usando `rapidfuzz` para comparación de cadenas
+        for qb_index, (qb_email, qb_phone) in enumerate(zip(qb_emails, qb_phones)):
+            dependences_list = []
+            for zoho_customer_data in zoho_customers_data:
+                zoho_email = zoho_customer_data['email']
+                zoho_phone = zoho_customer_data['phone']
+
+                # Asegurarse de que al menos uno de los dos campos (email o teléfono) no esté vacío
+                if (qb_email or qb_phone) and (zoho_email or zoho_phone):
+                    # Comparar email y teléfono usando `rapidfuzz`
+                    seem_email = rapidfuzz.fuzz.ratio(qb_email, zoho_email) / 100  # Normaliza a un rango de 0 a 1
+                    seem_phone = rapidfuzz.fuzz.ratio(qb_phone, zoho_phone) / 100  # Normaliza a un rango de 0 a 1
+
+                    if (seem_email > 0.7 or seem_phone > 0.7) and (zoho_customer_data['email'] == '' or not re.match(pattern, zoho_customer_data['email'])):
+                        # Agregar coincidencias a la lista
+                        dependences_list.append({
+                            'zoho_customer_id': zoho_customer_data['contact_id'],
+                            'zoho_customer': zoho_customer_data['customer_name'],
+                            'email': zoho_customer_data['email'],
+                            'seem_email': seem_email,
+                            'coincidence_email': f'{round(seem_email * 100, 2)} %',
+                            'phone': zoho_customer_data['phone'],
+                            'seem_phone': seem_phone,
+                            'coincidence_phone': f'{round(seem_phone * 100, 2)} %'
+                        })
+
+            if dependences_list:
+                # Ordenar dependencias por `seem_email`
+                sorted_dependences_list = sorted(dependences_list, key=lambda x: x['seem_email'], reverse=True)
+                similar_customers.append({
+                    'qb_customer_list_id': qb_df.iloc[qb_index]['list_id'],
+                    'qb_customer_name': qb_df.iloc[qb_index]['name'],
+                    'qb_customer_email': qb_email,
+                    'qb_customer_phone': qb_phone,
+                    'coincidences_by_order': sorted_dependences_list
+                })
+        
+        return JsonResponse(similar_customers, safe=False)
+    
+    return JsonResponse({'error': 'Invalid request method'}, status=405)
 
 
 #############################################
 # Display matched elements
 #############################################
 
-@login_required(login_url='login')
+@csrf_exempt
 def matched_items(request):
-    # Obtener los ítems de QbItem que están marcados como `matched=True`
-    qb_items = QbItem.objects.filter(matched=True).values('list_id', 'name')
+    if request.method == 'GET':
+    
+        qb_items = QbItem.objects.filter(matched=True).values('list_id', 'name')
 
-    # Crear un diccionario para buscar rápidamente los ítems de ZohoItem por `qb_list_id`
-    zoho_items_dict = ZohoItem.objects.filter(
-        qb_list_id__isnull=False
-    ).exclude(
-        qb_list_id=''
-    ).values('qb_list_id', 'item_id', 'name', 'sku')
+        # Crear un diccionario para buscar rápidamente los ítems de ZohoItem por `qb_list_id`
+        zoho_items_dict = ZohoItem.objects.filter(
+            qb_list_id__isnull=False
+        ).exclude(
+            qb_list_id=''
+        ).values('qb_list_id', 'item_id', 'name', 'sku')
 
-    # Crear un conjunto para almacenar los ítems coincidentes
-    matched_items = []
+        # Crear un conjunto para almacenar los ítems coincidentes
+        matched_items = []
 
-    # Convertir `zoho_items_dict` a un diccionario para una búsqueda rápida
-    zoho_items_dict = {item['qb_list_id']: item for item in zoho_items_dict}
+        # Convertir `zoho_items_dict` a un diccionario para una búsqueda rápida
+        zoho_items_dict = {item['qb_list_id']: item for item in zoho_items_dict}
 
-    for qb_item in qb_items:
-        # Buscar si hay un ítem de ZohoItem con el mismo `qb_list_id`
-        zoho_item = zoho_items_dict.get(qb_item['list_id'])
-        if zoho_item:
-            matched = {
-                'zoho_item_id': zoho_item['item_id'],
-                'zoho_item': zoho_item['name'],
-                'zoho_item_sku': zoho_item['sku'],
-                'qb_item_name': qb_item['name'],
-                'qb_item_list_id': qb_item['list_id'],
-                'zoho_item_qb_list_id': zoho_item['qb_list_id']
-            }
-            matched_items.append(matched)
+        for qb_item in qb_items:
+            # Buscar si hay un ítem de ZohoItem con el mismo `qb_list_id`
+            zoho_item = zoho_items_dict.get(qb_item['list_id'])
+            if zoho_item:
+                matched = {
+                    'zoho_item_id': zoho_item['item_id'],
+                    'zoho_item': zoho_item['name'],
+                    'zoho_item_sku': zoho_item['sku'],
+                    'qb_item_name': qb_item['name'],
+                    'qb_item_list_id': qb_item['list_id'],
+                    'zoho_item_qb_list_id': zoho_item['qb_list_id']
+                }
+                matched_items.append(matched)
+        
+        return JsonResponse(matched_items, safe=False)
+    
+    return JsonResponse({'error': 'Invalid request method'}, status=405)
 
-    context = {'matched_items': matched_items}
-    return render(request, 'api_quickbook_soap/matched_items.html', context)
 
-
-@login_required(login_url='login')
+@csrf_exempt
 def matched_customers(request):
-    # Obtener los clientes de QbCustomer que están marcados como `matched=True`
-    qb_customers = QbCustomer.objects.filter(matched=True).values('list_id', 'name')
+    if request.method == 'GET':
+    
+        qb_customers = QbCustomer.objects.filter(matched=True).values('list_id', 'name')
 
-    # Crear un diccionario para buscar rápidamente los clientes de ZohoCustomer por `qb_list_id`
-    zoho_customers_dict = ZohoCustomer.objects.filter(
-        qb_list_id__isnull=False
-    ).exclude(
-        qb_list_id=''
-    ).values('qb_list_id', 'contact_id', 'customer_name', 'email', 'phone', 'company_name')
+        # Crear un diccionario para buscar rápidamente los clientes de ZohoCustomer por `qb_list_id`
+        zoho_customers_dict = ZohoCustomer.objects.filter(
+            qb_list_id__isnull=False
+        ).exclude(
+            qb_list_id=''
+        ).values('qb_list_id', 'contact_id', 'customer_name', 'email', 'phone', 'company_name')
 
-    # Convertir `zoho_customers_dict` a un diccionario para una búsqueda rápida
-    zoho_customers_dict = {customer['qb_list_id']: customer for customer in zoho_customers_dict}
+        # Convertir `zoho_customers_dict` a un diccionario para una búsqueda rápida
+        zoho_customers_dict = {customer['qb_list_id']: customer for customer in zoho_customers_dict}
 
-    # Crear una lista para almacenar los clientes coincidentes
-    matched_customers = []
+        # Crear una lista para almacenar los clientes coincidentes
+        matched_customers = []
 
-    for qb_customer in qb_customers:
-        # Buscar si hay un cliente de ZohoCustomer con el mismo `qb_list_id`
-        zoho_customer = zoho_customers_dict.get(qb_customer['list_id'])
-        if zoho_customer:
-            matched = {
-                'zoho_customer_id': zoho_customer['contact_id'],
-                'zoho_customer': zoho_customer['customer_name'],
-                'zoho_customer_email': zoho_customer['email'],
-                'zoho_customer_phone': zoho_customer['phone'],
-                'zoho_customer_company': zoho_customer['company_name'],
-                'qb_customer_name': qb_customer['name'],
-                'qb_customer_list_id': qb_customer['list_id'],
-                'zoho_customer_qb_list_id': zoho_customer['qb_list_id']
-            }
-            matched_customers.append(matched)
-
-    context = {'matched_customers': matched_customers}
-    return render(request, 'api_quickbook_soap/matched_customers.html', context)
+        for qb_customer in qb_customers:
+            # Buscar si hay un cliente de ZohoCustomer con el mismo `qb_list_id`
+            zoho_customer = zoho_customers_dict.get(qb_customer['list_id'])
+            if zoho_customer:
+                matched = {
+                    'zoho_customer_id': zoho_customer['contact_id'],
+                    'zoho_customer': zoho_customer['customer_name'],
+                    'zoho_customer_email': zoho_customer['email'],
+                    'zoho_customer_phone': zoho_customer['phone'],
+                    'zoho_customer_company': zoho_customer['company_name'],
+                    'qb_customer_name': qb_customer['name'],
+                    'qb_customer_list_id': qb_customer['list_id'],
+                    'zoho_customer_qb_list_id': zoho_customer['qb_list_id']
+                }
+                matched_customers.append(matched)
+        
+        return JsonResponse(matched_customers, safe=False)
+    
+    return JsonResponse({'error': 'Invalid request method'}, status=405)
 
 
 @csrf_exempt

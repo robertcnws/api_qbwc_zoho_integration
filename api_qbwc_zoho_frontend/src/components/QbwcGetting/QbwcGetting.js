@@ -16,6 +16,10 @@ const QbwcGetting = () => {
 
   const handleListCustomers = () => gettingData('list', 'customers', setLoadingCustomers);
   const handleListItems = () => gettingData('list', 'items', setLoadingItems);
+  const handleSimilarCustomers = () => gettingData('similar', 'customers', setLoadingCustomers);
+  const handleSimilarItems = () => gettingData('similar', 'items', setLoadingItems);
+  const handleMatchedCustomers = () => gettingData('matched', 'customers', setLoadingCustomers);
+  const handleMatchedItems = () => gettingData('matched', 'items', setLoadingItems);
 
   return (
     <Container component="main" maxWidth="md" sx={{ mt: 5, p: 3, bgcolor: '#FFFFFF', boxShadow: 3, borderRadius: 2 }}>
@@ -61,10 +65,56 @@ const QbwcGetting = () => {
                 </Grid>
             </Grid>
             <Grid container spacing={2} alignItems="center" justifyContent="center" mb={3}>
-                
+                <Grid item xs={6} sx={{ textAlign: 'center' }}>
+                    <Button
+                        onClick={handleSimilarCustomers}
+                        variant="contained"
+                        color="primary"
+                        size="small"
+                        disabled={loadingCustomers}
+                        startIcon={loadingCustomers ? <CircularProgress size={24} /> : null}
+                    >
+                        {loadingCustomers ? 'Loading Customers...' : 'Similar Customers'}
+                    </Button>
+                </Grid>
+                <Grid item xs={6} sx={{ textAlign: 'center' }}>
+                    <Button
+                        onClick={handleSimilarItems}
+                        variant="contained"
+                        color="primary"
+                        size="small"
+                        disabled={loadingItems}
+                        startIcon={loadingItems ? <CircularProgress size={24} /> : null}
+                    >
+                        {loadingItems ? 'Loading Items...' : 'Similar Items'}
+                    </Button>
+                </Grid>
             </Grid>
             <Grid container spacing={2} alignItems="center" justifyContent="center" mb={3}>
-                
+                <Grid item xs={6} sx={{ textAlign: 'center' }}>
+                    <Button
+                        onClick={handleMatchedCustomers}
+                        variant="contained"
+                        color="success"
+                        size="small"
+                        disabled={loadingCustomers}
+                        startIcon={loadingCustomers ? <CircularProgress size={24} /> : null}
+                    >
+                        {loadingCustomers ? 'Loading Customers...' : 'Matched Customers'}
+                    </Button>
+                </Grid>
+                <Grid item xs={6} sx={{ textAlign: 'center' }}>
+                    <Button
+                        onClick={handleMatchedItems}
+                        variant="contained"
+                        color="success"
+                        size="small"
+                        disabled={loadingItems}
+                        startIcon={loadingItems ? <CircularProgress size={24} /> : null}
+                    >
+                        {loadingItems ? 'Loading Items...' : 'Matched Items'}
+                    </Button>
+                </Grid>
             </Grid>
             
             <Typography

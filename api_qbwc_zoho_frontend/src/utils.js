@@ -28,6 +28,12 @@ export const getComparator = (order, orderBy) => {
         : (a, b) => -descendingComparator(a, b, orderBy);
 }
 
+export function getComparatorUndefined(order, orderBy) {
+    return order === 'desc'
+      ? (a, b) => descendingComparatorUndefined(a, b, orderBy)
+      : (a, b) => -descendingComparatorUndefined(a, b, orderBy);
+  }
+
 export const descendingComparator = (a, b, orderBy) => {
     if (b.fields[orderBy] < a.fields[orderBy]) {
         return -1;
@@ -37,3 +43,17 @@ export const descendingComparator = (a, b, orderBy) => {
     }
     return 0;
 }
+
+function descendingComparatorUndefined(a, b, orderBy) {
+    if (!a || !b || !a[orderBy] || !b[orderBy]) {
+      return 0;
+    }
+    
+    if (b[orderBy] < a[orderBy]) {
+      return -1;
+    }
+    if (b[orderBy] > a[orderBy]) {
+      return 1;
+    }
+    return 0;
+  }

@@ -1,11 +1,64 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { Container, CircularProgress, useMediaQuery, useTheme } from '@mui/material';
+import QbwcCustomersList from '../QbwcCustomersList/QbwcCustomersList';
+import axios from 'axios';
+import { AlertLoading } from '../../../Utils/components/AlertLoading/AlertLoading';
+import { AlertError } from '../../../Utils/components/AlertError/AlertError';
 
-import styles from './QbwcCustomersListPage.css';
+const apiUrl = process.env.REACT_APP_BACKEND_URL
 
-export interface QbwcCustomersListPageProps {
-  prop?: string;
-}
+const QbwcCustomersListPage = () => {
+    const [customers, setCustomers] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const theme = useTheme();
+    const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
 
-export function QbwcCustomersListPage({prop = 'default value'}: QbwcCustomersListPageProps) {
-  return <div className={styles.QbwcCustomersListPage}>QbwcCustomersListPage {prop}</div>;
-}
+    useEffect(() => {
+        axios.get(`${apiUrl}/api_quickbook_soap/qbwc_customers/`)
+            .then(response => {
+                const jsonData = JSON.parse(response.data); 
+                setCustomers(jsonData);  
+            })
+            .catch(error => {
+                console.error('Error fetching items:', error);
+                setError(`Failed to fetch items: ${error}`);
+            })
+            .finally(() => {
+                setLoading(false);
+            })
+    }, []);
+
+    if (loading) {
+        return (
+            <AlertLoading isSmallScreen={isSmallScreen} />
+        );
+    }
+
+    if (error) {
+        return (
+            <AlertError isSmallScreen={isSmallScreen} error={error}/>
+        );
+    }
+
+    
+
+    return (
+        <Container maxWidth="lg"
+            sx={{
+                mt: 5,
+                p: 2,
+                marginLeft: isSmallScreen ? '0' : '3%',
+                transition: 'margin-left 0.3s ease', 
+            }}
+        >
+            {loading ? (
+                <CircularProgress />
+            ) : (
+                <QbwcCustomersList customers={customers} />
+            )}
+        </Container>
+    );
+};
+
+export default QbwcCustomersListPage;
