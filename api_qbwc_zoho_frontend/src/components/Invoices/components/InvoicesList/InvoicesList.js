@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     Container,
@@ -33,10 +33,9 @@ import { stableSort, getComparator } from '../../../../utils';
 
 const apiUrl = process.env.REACT_APP_BACKEND_URL;
 
-const InvoicesList = ({ data }) => {
+const InvoicesList = ({ data, onSyncComplete, filterDate, setFilterDate }) => {
     const [selectedInvoices, setSelectedInvoices] = useState([]);
     const [page, setPage] = useState(0);
-    const [filterDate, setFilterDate] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [rowsPerPage, setRowsPerPage] = useState(10);
     const [orderBy, setOrderBy] = useState('');
@@ -45,6 +44,17 @@ const InvoicesList = ({ data }) => {
     
     const today = dayjs();
     const oneYearAgo = today.subtract(1, 'year');
+
+    useEffect(() => {
+        // Actualiza la URL con el filtro de fecha
+        const queryParams = new URLSearchParams(window.location.search);
+        if (filterDate) {
+            queryParams.set('date', filterDate.format('YYYY-MM-DD'));
+        } else {
+            queryParams.delete('date');
+        }
+        window.history.replaceState(null, '', `${window.location.pathname}?${queryParams.toString()}`);
+    }, [filterDate]);
 
     const handleViewInvoice = (invoice) => {
         navigate('/integration/invoice_details', { state: { invoice } });
@@ -89,8 +99,10 @@ const InvoicesList = ({ data }) => {
                             text: 'Selected invoices have been forced to sync.',
                             icon: 'success',
                             confirmButtonText: 'OK'
+                        }).then(() => {
+                            setSelectedInvoices([]);
+                            onSyncComplete(); // Notify parent component to update data
                         });
-                        navigate('/integration/list_invoices');
                     } else {
                         Swal.fire({
                             title: 'Error!',
@@ -144,7 +156,7 @@ const InvoicesList = ({ data }) => {
     };
 
     const clearFilters = () => {
-        setFilterDate(null);
+        setFilterDate(today); 
         setSearchTerm('');
     };
 
@@ -337,10 +349,10 @@ const InvoicesList = ({ data }) => {
                                         {
                                             !invoice.fields.force_to_sync ? 
                                             renderForceSyncCheckbox(invoice, isItemSelected) : 
-                                            <Box sx={{ display: 'flex', gap: 1 }}>
+                                            (<Box sx={{ display: 'flex', gap: 1 }}>
                                                 <CheckCircleIcon color="success" />
                                                 <Typography sx={{ color: 'success.main' }}><b>Forced to sync</b></Typography>
-                                            </Box>
+                                            </Box>)
                                         }
                                     </TableCell>
                                     <TableCell align="center">

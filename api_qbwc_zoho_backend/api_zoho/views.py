@@ -13,6 +13,7 @@ from django.urls import reverse
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.csrf import ensure_csrf_cookie
 from datetime import datetime, timezone
 from .models import AppConfig, ZohoLoading
 from .forms import ApiZohoForm, LoginForm, AppConfigForm
@@ -24,9 +25,11 @@ from .forms import ApiZohoForm, LoginForm, AppConfigForm
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
+@ensure_csrf_cookie
 def csrf_token_view(request):
     csrf_token = get_token(request)
-    return JsonResponse({'csrfToken': csrf_token})
+    print(csrf_token)
+    return JsonResponse({'csrftoken': csrf_token})
 
 @csrf_exempt
 def login_view(request):

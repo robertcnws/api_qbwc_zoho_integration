@@ -19,10 +19,15 @@ import {
   FormControlLabel,
   Checkbox
 } from '@mui/material';
+import Swal from 'sweetalert2';
+import axios from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
-import { stableSort, getComparator } from '../../../../utils';
+import cookie from 'react-cookies';
+import { stableSort, getComparator, getCsrfToken, getCookie } from '../../../../utils';
 
-const QbwcItemsList = ({ items }) => {
+const apiUrl = process.env.REACT_APP_BACKEND_URL
+
+const QbwcItemsList = ({ items, onSyncComplete }) => {
 
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -86,6 +91,62 @@ const QbwcItemsList = ({ items }) => {
         );
   };
 
+  const handleNeverMatchItems = () => {
+    Swal.fire({
+        title: 'Are you sure?',
+        text: 'Do you want to never match selected items?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, never match them!'
+    }).then(async (result) => {
+        if (result.isConfirmed) {
+            axios.defaults.xsrfCookieName = "csrftoken";
+            axios.defaults.xsrfHeaderName = "X-CSRFTOKEN";
+            const token = cookie.load('csrftoken'); 
+            try {
+                const config = {
+                    withCredentials: true,
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                        'X-CSRFTOKEN': token,
+                    }
+                };
+                const body = {
+                    items: selectedItems,
+                };
+                const response = await axios.post(`${apiUrl}/api_quickbook_soap/never_match_items_ajax/`, body, config);
+                if (response.data.message === 'error') {
+                    Swal.fire(
+                        'Error!',
+                        response.data.error,
+                        'error'
+                    );
+                    return;
+                }   
+                else if (response.data.message === 'success') {
+                    Swal.fire(
+                        'Success!',
+                        'Selected items have been marked as never match.',
+                        'success'
+                    ).then(() => {
+                        setSelectedItems([]);
+                        onSyncComplete(); // Notify parent component to update data
+                    });
+                }
+            } catch (error) {
+                Swal.fire(
+                    'Error!',
+                    'There was an error marking items as never match.',
+                    'error'
+                );
+            }
+        }
+    });
+};
+
 
   const filteredItems = items.filter(item =>
       item.fields.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -123,7 +184,7 @@ const QbwcItemsList = ({ items }) => {
                     </Button>
                 </Grid>
                 <Grid item>
-                    <Button variant="contained" color="primary" size="small" href="{% url 'api_quickbook_soap:matched_items' %}">
+                    <Button variant="contained" color="primary" size="small" onClick={handleNeverMatchItems}>
                         Never match selected
                     </Button>
                 </Grid>

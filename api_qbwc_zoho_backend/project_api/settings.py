@@ -17,7 +17,6 @@ import os
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
@@ -27,10 +26,9 @@ SECRET_KEY = 'django-insecure-8=q+a0063s232#ebj-9l94lv8p+v4cb1%qh+-%su93w)4f@8w#
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-env = environ.Env(
-    # Establece el valor por defecto para DEBUG a False
-    DEBUG=(bool, False)
-)
+# env = environ.Env(
+#     DEBUG=(bool, False)
+# )
 
 # Lee el archivo .env
 environ.Env.read_env()
@@ -55,7 +53,9 @@ ZOHO_URL_READ_ITEMS = env('ZOHO_URL_READ_ITEMS')
 ZOHO_TOKEN_URL = env('ZOHO_TOKEN_URL')
 ZOHO_AUTH_URL = env('ZOHO_AUTH_URL')
 SALES_TAX_LIST_ID = env('SALES_TAX_LIST_ID')
-DB_NAME = env('DB_NAME')
+DB_NAME_DEV = env('DB_NAME_DEV')
+DB_NAME_QA = env('DB_NAME_QA')
+DB_NAME_PROD = env('DB_NAME_PROD')
 DB_USER = env('DB_USER')
 DB_PASSWORD = env('DB_PASSWORD')
 DB_HOST = env('DB_HOST')
@@ -64,21 +64,21 @@ DB_ENGINE = env('DB_ENGINE')
 FRONTEND_URL = env('FRONTEND_URL')
 
 CSRF_TRUSTED_ORIGINS = [
-    'https://127.0.0.1',
-    'http://127.0.0.1',
-    'https://localhost',
-    'http://localhost',
-    'https://tu-dominio.com',
-    'https://10.1.10.216',
     'http://localhost:3000',
     'http://127.0.0.1:3000',
 ]
 
-CSRF_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = False  # False para desarrollo, True para producción
+
+CSRF_COOKIE_NAME = 'csrftoken'
 
 CSRF_COOKIE_HTTPONLY = False
 
-SESSION_COOKIE_SECURE = True
+CSRF_HEADER_NAME = 'HTTP_X_CSRFTOKEN'
+
+CSRF_COOKIE_SAMESITE = 'None'
+
+SESSION_COOKIE_SECURE = False  # False para desarrollo, True para producción
 
 # CORS_ORIGIN_ALLOW_ALL = True  # Permitir todas las solicitudes de origen (para desarrollo)
 # o para producción
@@ -89,10 +89,10 @@ SESSION_COOKIE_SECURE = True
 CORS_ALLOW_CREDENTIALS = True
 
 CORS_ALLOWED_ORIGINS = [
-    "https://10.1.10.216",
+    "http://10.1.10.216",
     "http://localhost:3000",
     "http://127.0.0.1:3000",
-    "https://127.0.0.1",
+    "http://127.0.0.1",
 ]
 
 CORS_ALLOW_METHODS = [
@@ -105,15 +105,16 @@ CORS_ALLOW_METHODS = [
 ]
 
 CORS_ALLOW_HEADERS = [
-    'authorization',
-    'content-type',
+    'Authorization',
+    'Content-Type',
+    'Accept',
     'x-requested-with',
     'accept',
     'origin',
     'user-agent',
     'dnt',
     'cache-control',
-    'x-csrftoken',
+    'X-CSRFToken',
     'x-requested-with',
     'x-xsrf-token',
 ]
@@ -128,6 +129,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'corsheaders',
+    'rest_framework',
+    'rest_framework_simplejwt',
     'api_zoho',
     'api_zoho_customers',
     'api_zoho_items',
@@ -135,15 +138,22 @@ INSTALLED_APPS = [
     'api_quickbook_soap',
 ]
 
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+}
+
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
 ]
 
 ROOT_URLCONF = 'project_api.urls'
@@ -180,7 +190,7 @@ WSGI_APPLICATION = 'project_api.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': f'{DB_ENGINE}',
-        'NAME': f'{DB_NAME}',
+        'NAME': f'{DB_NAME_DEV}',
         'USER': f'{DB_USER}',
         'PASSWORD': f'{DB_PASSWORD}',
         'HOST': f'{DB_HOST}',

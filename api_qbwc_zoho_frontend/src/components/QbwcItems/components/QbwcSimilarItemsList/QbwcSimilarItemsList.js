@@ -21,7 +21,6 @@ import Swal from 'sweetalert2';
 import { stableSort, getComparatorUndefined } from '../../../../utils';
 
 const QbwcSimilarItemsList = ({ similarItems }) => {
-  console.log(similarItems);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [orderBy, setOrderBy] = useState('qb_item_name'); // Default orderBy column

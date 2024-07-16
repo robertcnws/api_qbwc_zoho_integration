@@ -14,6 +14,7 @@ from django.core import serializers
 from django.views.decorators.csrf import csrf_exempt
 from django.forms.models import model_to_dict
 from api_quickbook_soap.models import QbCustomer
+from datetime import date as dt
 import datetime
 import pandas as pd
 import rapidfuzz
@@ -112,9 +113,6 @@ def view_customer(request, customer_id):
                         # Comparar email y teléfono usando `rapidfuzz`
                     seem_email = rapidfuzz.fuzz.ratio(zoho_email, qb_email) / 100 if zoho_email and qb_email else 0
                     seem_phone = rapidfuzz.fuzz.ratio(zoho_phone, qb_phone) / 100 if zoho_phone and qb_phone else 0
-                    
-                    logger.debug(f"Comparing {zoho_email} with {qb_email} and {zoho_phone} with {qb_phone}")
-                    logger.debug(f"Email similarity: {seem_email}, Phone similarity: {seem_phone}")
 
                     if seem_email > 0.7 or seem_phone > 0.7:
                             # Agregar coincidencias a la lista
@@ -178,12 +176,18 @@ def load_customers(request):
             }
             return render(request, 'api_zoho/error.html', context)
         customers_saved = list(ZohoCustomer.objects.all())
+        today = dt.today().strftime('%Y-%m-%d')
 
         params = {
             'page': 1,
             'per_page': 200,  # Asegúrate de que este sea el valor máximo permitido por la API
             'organization_id': app_config.zoho_org_id,
-        }
+        } if len(customers_saved) == 0 else {
+            'page': 1,
+            'per_page': 200,  # Asegúrate de que este sea el valor máximo permitido por la API
+            'organization_id': app_config.zoho_org_id,
+            'created_time_start': f'{today}',
+        }  
 
         url = f'{settings.ZOHO_URL_READ_CUSTOMERS}'
         customers_to_save = []

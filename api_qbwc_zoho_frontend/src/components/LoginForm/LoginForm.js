@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Container, TextField, Button, Typography, Box, Alert } from '@mui/material';
 import { useAuth } from '../AuthContext/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import { getCookie } from '../../utils';
 
 const apiUrl = process.env.REACT_APP_BACKEND_URL;
 
@@ -17,27 +19,39 @@ const LoginForm = () => {
     e.preventDefault();
 
     try {
-      const response = await fetch(`${apiUrl}/login/`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ username, password }),
-      });
+        const body_jwt = JSON.stringify({ username, password });
+        const jwtResponse = await axios.post(`${apiUrl}/api/token/`, body_jwt, {
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+            },
+        });
 
-      if (!response.ok) {
-        throw new Error('Invalid credentials');
-      } else {
-        setSuccess('Login successful');
-        login();
-        console.log('Navigating to /integration');  // Añadir este log
-        navigate('/integration');
-      }
+        localStorage.setItem('accessToken', jwtResponse.data.access);
+        localStorage.setItem('refreshToken', jwtResponse.data.refresh);
 
-    } catch (err) {
-      setError(err.message);
+        const body = JSON.stringify({ username, password });
+        const loginResponse = await axios.post(`${apiUrl}/login/`, body, {
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken'),  // Asegúrate de que el token CSRF esté aquí
+            },
+        });
+
+        if (loginResponse.status === 200) {
+            setSuccess('Login successful');
+            login();  // Función para actualizar el estado después del login
+            console.log('Navigating to /integration');  // Añadir este log
+            navigate('/integration');
+        } else {
+            throw new Error('Invalid credentials');
+        }
+
+    } catch (error) {
+        setError(error.message);
     }
-  };
+};
+
 
   return (
     <Container maxWidth="xs" sx={{ mt: 8 }}>

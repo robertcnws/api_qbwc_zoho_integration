@@ -1,16 +1,32 @@
+import axios from 'axios';
+
 
 const apiUrl = process.env.REACT_APP_BACKEND_URL
+
 export const getCsrfToken = async () => {
-    const response = await fetch(`${apiUrl}/get_csrf_token/`, {
-      method: 'GET',
-      credentials: 'include',
-    });
-    if (!response.ok) {
+  try {
+      const response = await axios.get(`${apiUrl}/get_csrf_token/`, { withCredentials: true });
+      return response.data.csrftoken;
+  } catch (error) {
+      console.error('Error fetching CSRF token:', error);
       throw new Error('Failed to get CSRF token');
-    }
-    const data = await response.json();
-    return data.csrfToken;
-  };
+  }
+};
+
+export const getCookie = (name) => {
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+          let cookie = cookies[i].trim();
+          if (cookie.indexOf(name + '=') === 0) {
+              cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+              break;
+          }
+      }
+  }
+  return cookieValue;
+}
 
 export const stableSort = (array, comparator) => {
     const stabilizedThis = array.map((el, index) => [el, index]);

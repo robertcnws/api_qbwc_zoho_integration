@@ -14,19 +14,22 @@ const QbwcItemsListPage = () => {
     const theme = useTheme();
     const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
 
+    const fetchItems = async () => {
+        try {
+            const response = await axios.get(`${apiUrl}/api_quickbook_soap/qbwc_items/`);
+            const jsonData = JSON.parse(response.data);
+            setItems(jsonData);
+        } catch (error) {
+            console.error('Error fetching items:', error);
+            setError(`Failed to fetch items: ${error}`);
+        } finally {
+            setLoading(false);
+        }
+    }
+
+
     useEffect(() => {
-        axios.get(`${apiUrl}/api_quickbook_soap/qbwc_items/`)
-            .then(response => {
-                const jsonData = JSON.parse(response.data); 
-                setItems(jsonData);  
-            })
-            .catch(error => {
-                console.error('Error fetching items:', error);
-                setError(`Failed to fetch items: ${error}`);
-            })
-            .finally(() => {
-                setLoading(false);
-            })
+        fetchItems();
     }, []);
 
     if (loading) {
@@ -55,7 +58,7 @@ const QbwcItemsListPage = () => {
             {loading ? (
                 <CircularProgress />
             ) : (
-                <QbwcItemsList items={items} />
+                <QbwcItemsList items={items} onSyncComplete={fetchItems}/>
             )}
         </Container>
     );

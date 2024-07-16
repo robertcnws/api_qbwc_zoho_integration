@@ -7,7 +7,9 @@ from django.db.models import Q, Count
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
 from django.core import serializers
+from django.utils.dateparse import parse_date
 from datetime import datetime, timezone
+from datetime import date as date
 from api_zoho_customers.models import ZohoCustomer
 from api_zoho_items.models import ZohoItem
 from api_zoho_invoices.models import ZohoFullInvoice
@@ -157,25 +159,30 @@ def force_to_sync_invoices_ajax(request):
 
 @require_POST
 def never_match_items_ajax(request):
-    try:
-        items_json = request.POST.get('items', '[]')  # Obtener los datos del POST
-        list_id = json.loads(items_json)  # Convertir JSON a lista
-        print(f"List ID: {list_id}")
-        for item in list_id:
-            qb_item = get_object_or_404(QbItem, list_id=item)
-            qb_item.never_match = True
-            qb_item.save()
-        return JsonResponse({'status': 'success'})
-    except Exception as e:
-        logger.error(f"An error occurred: {e}")
-        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+    print("Request received at never_match_items_ajax")  # Agrega esta línea para confirmar la llegada de la solicitud
+    logger.info("Request received at never_match_items_ajax")
+    print(request.headers)
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            list_id = data.get('items', [])
+            print(f"List ID: {list_id}")
+            for item in list_id:
+                qb_item = get_object_or_404(QbItem, list_id=item)
+                qb_item.never_match = True
+                qb_item.save()
+            return JsonResponse({'message': 'success', 'status': 200})
+        except Exception as e:
+            logger.error(f"An error occurred: {e}")
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+    return JsonResponse({'status': 'error', 'message': 'Invalid request method'}, status=405)
     
 
 @require_POST    
 def never_match_customers_ajax(request):
     try:
-        customers_json = request.POST.get('customers', '[]')  # Obtener los datos del POST
-        list_id = json.loads(customers_json)  # Convertir JSON a lista
+        data = json.loads(request.body)
+        list_id = data.get('customers', [])
         print(f"List ID: {list_id}")
         for customer in list_id:
             qb_customer = get_object_or_404(QbCustomer, list_id=customer)
@@ -396,7 +403,15 @@ def matched_customers(request):
 @csrf_exempt
 def matched_invoices(request):
     if request.method == 'GET':
-        stats = ZohoFullInvoice.objects.aggregate(
+        # Obtener la fecha desde los parámetros de consulta, o usar la fecha actual si no se proporciona
+        date_str = request.GET.get('date')
+        date_date = parse_date(date_str) if date_str else date.today()
+
+        # Agregar filtro de fecha para obtener solo las facturas del día
+        invoices = ZohoFullInvoice.objects.filter(date=date_date)
+
+        # Calcular estadísticas basadas en las facturas del día
+        stats = invoices.aggregate(
             matched_number=Count('id', filter=Q(inserted_in_qb=True)),
             total_items_unmatched=Count('id', filter=Q(items_unmatched__isnull=False, items_unmatched__gt=0)),
             total_customers_unmatched=Count('id', filter=Q(customer_unmatched__isnull=False, customer_unmatched__gt=0)),
@@ -409,9 +424,7 @@ def matched_invoices(request):
         unmatched_number = max(total_items_unmatched, total_customers_unmatched)
         unprocessed_number = stats['unprocessed_number'] - unmatched_number
 
-        # Obtener todas las facturas que necesitamos mostrar
-        invoices = ZohoFullInvoice.objects.all()
-
+        # Serializar las facturas para la respuesta
         context = {
             'invoices': serializers.serialize('json', invoices),
             'matched_number': matched_number,
@@ -420,7 +433,7 @@ def matched_invoices(request):
         }
         return JsonResponse(context, safe=False)
     
-    return JsonResponse({'error': 'Invalid request method'}, status=405) 
+    return JsonResponse({'error': 'Invalid request method'}, status=405)
     
 
 
