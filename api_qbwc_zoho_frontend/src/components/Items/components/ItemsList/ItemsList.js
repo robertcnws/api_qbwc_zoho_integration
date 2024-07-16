@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Container, Grid, Typography, Alert, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, TablePagination, TextField, TableSortLabel } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { stableSort, getComparator } from '../../../../utils';
 
 const ItemsList = ({ items }) => {
@@ -52,7 +52,12 @@ const ItemsList = ({ items }) => {
     ];
 
     return (
-        <Container sx={{ marginLeft: '-3%', marginTop: '-5%', minWidth:'130%' }}>
+        // <Container sx={{
+        //     marginLeft: { xs: '-3%' },
+        //     marginTop: { xs: '-5%' },
+        //     minWidth: { xs: '100%', sm: '100%', md: '100%' }
+        //   }}>
+        <Container maxWidth="lg" sx={{ marginLeft: '-3%', marginTop: '-5%', transition: 'margin-left 0.3s ease', minWidth:'97%' }}>
             <Grid container spacing={2} alignItems="center" justifyContent="space-between" mb={3}>
                 <Grid item xs={6}>
                     <Typography
@@ -69,12 +74,12 @@ const ItemsList = ({ items }) => {
                 </Grid>
                 <Grid item xs={6} container justifyContent="flex-end" spacing={1}>
                     <Grid item>
-                        <Button variant="contained" color="primary" size="small" href="{% url 'api_quickbook_soap:matching_items' %}">
+                        <Button variant="contained" color="primary" size="small" component={Link} to='/integration/qbwc_similar_items'>
                             Similar Items
                         </Button>
                     </Grid>
                     <Grid item>
-                        <Button variant="contained" color="success" size="small" href="{% url 'api_quickbook_soap:matched_items' %}">
+                        <Button variant="contained" color="success" size="small" component={Link} to='/integration/qbwc_matched_items'>
                             Matched Items
                         </Button>
                     </Grid>

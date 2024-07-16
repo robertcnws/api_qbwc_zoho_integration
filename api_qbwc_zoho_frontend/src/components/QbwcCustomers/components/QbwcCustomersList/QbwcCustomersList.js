@@ -103,7 +103,7 @@ const QbwcCustomersList = ({ customers }) => {
   ];
 
   return (
-    <Container sx={{ marginLeft: '-3%', marginTop: '-5%', minWidth:'130%', fontSize:'small'}}>
+    <Container maxWidth="lg" sx={{ marginLeft: '-3%', marginTop: '-5%', transition: 'margin-left 0.3s ease', minWidth:'97%' }}>
         <Grid container spacing={2} alignCustomers="center" justifyContent="space-between" mb={3}>
             <Grid item xs={6}>
                 <Typography

@@ -18,7 +18,6 @@ const Sidebar = ({ expanded, toggleSubmenu, handleLogout }) => {
       left: 0,
       paddingTop: 2,
       minHeight: '100vh',
-      height: '100vh',
       display: 'flex',
       flexDirection: 'column',
     }}>

@@ -1,7 +1,7 @@
 import { Alert } from '@mui/material';
 import React from 'react';
 
-export function AlertError({isSmallScreen, error}) {
+export const AlertError = ({isSmallScreen, error}) => {
   return <Alert severity="error" xs={12} sx={{
               mt: 5,
               p: 2,

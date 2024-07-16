@@ -2,7 +2,7 @@ import { Alert } from '@mui/material';
 import React from 'react';
 
 
-export function AlertLoading( {isSmallScreen} ) {
+export const AlertLoading = ( {isSmallScreen} ) => {
   return <Alert severity="info" xs={12} sx={{
               mt: 5,
               p: 2,

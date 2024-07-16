@@ -143,7 +143,7 @@ const QbwcSimilarItemsList = ({ similarItems }) => {
   const paginatedItems = sortedItems.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
   return (
-    <Container sx={{ marginLeft: '-3%', marginTop: '-5%', minWidth:'130%', fontSize:'small'}}>
+    <Container maxWidth="lg" sx={{ marginLeft: '-3%', marginTop: '-5%', transition: 'margin-left 0.3s ease', minWidth:'97%' }}>
       <Grid container spacing={2} alignItems="center" justifyContent="space-between" mb={3}>
         <Grid item xs={6}>
           <Typography
@@ -161,7 +161,7 @@ const QbwcSimilarItemsList = ({ similarItems }) => {
         <Grid item xs={6} container justifyContent="flex-end" spacing={1}>
           <Grid item>
             <Button variant="contained" color="success" size="small" onClick={() => navigate(-1)}>
-              Back to list
+              Back to List
             </Button>
           </Grid>
           <Grid item>

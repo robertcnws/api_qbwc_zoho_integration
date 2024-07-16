@@ -1,15 +1,27 @@
 import React, { useEffect, useState } from 'react';
-import { Grid, Box, Typography, Button, Alert, AlertTitle, Container } from '@mui/material';
+import { 
+  Grid, 
+  Box, 
+  Typography, 
+  Button, 
+  Alert, 
+  AlertTitle, 
+  Container, 
+  useTheme, 
+  useMediaQuery 
+} from '@mui/material';
 import { Link } from 'react-router-dom';
+import { AlertLoading } from '../Utils/components/AlertLoading/AlertLoading';
+import { AlertError } from '../Utils/components/AlertError/AlertError';
+
 const apiUrl = process.env.REACT_APP_BACKEND_URL;
-// const ZOHO_SCOPE_INVOICES = process.env.REACT_APP_ZOHO_SCOPE_INVOICES;
-// const ZOHO_SCOPE_CUSTOMERS = process.env.REACT_APP_ZOHO_SCOPE_CUSTOMERS;
-// const ZOHO_SCOPE_ITEMS = process.env.REACT_APP_ZOHO_SCOPE_ITEMS;
 
 const MainContent = () => {
   const [config, setConfig] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const theme = useTheme();
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
 
   const handleZohoOauth = async () => {
     setLoading(true);
@@ -58,8 +70,12 @@ const MainContent = () => {
     fetchConfig();
   }, []);
 
-  if (loading) return <Typography>Loading...</Typography>;
-  if (error) return <Typography color="error">{error}</Typography>;
+  if (loading){
+    return (<AlertLoading isSmallScreen={isSmallScreen} />);
+  } 
+  if (error) {
+    return (<AlertError isSmallScreen={isSmallScreen} error={error} />);
+  }
 
   return (
     <Container component="main" maxWidth="md" sx={{ mt: 5, p: 2, bgcolor: 'background.paper', boxShadow: 3, borderRadius: 2 }}>

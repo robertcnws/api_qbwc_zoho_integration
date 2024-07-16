@@ -70,7 +70,7 @@ const CustomersList = ({ customers }) => {
     ];
 
     return (
-        <Container sx={{ marginLeft: '-3%', marginTop: '-5%', minWidth:'130%'}}>
+        <Container maxWidth="lg" sx={{ marginLeft: '-3%', marginTop: '-5%', transition: 'margin-left 0.3s ease', minWidth:'97%' }}>
             <Grid container spacing={2} alignItems="center" justifyContent="space-between" mb={3}>
                 <Grid item xs={6}>
                 <Typography

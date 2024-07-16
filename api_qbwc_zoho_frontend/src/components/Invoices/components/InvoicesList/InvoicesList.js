@@ -139,8 +139,7 @@ const InvoicesList = ({ data }) => {
             invoice.fields.invoice_number.toLowerCase().includes(normalizedSearch) ||
             invoice.fields.customer_name.toLowerCase().includes(normalizedSearch) ||
             invoice.fields.date.toLowerCase().includes(normalizedSearch) ||
-            invoice.fields.total.toLowerCase().includes(normalizedSearch) ||
-            invoice.fields.force_to_sync.toLowerCase().includes(normalizedSearch)
+            invoice.fields.total.toLowerCase().includes(normalizedSearch)
         );
     };
 
@@ -213,7 +212,7 @@ const InvoicesList = ({ data }) => {
     ];
 
     return (
-        <Container sx={{ marginLeft: '-3%', marginTop: '-5%', minWidth: '130%' }}>
+        <Container maxWidth="lg" sx={{ marginLeft: '-3%', marginTop: '-5%', transition: 'margin-left 0.3s ease', minWidth:'97%' }}>
             <Grid container spacing={1} mb={3}>
                 <Grid item xs={4}>
                     <Typography
