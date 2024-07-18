@@ -78,12 +78,14 @@ def quickbook_api_settings(request):
 # Trying to get elements here
 #############################################
 
-@csrf_exempt
-def qbwc_items(request):
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def qbwc_items(request, is_never_match):
     
-    if request.method == 'GET':
-        
-        soap_items_query = QbItem.objects.filter(never_match=False)
+    valid_token = api_zoho_views.validateJWTTokenRequest(request)
+    if valid_token:
+        never_match = True if is_never_match == 'true' else False
+        soap_items_query = QbItem.objects.filter(never_match=never_match)
         batch_size = 200  
         soap_items = []
         
@@ -95,15 +97,16 @@ def qbwc_items(request):
         
         return JsonResponse(items_data, safe=False)
     
-    return JsonResponse({'error': 'Invalid request method'}, status=405)
+    return JsonResponse({'error': 'Invalid JWT Token'}, status=401)
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
-def qbwc_customers(request):
+def qbwc_customers(request, is_never_match):
     
     valid_token = api_zoho_views.validateJWTTokenRequest(request)
     if valid_token:
-        soap_customers_query = QbCustomer.objects.filter(never_match=False)
+        never_match = True if is_never_match == 'true' else False
+        soap_customers_query = QbCustomer.objects.filter(never_match=never_match)
         batch_size = 200  # Ajusta este tamaño según tus necesidades
         soap_customers = []
         
@@ -175,57 +178,64 @@ def never_match_items_ajax(request):
         try:
             data = json.loads(request.body)
             list_id = data.get('items', [])
+            to_match = data.get('to_match', False)
             print(f"List ID: {list_id}")
             for item in list_id:
                 qb_item = get_object_or_404(QbItem, list_id=item)
-                qb_item.never_match = True
+                qb_item.never_match = not to_match
                 qb_item.save()
             return JsonResponse({'message': 'success', 'status': 200})
         except Exception as e:
             logger.error(f"An error occurred: {e}")
             return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
-    return JsonResponse({'status': 'error', 'message': 'Invalid token'}, status=403)
+    return JsonResponse({'status': 'error', 'message': 'Invalid JWT Token'}, status=401)
     
 
-@require_POST    
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
 def never_match_customers_ajax(request):
-    try:
-        data = json.loads(request.body)
-        list_id = data.get('customers', [])
-        print(f"List ID: {list_id}")
-        for customer in list_id:
-            qb_customer = get_object_or_404(QbCustomer, list_id=customer)
-            qb_customer.never_match = True
-            qb_customer.save()
-        return JsonResponse({'status': 'success'})
-    except Exception as e:
-        logger.error(f"An error occurred: {e}")
-        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+    valid_token = api_zoho_views.validateJWTTokenRequest(request)
+    if valid_token:
+        try:
+            data = json.loads(request.body)
+            list_id = data.get('customers', [])
+            to_match = data.get('to_match', False)
+            print(f"List ID: {list_id}")
+            for customer in list_id:
+                qb_customer = get_object_or_404(QbCustomer, list_id=customer)
+                qb_customer.never_match = not to_match
+                qb_customer.save()
+            return JsonResponse({'message': 'success'}, status=200)
+        except Exception as e:
+            logger.error(f"An error occurred: {e}")
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+    return JsonResponse({'status': 'error', 'message': 'Invalid JWT Token'}, status=401)
 
 
 #############################################
 # Trying to get matched elements here
 #############################################
 
-@csrf_exempt
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def matching_items(request):
-    if request.method == 'GET':
-        pattern = r'^[A-Za-z0-9]{8}\d-[A-Za-z0-9]{10}$'
+    valid_token = api_zoho_views.validateJWTTokenRequest(request)
+    if valid_token:
+        pattern = r'^[A-Za-z0-9]{8}-[A-Za-z0-9]{10}$'
 
         # Usar consultas eficientes con `values` y `annotate`
         qb_items = QbItem.objects.filter(matched=False, never_match=False).values_list('list_id', 'name')
         zoho_items = ZohoItem.objects.filter(
             Q(qb_list_id__isnull=True) | Q(qb_list_id='') | ~Q(qb_list_id__regex=pattern)
-        ).values_list('item_id', 'name', 'sku')
-
+        ).values_list('item_id', 'name', 'sku', 'qb_list_id')
+        
         # Convertir a DataFrames de Pandas
         qb_df = pd.DataFrame(list(qb_items), columns=['list_id', 'name'])
-        zoho_df = pd.DataFrame(list(zoho_items), columns=['item_id', 'name', 'sku'])
+        zoho_df = pd.DataFrame(list(zoho_items), columns=['item_id', 'name', 'sku', 'qb_list_id'])
 
         # Preparar los arrays para comparación
         qb_names = qb_df['name'].to_numpy()
-        zoho_names = zoho_df['name'].to_numpy()
-        zoho_items_data = zoho_df[['item_id', 'name', 'sku']].to_dict(orient='records')
+        zoho_items_data = zoho_df[['item_id', 'name', 'sku', 'qb_list_id']].to_dict(orient='records')
 
         # Crear un array vacío para almacenar los resultados
         similar_items = []
@@ -257,15 +267,18 @@ def matching_items(request):
                 
         return JsonResponse(similar_items, safe=False)
     
-    return JsonResponse({'error': 'Invalid request method'}, status=405)
+    return JsonResponse({'error': 'Invalid JWT Token'}, status=401)
 
 
-@csrf_exempt
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def matching_customers(request):
-    if request.method == 'GET':
+    valid_token = api_zoho_views.validateJWTTokenRequest(request)
+    if valid_token:
         global similar_customers
         similar_customers = []
-        pattern = r'^[A-Za-z0-9]{8}\d-[A-Za-z0-9]{10}$'
+        # pattern = r'^[A-Za-z0-9]{8}\d-[A-Za-z0-9]{10}$'
+        pattern = r'^[A-Za-z0-9]{8}-[A-Za-z0-9]{10}$'
         
         # Usar consultas eficientes con `values` para obtener solo los datos necesarios
         qb_customers = QbCustomer.objects.filter(matched=False, never_match=False).values_list('list_id', 'name', 'email', 'phone')
@@ -298,7 +311,7 @@ def matching_customers(request):
                     seem_email = rapidfuzz.fuzz.ratio(qb_email, zoho_email) / 100  # Normaliza a un rango de 0 a 1
                     seem_phone = rapidfuzz.fuzz.ratio(qb_phone, zoho_phone) / 100  # Normaliza a un rango de 0 a 1
 
-                    if (seem_email > 0.7 or seem_phone > 0.7) and (zoho_customer_data['email'] == '' or not re.match(pattern, zoho_customer_data['email'])):
+                    if (seem_email > 0.8 or seem_phone > 0.8):
                         # Agregar coincidencias a la lista
                         dependences_list.append({
                             'zoho_customer_id': zoho_customer_data['contact_id'],
@@ -324,16 +337,18 @@ def matching_customers(request):
         
         return JsonResponse(similar_customers, safe=False)
     
-    return JsonResponse({'error': 'Invalid request method'}, status=405)
+    return JsonResponse({'error': 'Invalid JWT Token'}, status=401)
 
 
 #############################################
 # Display matched elements
 #############################################
 
-@csrf_exempt
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def matched_items(request):
-    if request.method == 'GET':
+    valid_token = api_zoho_views.validateJWTTokenRequest(request)
+    if valid_token:
     
         qb_items = QbItem.objects.filter(matched=True).values('list_id', 'name')
 
@@ -366,12 +381,14 @@ def matched_items(request):
         
         return JsonResponse(matched_items, safe=False)
     
-    return JsonResponse({'error': 'Invalid request method'}, status=405)
+    return JsonResponse({'error': 'Invalid JWT Token'}, status=401)
 
 
-@csrf_exempt
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def matched_customers(request):
-    if request.method == 'GET':
+    valid_token = api_zoho_views.validateJWTTokenRequest(request)
+    if valid_token:
     
         qb_customers = QbCustomer.objects.filter(matched=True).values('list_id', 'name')
 
@@ -406,7 +423,7 @@ def matched_customers(request):
         
         return JsonResponse(matched_customers, safe=False)
     
-    return JsonResponse({'error': 'Invalid request method'}, status=405)
+    return JsonResponse({'error': 'Invalid JWT Token'}, status=401)
 
 
 @api_view(['GET'])

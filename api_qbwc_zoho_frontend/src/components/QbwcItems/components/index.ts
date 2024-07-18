@@ -4,3 +4,5 @@ export {QbwcSimilarItemsList} from './QbwcSimilarItemsList';
 export {QbwcItemsListPage} from './QbwcItemsListPage';
 export {QbwcMatchedItemsListPage} from './QbwcMatchedItemsListPage';
 export {QbwcSimilarItemsListPage} from './QbwcSimilarItemsListPage';
+export {QbwcNeverMatchedItemsList} from './QbwcNeverMatchedItemsList';
+export {QbwcNeverMatchedItemsListPage} from './QbwcNeverMatchedItemsListPage';

@@ -36,20 +36,23 @@ logger = logging.getLogger(__name__)
 def match_one_item_ajax(request):
     valid_token = api_zoho_views.validateJWTTokenRequest(request)
     if valid_token:
-        action = request.POST['action']
-        logger.debug(f"Action: {action}")
-        try:
-            qb_list_id = request.POST['qb_item_list_id']
-            zoho_item_id = request.POST['item_id']
-            qb_item = get_object_or_404(QbItem, list_id=qb_list_id)
-            zoho_item = get_object_or_404(ZohoItem, item_id=zoho_item_id)
-            zoho_item.qb_list_id = qb_list_id if action == 'match' else ''
-            zoho_item.save()
-            qb_item.matched = True if action == 'match' else False
-            qb_item.save()
-            return JsonResponse({'status': 'success', 'message': 'Item matched successfully'})
-        except Exception as e:
-            return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+        print(request.body)
+        if request.body:
+            data = json.loads(request.body)
+            action = data.get('action')
+            try:
+                qb_list_id = data.get('qb_item_list_id')
+                zoho_item_id = data.get('item_id')
+                qb_item = get_object_or_404(QbItem, list_id=qb_list_id)
+                zoho_item = get_object_or_404(ZohoItem, item_id=zoho_item_id)
+                zoho_item.qb_list_id = qb_list_id if action == 'match' else ''
+                zoho_item.save()
+                qb_item.matched = True if action == 'match' else False
+                qb_item.save()
+                return JsonResponse({'status': 'success', 'message': 'Item matched successfully'})
+            except Exception as e:
+                return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+        return JsonResponse({'status': 'error', 'message': 'No data provided'}, status=400)
     return JsonResponse({'status': 'error', 'message': 'Invalid token'}, status=401)
     
     

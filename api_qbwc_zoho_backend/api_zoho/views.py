@@ -162,7 +162,6 @@ def get_refresh_token(request):
 @permission_classes([IsAuthenticated])
 def zoho_api_settings(request):
     valid_token = validateJWTTokenRequest(request)
-    print(valid_token)
     if valid_token:
         app_config = AppConfig.objects.first()
         if not app_config:

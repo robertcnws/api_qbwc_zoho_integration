@@ -15,18 +15,22 @@ import {
   TablePagination, 
   TextField, 
   TableSortLabel,
+  FormControl,
+  FormControlLabel,
+  Checkbox
 } from '@mui/material';
-import { Link } from 'react-router-dom';
 import Swal from 'sweetalert2';
-import { stableSort, getComparatorUndefined, fetchWithToken } from '../../../../utils';
+import { Link } from 'react-router-dom';
+import { stableSort, getComparator, fetchWithToken } from '../../../../utils';
 
 const apiUrl = process.env.REACT_APP_BACKEND_URL
 
-const QbwcMatchedItemsList = ({ matchedItems, onSyncComplete }) => {
+const QbwcNeverMatchedItemsList = ({ neverMatchedItems, onSyncComplete }) => {
 
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedNeverMatchedItems, setSelectedNeverMatchedItems] = useState([]);
   const [orderBy, setOrderBy] = useState('');
   const [order, setOrder] = useState('asc');
 
@@ -50,68 +54,103 @@ const QbwcMatchedItemsList = ({ matchedItems, onSyncComplete }) => {
       setPage(0);
   };
 
-  const handleUnMatchItem = (item) => {
+  const isSelected = (itemId) => selectedNeverMatchedItems.indexOf(itemId) !== -1;
+
+  const handleCheckboxClick = (event, itemId) => {
+        const selectedIndex = selectedNeverMatchedItems.indexOf(itemId);
+        let newSelected = [];
+
+        if (selectedIndex === -1) {
+            newSelected = [...selectedNeverMatchedItems, itemId];
+        } else {
+            newSelected = selectedNeverMatchedItems.filter((id) => id !== itemId);
+        }
+        setSelectedNeverMatchedItems(newSelected);
+  };
+
+  const renderForceSyncCheckbox = (item, isSelected) => {
+        return (
+            <FormControl sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <FormControlLabel sx={{ color: 'success.main' }}
+                    control={
+                        <Checkbox sx={{ color: 'success.main' }}
+                            checked={isSelected}
+                            onChange={(e) => handleCheckboxClick(e, item.fields.list_id)}
+                        />
+                    }
+                    label="Undo never match?"
+                />
+            </FormControl>
+        );
+  };
+
+  const handleNeverMatchItems = () => {
+    if (selectedNeverMatchedItems.length === 0) {
+        Swal.fire({
+            title: 'Error!',
+            text: 'Please select at least one never matched item.',
+            icon: 'error',
+            confirmButtonText: 'OK'
+        });
+        return;
+    }
     Swal.fire({
         title: 'Are you sure?',
-        text: 'Do you want to unmatch this item?',
+        text: 'Do you want to never match selected items?',
         icon: 'warning',
         showCancelButton: true,
         confirmButtonColor: '#3085d6',
         cancelButtonColor: '#d33',
-        confirmButtonText: 'Yes, Unmatch it!'
-    }).then((result) => {
+        confirmButtonText: 'Yes, never match them!'
+    }).then(async (result) => {
         if (result.isConfirmed) {
-            const unmatchOneItemAjax = async () => {
-                try {
-                    const url = `${apiUrl}/api_zoho_items/match_one_item_ajax/`
-                    const data = {
-                        item_id: item.zoho_item_id,
-                        qb_item_list_id: item.qb_item_list_id,
-                        action: 'unmatch'
-                    }
-                    const response = await fetchWithToken(url, 'POST', data, {}, apiUrl);
-                    if (response.data.status === 'success') {
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Success',
-                            text: response.data.message,
-                            willClose: () => {
-                                // navigate(-1);
-                                onSyncComplete();
-                            }
-                        });
-                    } else {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Error',
-                            text: response.data.message
-                        });
-                    }
-                } catch (error) {
-                    console.error('Error unmatching item:', error);
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: `Error unmatching item: ${error}`
+            try {
+                const url = `${apiUrl}/api_quickbook_soap/never_match_items_ajax/`
+                const body = {
+                    items: selectedNeverMatchedItems,
+                    to_match: true
+                };
+                const response = await fetchWithToken(url, 'POST', body, {}, apiUrl);
+                if (response.data.message === 'error') {
+                    Swal.fire(
+                        'Error!',
+                        response.data.error,
+                        'error'
+                    );
+                    return;
+                }   
+                else if (response.data.message === 'success') {
+                    Swal.fire(
+                        'Success!',
+                        'Selected items have been marked as never match.',
+                        'success'
+                    ).then(() => {
+                        setSelectedNeverMatchedItems([]);
+                        onSyncComplete();
                     });
                 }
-            };
-            unmatchOneItemAjax();
+            } catch (error) {
+                Swal.fire(
+                    'Error!',
+                    'There was an error marking items as never match.',
+                    'error'
+                );
+            }
         }
     });
 };
 
-  const filteredItems = matchedItems.filter(item =>
-      item.qb_item_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.zoho_item.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.zoho_item_sku.toLowerCase().includes(searchTerm.toLowerCase())
+
+  const filteredNeverMatchedItems = neverMatchedItems.filter(item =>
+      item.fields.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.fields.list_id.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const sortedItems = stableSort(filteredItems, getComparatorUndefined(order, orderBy));
+  const sortedNeverMatchedItems = stableSort(filteredNeverMatchedItems, getComparator(order, orderBy));
 
   const columns = [
       { id: 'qb_item', label: 'QB Item' },
-      { id: 'zoho_item', label: 'Zoho Item' },
+      { id: 'qb_list_id', label: 'QB List ID' },
       { id: 'actions', label: 'Actions' }
   ];
 
@@ -138,7 +177,7 @@ const QbwcMatchedItemsList = ({ matchedItems, onSyncComplete }) => {
                         fontWeight: 'bold',
                     }}
                 >
-                    QB Matched Items List
+                    QB Never Matched Items List
                 </Typography>
             </Grid>
             <Grid item xs={6} container justifyContent="flex-end" spacing={1}>
@@ -147,11 +186,16 @@ const QbwcMatchedItemsList = ({ matchedItems, onSyncComplete }) => {
                         Back to QBWC
                     </Button>
                 </Grid>
+                <Grid item>
+                    <Button variant="contained" color="error" size="small" onClick={handleNeverMatchItems}>
+                        Undo Never Match 
+                    </Button>
+                </Grid>
             </Grid>
             <Grid item xs={12} container justifyContent="flex-end" spacing={1}>
                 <Grid item xs={8}>
                     <Alert severity="info" sx={{ mb: 2 }}>
-                        There are {filteredItems.length} matched items found.
+                        There are {filteredNeverMatchedItems.length} items found.
                     </Alert>
                 </Grid>
                 <Grid item xs={4}>
@@ -185,24 +229,14 @@ const QbwcMatchedItemsList = ({ matchedItems, onSyncComplete }) => {
                         </TableHead>
                         <TableBody>
                             {(rowsPerPage > 0
-                                ? sortedItems.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                                : sortedItems
+                                ? sortedNeverMatchedItems.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                                : sortedNeverMatchedItems
                             ).map((item, index) => (
                                 <TableRow key={index} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
-                                    <TableCell>{item.qb_item_name}</TableCell>
-                                    <TableCell>
-                                      {item.zoho_item}<br />
-                                      (SKU: {item.zoho_item_sku && item.zoho_item_sku.length > 0 ? item.zoho_item_sku : '---'})
-                                    </TableCell>
-                                    <TableCell className="text-center align-middle">
-                                      <Button 
-                                        onClick={() => handleUnMatchItem(item)} 
-                                        variant="contained" 
-                                        color="warning" 
-                                        size="small"
-                                      >
-                                        UnMatch
-                                      </Button>
+                                    <TableCell>{item.fields.name}</TableCell>
+                                    <TableCell>{item.fields.list_id}</TableCell>
+                                    <TableCell align="center">
+                                        {renderForceSyncCheckbox(item, isSelected(item.fields.list_id))}
                                     </TableCell>
                                 </TableRow>
                             ))}
@@ -212,7 +246,7 @@ const QbwcMatchedItemsList = ({ matchedItems, onSyncComplete }) => {
                 <TablePagination
                     rowsPerPageOptions={[5, 10, 25, 50]}
                     component="div"
-                    count={filteredItems.length}
+                    count={filteredNeverMatchedItems.length}
                     rowsPerPage={rowsPerPage}
                     page={page}
                     onPageChange={handleChangePage}
@@ -226,4 +260,4 @@ const QbwcMatchedItemsList = ({ matchedItems, onSyncComplete }) => {
 
 }
 
-export default QbwcMatchedItemsList;
+export default QbwcNeverMatchedItemsList;

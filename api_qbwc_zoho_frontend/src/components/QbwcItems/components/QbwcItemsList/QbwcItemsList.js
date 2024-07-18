@@ -20,10 +20,8 @@ import {
   Checkbox
 } from '@mui/material';
 import Swal from 'sweetalert2';
-import axios from 'axios';
-import { Link, useNavigate } from 'react-router-dom';
-import cookie from 'react-cookies';
-import { stableSort, getComparator, getAccessToken } from '../../../../utils';
+import { Link } from 'react-router-dom';
+import { stableSort, getComparator, fetchWithToken } from '../../../../utils';
 
 const apiUrl = process.env.REACT_APP_BACKEND_URL
 
@@ -35,7 +33,6 @@ const QbwcItemsList = ({ items, onSyncComplete }) => {
   const [selectedItems, setSelectedItems] = useState([]);
   const [orderBy, setOrderBy] = useState('');
   const [order, setOrder] = useState('asc');
-  const navigate = useNavigate();
 
   const handleSortChange = (columnId) => {
       const isAsc = orderBy === columnId && order === 'asc';
@@ -55,10 +52,6 @@ const QbwcItemsList = ({ items, onSyncComplete }) => {
   const handleSearchChange = (event) => {
       setSearchTerm(event.target.value);
       setPage(0);
-  };
-
-  const handleNeverMatch = (item) => {
-      navigate('/integration/item_details', { state: { item } });
   };
 
   const isSelected = (itemId) => selectedItems.indexOf(itemId) !== -1;
@@ -92,6 +85,15 @@ const QbwcItemsList = ({ items, onSyncComplete }) => {
   };
 
   const handleNeverMatchItems = () => {
+    if (selectedItems.length === 0) {
+        Swal.fire({
+            title: 'Error!',
+            text: 'Please select at least one item.',
+            icon: 'error',
+            confirmButtonText: 'OK'
+        });
+        return;
+    }
     Swal.fire({
         title: 'Are you sure?',
         text: 'Do you want to never match selected items?',
@@ -102,20 +104,12 @@ const QbwcItemsList = ({ items, onSyncComplete }) => {
         confirmButtonText: 'Yes, never match them!'
     }).then(async (result) => {
         if (result.isConfirmed) {
-            const token = getAccessToken(); 
             try {
-                const config = {
-                    withCredentials: true,
-                    headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`,
-                    }
-                };
+                const url = `${apiUrl}/api_quickbook_soap/never_match_items_ajax/`
                 const body = {
                     items: selectedItems,
                 };
-                const response = await axios.post(`${apiUrl}/api_quickbook_soap/never_match_items_ajax/`, body, config);
+                const response = await fetchWithToken(url, 'POST', body, {}, apiUrl);
                 if (response.data.message === 'error') {
                     Swal.fire(
                         'Error!',
@@ -131,7 +125,7 @@ const QbwcItemsList = ({ items, onSyncComplete }) => {
                         'success'
                     ).then(() => {
                         setSelectedItems([]);
-                        onSyncComplete(); // Notify parent component to update data
+                        onSyncComplete();
                     });
                 }
             } catch (error) {
@@ -160,7 +154,17 @@ const QbwcItemsList = ({ items, onSyncComplete }) => {
   ];
 
   return (
-    <Container maxWidth="lg" sx={{ marginLeft: '-3%', marginTop: '-5%', transition: 'margin-left 0.3s ease', minWidth:'97%' }}>
+    <Container
+            maxWidth="xl"
+            sx={{
+                marginLeft: '-3%',
+                marginTop: '-5%',
+                transition: 'margin-left 0.3s ease',
+                minHeight: '100vh',
+                minWidth: '82vw',
+                padding: 1,
+            }}
+        >
         <Grid container spacing={2} alignItems="center" justifyContent="space-between" mb={3}>
             <Grid item xs={6}>
                 <Typography

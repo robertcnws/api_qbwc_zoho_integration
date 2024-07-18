@@ -52,12 +52,17 @@ const ItemsList = ({ items }) => {
     ];
 
     return (
-        // <Container sx={{
-        //     marginLeft: { xs: '-3%' },
-        //     marginTop: { xs: '-5%' },
-        //     minWidth: { xs: '100%', sm: '100%', md: '100%' }
-        //   }}>
-        <Container maxWidth="lg" sx={{ marginLeft: '-3%', marginTop: '-5%', transition: 'margin-left 0.3s ease', minWidth:'97%' }}>
+        <Container
+            maxWidth="xl"
+            sx={{
+                marginLeft: '-3%',
+                marginTop: '-5%',
+                transition: 'margin-left 0.3s ease',
+                minHeight: '100vh',
+                minWidth: '82vw',
+                padding: 1,
+            }}
+            >
             <Grid container spacing={2} alignItems="center" justifyContent="space-between" mb={3}>
                 <Grid item xs={6}>
                     <Typography
@@ -74,12 +79,12 @@ const ItemsList = ({ items }) => {
                 </Grid>
                 <Grid item xs={6} container justifyContent="flex-end" spacing={1}>
                     <Grid item>
-                        <Button variant="contained" color="primary" size="small" component={Link} to='/integration/qbwc_similar_items'>
+                        <Button variant="contained" color="primary" size="small" component={Link} to='/integration/qbwc_items/similar'>
                             Similar Items
                         </Button>
                     </Grid>
                     <Grid item>
-                        <Button variant="contained" color="success" size="small" component={Link} to='/integration/qbwc_matched_items'>
+                        <Button variant="contained" color="success" size="small" component={Link} to='/integration/qbwc_items/matched'>
                             Matched Items
                         </Button>
                     </Grid>

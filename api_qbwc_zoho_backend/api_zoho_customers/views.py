@@ -37,20 +37,23 @@ logger = logging.getLogger(__name__)
 def match_one_customer_ajax(request):
     valid_token = api_zoho_views.validateJWTTokenRequest(request)
     if valid_token:
-        action = request.POST['action']
-        try:
-            qb_list_id = request.POST['qb_customer_list_id']
-            zoho_customer_id = request.POST['contact_id']
-            qb_customer = get_object_or_404(QbCustomer, list_id=qb_list_id)
-            zoho_customer = get_object_or_404(ZohoCustomer, contact_id=zoho_customer_id)
-            zoho_customer.qb_list_id = qb_list_id if action == 'match' else ''
-            zoho_customer.save()
-            qb_customer.matched = True if action == 'match' else False
-            qb_customer.save()
-            message = 'Customer matched successfully' if action == 'match' else 'Customer unmatched successfully'
-            return JsonResponse({'status': 'success', 'message': message})
-        except Exception as e:
-            return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+        if request.body:
+            data = json.loads(request.body)
+            action = data.get('action')
+            try:
+                qb_list_id = data.get('qb_customer_list_id')
+                zoho_customer_id = data.get('contact_id')
+                qb_customer = get_object_or_404(QbCustomer, list_id=qb_list_id)
+                zoho_customer = get_object_or_404(ZohoCustomer, contact_id=zoho_customer_id)
+                zoho_customer.qb_list_id = qb_list_id if action == 'match' else ''
+                zoho_customer.save()
+                qb_customer.matched = True if action == 'match' else False
+                qb_customer.save()
+                message = 'Customer matched successfully' if action == 'match' else 'Customer unmatched successfully'
+                return JsonResponse({'status': 'success', 'message': message}, status=200)
+            except Exception as e:
+                return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+        return JsonResponse({'status': 'error', 'message': 'No data provided'}, status=400)
     return JsonResponse({'status': 'error', 'message': 'Invalid token'}, status=401)
     
 

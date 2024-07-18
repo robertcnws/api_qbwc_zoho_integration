@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { Container, CircularProgress, useMediaQuery, useTheme } from '@mui/material';
 import QbwcItemsList from '../QbwcItemsList/QbwcItemsList';
-import axios from 'axios';
 import { AlertLoading } from '../../../Utils/components/AlertLoading/AlertLoading';
 import { AlertError } from '../../../Utils/components/AlertError/AlertError';
+import { fetchWithToken } from '../../../../utils';
 
 const apiUrl = process.env.REACT_APP_BACKEND_URL
 
@@ -16,7 +16,8 @@ const QbwcItemsListPage = () => {
 
     const fetchItems = async () => {
         try {
-            const response = await axios.get(`${apiUrl}/api_quickbook_soap/qbwc_items/`);
+            const isNeverMatch = 'false';
+            const response = await fetchWithToken(`${apiUrl}/api_quickbook_soap/qbwc_items/${isNeverMatch}`, 'GET', null, {}, apiUrl);
             const jsonData = JSON.parse(response.data);
             setItems(jsonData);
         } catch (error) {
@@ -26,7 +27,6 @@ const QbwcItemsListPage = () => {
             setLoading(false);
         }
     }
-
 
     useEffect(() => {
         fetchItems();

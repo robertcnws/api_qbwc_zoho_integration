@@ -25,7 +25,7 @@ import { stableSort, getComparator, fetchWithToken } from '../../../../utils';
 
 const apiUrl = process.env.REACT_APP_BACKEND_URL
 
-const QbwcCustomersList = ({ customers, onSyncComplete }) => {
+const QbwcNeverMatchedCustomersList = ({ customers, onSyncComplete }) => {
 
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -72,14 +72,14 @@ const QbwcCustomersList = ({ customers, onSyncComplete }) => {
     const renderForceSyncCheckbox = (customer, isSelected) => {
             return (
                 <FormControl sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <FormControlLabel sx={{ color: 'warning.main' }}
+                    <FormControlLabel sx={{ color: 'success.main' }}
                         control={
-                            <Checkbox sx={{ color: 'warning.main' }}
+                            <Checkbox sx={{ color: 'success.main' }}
                                 checked={isSelected}
                                 onChange={(e) => handleCheckboxClick(e, customer.fields.list_id)}
                             />
                         }
-                        label="Never match?"
+                        label="Undo never match?"
                     />
                 </FormControl>
             );
@@ -97,7 +97,7 @@ const QbwcCustomersList = ({ customers, onSyncComplete }) => {
         }
         Swal.fire({
             title: 'Are you sure?',
-            text: 'Do you want to never match selected customers?',
+            text: 'Do you want to recover selected customers?',
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#3085d6',
@@ -109,6 +109,7 @@ const QbwcCustomersList = ({ customers, onSyncComplete }) => {
                     const url = `${apiUrl}/api_quickbook_soap/never_match_customers_ajax/`
                     const body = {
                         customers: selectedCustomers,
+                        to_match: true
                     };
                     const response = await fetchWithToken(url, 'POST', body, {}, apiUrl);
                     if (response.data.message === 'error') {
@@ -189,15 +190,15 @@ const QbwcCustomersList = ({ customers, onSyncComplete }) => {
                     </Button>
                 </Grid>
                 <Grid item>
-                    <Button variant="contained" color="primary" size="small" onClick={handleNeverMatchCustomers}>
-                        Never match selected
+                    <Button variant="contained" color="error" size="small" onClick={handleNeverMatchCustomers}>
+                        Undo match selected
                     </Button>
                 </Grid>
             </Grid>
             <Grid item xs={12} container justifyContent="flex-end" spacing={1}>
                 <Grid item xs={8}>
                     <Alert severity="info" sx={{ mb: 2 }}>
-                        There are {filteredCustomers.length} customers found.
+                        There are {filteredCustomers.length} never matched customers found.
                     </Alert>
                 </Grid>
                 <Grid item xs={4}>
@@ -264,4 +265,4 @@ const QbwcCustomersList = ({ customers, onSyncComplete }) => {
 
 }
 
-export default QbwcCustomersList;
+export default QbwcNeverMatchedCustomersList;

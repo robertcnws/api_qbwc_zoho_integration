@@ -12,3 +12,4 @@ export {ZohoLoading} from './ZohoLoading';
 export {Topbar} from './Topbar';
 export {QbwcGetting} from './QbwcGetting';
 export {CSRFToken} from './CSRFToken';
+export {ContainerFrame} from './ContainerFrame';

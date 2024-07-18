@@ -5,3 +5,5 @@ export {QbwcMatchedCustomersList} from './QbwcMatchedCustomersList';
 export {QbwcCustomersListPage} from './QbwcCustomersListPage';
 export {QbwcMatchedCustomersListPage} from './QbwcMatchedCustomersListPage';
 export {QbwcSimilarCustomersListPage} from './QbwcSimilarCustomersListPage';
+export {QbwcNeverMatchedCustomersList} from './QbwcNeverMatchedCustomersList';
+export {QbwcNeverMatchedCustomersListPage} from './QbwcNeverMatchedCustomersListPage';

@@ -1,39 +1,36 @@
 import React, { useEffect, useState } from 'react';
 import { Container, CircularProgress, useMediaQuery, useTheme } from '@mui/material';
-import QbwcCustomersList from '../QbwcCustomersList/QbwcCustomersList';
+import QbwcNeverMatchedItemsList from '../QbwcNeverMatchedItemsList/QbwcNeverMatchedItemsList';
 import { AlertLoading } from '../../../Utils/components/AlertLoading/AlertLoading';
 import { AlertError } from '../../../Utils/components/AlertError/AlertError';
 import { fetchWithToken } from '../../../../utils';
 
 const apiUrl = process.env.REACT_APP_BACKEND_URL
 
-const QbwcCustomersListPage = () => {
-    const [customers, setCustomers] = useState([]);
+const QbwcNeverMatchedItemsListPage = () => {
+    const [neverMatchedItems, setNeverMatchedItems] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const theme = useTheme();
     const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
 
-    const fetchCustomers = async () => {
-            try {
-                const isNeverMatch = 'false';
-                const url = `${apiUrl}/api_quickbook_soap/qbwc_customers/${isNeverMatch}`;
-                const response = await fetchWithToken(url, 'GET', null, {}, apiUrl);
-                const jsonData = JSON.parse(response.data); 
-                setCustomers(jsonData);  
-            } catch (error) {
-                console.error('Error fetching qb customers:', error);
-                setError(`Failed to fetch qn customers: ${error}`);
-            } finally {
-                setLoading(false);
-            }
-    };
+    const fetchNeverMatchedItems = async () => {
+        try {
+            const isNeverMatch = 'true';
+            const response = await fetchWithToken(`${apiUrl}/api_quickbook_soap/qbwc_items/${isNeverMatch}`, 'GET', null, {}, apiUrl);
+            const jsonData = JSON.parse(response.data);
+            setNeverMatchedItems(jsonData);
+        } catch (error) {
+            console.error('Error fetching Never Matched Items:', error);
+            setError(`Failed to fetch Never Matched Items: ${error}`);
+        } finally {
+            setLoading(false);
+        }
+    }
 
     useEffect(() => {
-        fetchCustomers();
+        fetchNeverMatchedItems();
     }, []);
-
-
 
     if (loading) {
         return (
@@ -61,10 +58,10 @@ const QbwcCustomersListPage = () => {
             {loading ? (
                 <CircularProgress />
             ) : (
-                <QbwcCustomersList customers={customers} onSyncComplete={fetchCustomers}/>
+                <QbwcNeverMatchedItemsList neverMatchedItems={neverMatchedItems} onSyncComplete={fetchNeverMatchedItems}/>
             )}
         </Container>
     );
 };
 
-export default QbwcCustomersListPage;
+export default QbwcNeverMatchedItemsListPage;

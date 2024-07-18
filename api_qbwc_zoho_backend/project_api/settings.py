@@ -191,7 +191,8 @@ WSGI_APPLICATION = 'project_api.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': f'{DB_ENGINE}',
-        'NAME': f'{DB_NAME_QA}',
+        'NAME': f'{DB_NAME_DEV}',
+        # 'NAME': f'{DB_NAME_QA}',
         'USER': f'{DB_USER}',
         'PASSWORD': f'{DB_PASSWORD}',
         'HOST': f'{DB_HOST}',

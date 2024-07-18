@@ -17,6 +17,11 @@ import QbwcItemsListPage from './components/QbwcItems/components/QbwcItemsListPa
 import QbwcGetting from './components/QbwcGetting/QbwcGetting';
 import QbwcCustomersListPage from './components/QbwcCustomers/components/QbwcCustomersListPage/QbwcCustomersListPage';
 import QbwcSimilarItemsListPage from './components/QbwcItems/components/QbwcSimilarItemsListPage/QbwcSimilarItemsListPage';
+import QbwcSimilarCustomersListPage from './components/QbwcCustomers/components/QbwcSimilarCustomersListPage/QbwcSimilarCustomersListPage';
+import QbwcMatchedCustomersListPage from './components/QbwcCustomers/components/QbwcMatchedCustomersListPage/QbwcMatchedCustomersListPage';
+import QbwcMatchedItemsListPage from './components/QbwcItems/components/QbwcMatchedItemsListPage/QbwcMatchedItemsListPage';
+import QbwcNeverMatchedItemsListPage from './components/QbwcItems/components/QbwcNeverMatchedItemsListPage/QbwcNeverMatchedItemsListPage';
+import QbwcNeverMatchedCustomersListPage from './components/QbwcCustomers/components/QbwcNeverMatchedCustomersListPage/QbwcNeverMatchedCustomersListPage';
 
 const HomeRedirect = () => {
   const { isAuthenticated } = useAuth();
@@ -30,6 +35,7 @@ const HomeRedirect = () => {
 
 const App = () => {
   return (
+    
     <AuthProvider>
       <Router>
         <Routes>
@@ -45,9 +51,14 @@ const App = () => {
             <Route path="list_invoices" element={<InvoicesListPage />} />
             <Route path="invoice_details" element={<InvoicesDetails />} />
             <Route path="qbwc" element={<QbwcGetting />} />
-            <Route path="qbwc_list_items" element={<QbwcItemsListPage />} />
-            <Route path="qbwc_list_customers" element={<QbwcCustomersListPage />} />
-            <Route path="qbwc_similar_items" element={<QbwcSimilarItemsListPage />} />
+            <Route path="qbwc_items/list" element={<QbwcItemsListPage />} />
+            <Route path="qbwc_customers/list" element={<QbwcCustomersListPage />} />
+            <Route path="qbwc_items/similar" element={<QbwcSimilarItemsListPage />} />
+            <Route path="qbwc_customers/similar" element={<QbwcSimilarCustomersListPage />} />
+            <Route path="qbwc_items/matched" element={<QbwcMatchedItemsListPage />} />
+            <Route path="qbwc_customers/matched" element={<QbwcMatchedCustomersListPage />} />
+            <Route path="qbwc_items/never_match" element={<QbwcNeverMatchedItemsListPage />} />
+            <Route path="qbwc_customers/never_match" element={<QbwcNeverMatchedCustomersListPage />} />
           </Route>
         </Routes>
       </Router>

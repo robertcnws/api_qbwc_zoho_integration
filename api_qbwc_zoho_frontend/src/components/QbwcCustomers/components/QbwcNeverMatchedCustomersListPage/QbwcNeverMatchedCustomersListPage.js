@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { Container, CircularProgress, useMediaQuery, useTheme } from '@mui/material';
-import QbwcCustomersList from '../QbwcCustomersList/QbwcCustomersList';
 import { AlertLoading } from '../../../Utils/components/AlertLoading/AlertLoading';
 import { AlertError } from '../../../Utils/components/AlertError/AlertError';
 import { fetchWithToken } from '../../../../utils';
+import QbwcNeverMatchedCustomersList from '../QbwcNeverMatchedCustomersList/QbwcNeverMatchedCustomersList';
 
 const apiUrl = process.env.REACT_APP_BACKEND_URL
 
-const QbwcCustomersListPage = () => {
+const QbwcNeverMatchedCustomersListPage = () => {
     const [customers, setCustomers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -16,7 +16,7 @@ const QbwcCustomersListPage = () => {
 
     const fetchCustomers = async () => {
             try {
-                const isNeverMatch = 'false';
+                const isNeverMatch = 'true';
                 const url = `${apiUrl}/api_quickbook_soap/qbwc_customers/${isNeverMatch}`;
                 const response = await fetchWithToken(url, 'GET', null, {}, apiUrl);
                 const jsonData = JSON.parse(response.data); 
@@ -61,10 +61,10 @@ const QbwcCustomersListPage = () => {
             {loading ? (
                 <CircularProgress />
             ) : (
-                <QbwcCustomersList customers={customers} onSyncComplete={fetchCustomers}/>
+                <QbwcNeverMatchedCustomersList customers={customers} onSyncComplete={fetchCustomers}/>
             )}
         </Container>
     );
 };
 
-export default QbwcCustomersListPage;
+export default QbwcNeverMatchedCustomersListPage;

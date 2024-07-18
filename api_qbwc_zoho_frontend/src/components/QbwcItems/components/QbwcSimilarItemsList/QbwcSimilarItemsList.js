@@ -16,11 +16,13 @@ import {
   TableSortLabel,
   TextField
 } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
-import { stableSort, getComparatorUndefined } from '../../../../utils';
+import { stableSort, getComparatorUndefined, fetchWithToken } from '../../../../utils';
 
-const QbwcSimilarItemsList = ({ similarItems }) => {
+const apiUrl = process.env.REACT_APP_BACKEND_URL;
+
+const QbwcSimilarItemsList = ({ similarItems, onSyncComplete }) => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [orderBy, setOrderBy] = useState('qb_item_name'); // Default orderBy column
@@ -59,30 +61,29 @@ const QbwcSimilarItemsList = ({ similarItems }) => {
       confirmButtonText: 'Yes, match it!',
       cancelButtonText: 'Cancel'
     }).then((result) => {
-      // if (result.isConfirmed) {
-      //   const csrftoken = getCookie('csrftoken');
-      //   fetch('/api_quickbook_soap/match_one_item_ajax/', {
-      //     method: 'POST',
-      //     headers: {
-      //       'Content-Type': 'application/json',
-      //       'X-CSRFToken': csrftoken
-      //     },
-      //     body: JSON.stringify({
-      //       qb_item_list_id: qb_item_list_id,
-      //       zoho_item_id: zoho_item_id,
-      //       action: 'match'
-      //     })
-      //   })
-      //     .then(response => response.json())
-      //     .then(data => {
-      //       Swal.fire('Matched!', 'Item has been matched.', 'success').then(() => {
-      //         window.location.reload();
-      //       });
-      //     })
-      //     .catch(error => {
-      //       Swal.fire('Error!', 'Error matching items for the item.', 'error');
-      //     });
-      // }
+
+      const matchOneItemAjax = async () => {
+        try {
+          const url = `${apiUrl}/api_zoho_items/match_one_item_ajax/`;
+          const body = {
+            qb_item_list_id: qb_item_list_id,
+            item_id: zoho_item_id,
+            action: 'match'
+          }
+          const response = await fetchWithToken(url, 'POST', body, {}, apiUrl);
+          if (response.status === 200) {
+            Swal.fire('Matched!', 'Item has been matched.', 'success').then(() => {
+              onSyncComplete();
+            });
+          }
+          else {
+            Swal.fire('Error!', `Error matching items for the item: ${response.message}`, 'error');
+          }
+        } catch (error) {
+          Swal.fire('Error!', `Error matching items for the item: ${error}`, 'error');
+        }
+      }
+      matchOneItemAjax();
     });
   };
 
@@ -142,7 +143,17 @@ const QbwcSimilarItemsList = ({ similarItems }) => {
   const paginatedItems = sortedItems.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
   return (
-    <Container maxWidth="lg" sx={{ marginLeft: '-3%', marginTop: '-5%', transition: 'margin-left 0.3s ease', minWidth:'97%' }}>
+    <Container
+            maxWidth="xl"
+            sx={{
+                marginLeft: '-3%',
+                marginTop: '-5%',
+                transition: 'margin-left 0.3s ease',
+                minHeight: '100vh',
+                minWidth: '82vw',
+                padding: 1,
+            }}
+      >
       <Grid container spacing={2} alignItems="center" justifyContent="space-between" mb={3}>
         <Grid item xs={6}>
           <Typography
@@ -164,7 +175,7 @@ const QbwcSimilarItemsList = ({ similarItems }) => {
             </Button>
           </Grid>
           <Grid item>
-            <Button variant="contained" color="success" size="small" href="{% url 'api_quickbook_soap:matched_items' %}">
+            <Button variant="contained" color="success" size="small" component={Link} to="/integration/qbwc_items/matched">
               Matched Items
             </Button>
           </Grid>

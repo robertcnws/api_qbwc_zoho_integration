@@ -37,7 +37,8 @@ dayjs.extend(timezone);
 
 const apiUrl = process.env.REACT_APP_BACKEND_URL;
 
-const InvoicesList = ({ data, onSyncComplete, filterDate, setFilterDate }) => {
+const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterDate }) => {
+
     const [selectedInvoices, setSelectedInvoices] = useState([]);
     const [page, setPage] = useState(0);
     const [searchTerm, setSearchTerm] = useState('');
@@ -156,8 +157,6 @@ const InvoicesList = ({ data, onSyncComplete, filterDate, setFilterDate }) => {
         const invoiceDate = new Date(invoice.fields.date).toISOString().split('T')[0];
         const filterDateFormatted = filterDate.toISOString().split('T')[0];
 
-        console.log('Invoice Date:', invoiceDate);
-        console.log('Filter Date:', filterDateFormatted);
 
         return invoiceDate === filterDateFormatted;
     };
@@ -241,10 +240,18 @@ const InvoicesList = ({ data, onSyncComplete, filterDate, setFilterDate }) => {
         { id: 'actions', label: 'Actions' }
     ];
 
-    console.log("Sorted Invoices:", sortedInvoices); // Agrega este console.log para verificar los datos
-
     return (
-        <Container maxWidth="lg" sx={{ marginLeft: '-3%', marginTop: '-5%', transition: 'margin-left 0.3s ease', minWidth:'97%' }}>
+        <Container
+            maxWidth="xl"
+            sx={{
+                marginLeft: '-3%',
+                marginTop: '-5%',
+                transition: 'margin-left 0.3s ease',
+                minHeight: '100vh',
+                minWidth: '82vw',
+                padding: 1,
+            }}
+            >
             <Grid container spacing={1} mb={3}>
                 <Grid item xs={4}>
                     <Typography
@@ -318,17 +325,17 @@ const InvoicesList = ({ data, onSyncComplete, filterDate, setFilterDate }) => {
                 </Grid>
                 <Grid item xs={3}>
                     <Alert severity="warning" sx={{ fontSize: 'small' }}>
-                        <b>{data.unprocessedNumber}</b> not processed
+                        <b>{configData.unprocessedNumber}</b> not processed
                     </Alert>
                 </Grid>
                 <Grid item xs={3}>
                     <Alert severity="success" sx={{ fontSize: 'small' }}>
-                        <b>{data.matchedNumber}</b> matched
+                        <b>{configData.matchedNumber}</b> matched
                     </Alert>
                 </Grid>
                 <Grid item xs={3}>
                     <Alert severity="error" sx={{ fontSize: 'small' }}>
-                        <b>{data.unmatchedNumber}</b> unmatched
+                        <b>{configData.unmatchedNumber}</b> unmatched
                     </Alert>
                 </Grid>
             </Grid>
@@ -356,7 +363,6 @@ const InvoicesList = ({ data, onSyncComplete, filterDate, setFilterDate }) => {
                             : sortedInvoices
                         ).map((invoice, index) => {
                             const isItemSelected = isSelected(invoice.fields.invoice_id);
-                            console.log(invoice.fields.invoice_number); // Agrega este console.log para verificar los datos
                             return (
                                 <TableRow key={index} style={{ backgroundColor: getBackgroundColor(invoice) }}>
                                     <TableCell>{invoice.fields.invoice_number}</TableCell>

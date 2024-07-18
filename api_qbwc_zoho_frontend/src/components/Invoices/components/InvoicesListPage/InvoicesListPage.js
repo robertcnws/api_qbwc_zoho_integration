@@ -10,6 +10,7 @@ const apiUrl = process.env.REACT_APP_BACKEND_URL;
 
 const InvoicesListPage = () => {
     const [invoices, setInvoices] = useState([]);
+    const [configData, setConfigData] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [filterDate, setFilterDate] = useState(dayjs()); // Establece la fecha inicial en el estado
@@ -24,8 +25,14 @@ const InvoicesListPage = () => {
                     }
                     const response = await fetchWithToken(url, 'GET', params, {}, apiUrl);
                     const data = response.data;
+                    const config = {
+                        matchedNumber: data.matched_number,
+                        unmatchedNumber: data.unmatched_number,
+                        unprocessedNumber: data.unprocessed_number,
+                    }
                     const invoices = JSON.parse(data.invoices);
                     setInvoices(invoices);
+                    setConfigData(config);
                 } catch (error) {
                     console.error('Error fetching invoices:', error);
                     setError(error); 
@@ -52,6 +59,7 @@ const InvoicesListPage = () => {
         >
             <InvoicesList
                 data={{ invoices }}
+                configData={configData}
                 onSyncComplete={fetchInvoices}
                 filterDate={filterDate} 
                 setFilterDate={setFilterDate} 

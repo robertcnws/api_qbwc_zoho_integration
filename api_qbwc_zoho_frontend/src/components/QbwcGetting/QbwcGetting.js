@@ -11,7 +11,7 @@ const QbwcGetting = () => {
 
   const gettingData = async (module, objects, setLoading) => {
     setLoading(true);
-    navigate(`/integration/qbwc_${module}_${objects}`);
+    navigate(`/integration/qbwc_${objects}/${module}`);
   }
 
   const handleListCustomers = () => gettingData('list', 'customers', setLoadingCustomers);
@@ -20,6 +20,8 @@ const QbwcGetting = () => {
   const handleSimilarItems = () => gettingData('similar', 'items', setLoadingItems);
   const handleMatchedCustomers = () => gettingData('matched', 'customers', setLoadingCustomers);
   const handleMatchedItems = () => gettingData('matched', 'items', setLoadingItems);
+  const handleNeverMatchCustomers = () => gettingData('never_match', 'customers', setLoadingCustomers);
+  const handleNeverMatchItems = () => gettingData('never_match', 'items', setLoadingItems);
 
   return (
     <Container component="main" maxWidth="md" sx={{ mt: 5, p: 3, bgcolor: '#FFFFFF', boxShadow: 3, borderRadius: 2 }}>
@@ -113,6 +115,33 @@ const QbwcGetting = () => {
                         startIcon={loadingItems ? <CircularProgress size={24} /> : null}
                     >
                         {loadingItems ? 'Loading Items...' : 'Matched Items'}
+                    </Button>
+                </Grid>
+            </Grid>
+
+            <Grid container spacing={2} alignItems="center" justifyContent="center" mb={3}>
+                <Grid item xs={6} sx={{ textAlign: 'center' }}>
+                    <Button
+                        onClick={handleNeverMatchCustomers}
+                        variant="contained"
+                        color="warning"
+                        size="small"
+                        disabled={loadingCustomers}
+                        startIcon={loadingCustomers ? <CircularProgress size={24} /> : null}
+                    >
+                        {loadingCustomers ? 'Loading Customers...' : 'Never Matched Customers'}
+                    </Button>
+                </Grid>
+                <Grid item xs={6} sx={{ textAlign: 'center' }}>
+                    <Button
+                        onClick={handleNeverMatchItems}
+                        variant="contained"
+                        color="warning"
+                        size="small"
+                        disabled={loadingItems}
+                        startIcon={loadingItems ? <CircularProgress size={24} /> : null}
+                    >
+                        {loadingItems ? 'Loading Items...' : 'Never Matched Items'}
                     </Button>
                 </Grid>
             </Grid>

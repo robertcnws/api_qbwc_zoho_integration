@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button, Container, Grid, Typography, Alert, CircularProgress } from '@mui/material';
 import { Warning } from '@mui/icons-material';
-import { getCsrfToken } from '../../utils';
+import { fetchWithToken } from '../../utils';
 import axios from 'axios'
 import moment from 'moment'
 
@@ -22,21 +22,13 @@ const ZohoLoading = () => {
   const loadData = async (element, module, endpoint, setLoading) => {
     setLoading(true);
     try {
-      const csrfToken = await getCsrfToken();
-      const response = await fetch(`${apiUrl}/${module}/${endpoint}/`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRFToken': csrfToken,
-        },
-      });
-      if (!response.ok) {
-        throw new Error('Failed to load data');
-      }
+      const response = await fetchWithToken(`${apiUrl}/${module}/${endpoint}/`, 'POST', null, {}, apiUrl);
+      if (response.status !== 200) {
+        throw new Error(`Failed to load data: ${module}`);
+      }  
       navigate(`/integration/list_${element}`);
-    } catch (err) {
-      setError(err.message);
+    } catch (error) {
+      setError(error.message);
     } finally {
       setLoading(false);
     }

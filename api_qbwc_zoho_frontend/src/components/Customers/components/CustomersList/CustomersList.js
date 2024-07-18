@@ -16,7 +16,7 @@ import {
     TablePagination, 
     TextField 
 } from '@mui/material';
-import { useNavigate } from 'react-router-dom'; 
+import { Link, useNavigate } from 'react-router-dom'; 
 import { stableSort, getComparator } from '../../../../utils';
 
 const CustomersList = ({ customers }) => {
@@ -70,7 +70,17 @@ const CustomersList = ({ customers }) => {
     ];
 
     return (
-        <Container maxWidth="lg" sx={{ marginLeft: '-3%', marginTop: '-5%', transition: 'margin-left 0.3s ease', minWidth:'97%' }}>
+        <Container
+            maxWidth="xl"
+            sx={{
+                marginLeft: '-3%',
+                marginTop: '-5%',
+                transition: 'margin-left 0.3s ease',
+                minHeight: '100vh',
+                minWidth: '82vw',
+                padding: 1,
+            }}
+            >
             <Grid container spacing={2} alignItems="center" justifyContent="space-between" mb={3}>
                 <Grid item xs={6}>
                 <Typography
@@ -87,12 +97,12 @@ const CustomersList = ({ customers }) => {
                 </Grid>
                 <Grid item xs={6} container justifyContent="flex-end" spacing={1}>
                     <Grid item>
-                        <Button variant="contained" color="primary" size="small" href="{% url 'api_quickbook_soap:matching_customers' %}">
+                        <Button variant="contained" color="primary" size="small" component={Link}  to="/integration/qbwc_customers/similar">
                             Similar Customers
                         </Button>
                     </Grid>
                     <Grid item>
-                        <Button variant="contained" color="success" size="small" href="{% url 'api_quickbook_soap:matched_customers' %}">
+                        <Button variant="contained" color="success" size="small" component={Link}  to="/integration/qbwc_customers/matched">
                             Matched Customers
                         </Button>
                     </Grid>

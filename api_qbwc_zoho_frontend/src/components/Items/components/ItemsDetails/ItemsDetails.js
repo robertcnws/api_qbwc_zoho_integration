@@ -43,15 +43,15 @@ const ItemsDetails = () => {
             confirmButtonText: 'Yes, match it!'
         }).then((result) => {
             if (result.isConfirmed) {
-                const matchOneItemAjax = async () => {
+                const matchOneCustomerAjax = async () => {
                     try {
                         const url = `${apiUrl}/api_zoho_items/match_one_item_ajax/`
-                        const params = {
+                        const data = {
                             item_id: item_id,
                             qb_item_list_id: qb_item_list_id,
                             action: 'match'
                         }
-                        const response = await fetchWithToken(url, 'POST', params, {}, apiUrl);
+                        const response = await fetchWithToken(url, 'POST', data, {}, apiUrl);
                         if (response.data.status === 'success') {
                             Swal.fire({
                                 icon: 'success',
@@ -77,7 +77,7 @@ const ItemsDetails = () => {
                         });
                     }
                 };
-                matchOneItemAjax();
+                matchOneCustomerAjax();
             }
         });
     };

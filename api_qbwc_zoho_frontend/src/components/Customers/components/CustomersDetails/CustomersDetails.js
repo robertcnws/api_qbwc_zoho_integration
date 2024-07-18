@@ -81,6 +81,7 @@ const CustomersDetails = () => {
             }
         });
     };
+    
     return (
       <Container maxWidth="lg" sx={{ marginLeft: '1%', marginTop: '1%', transition: 'margin-left 0.3s ease', minWidth:'97%' }}>
       {/* <Container component="main" maxWidth="md" sx={{ mt: 5, p: 3, bgcolor: '#FFFFFF', boxShadow: 3, borderRadius: 2 }}> */}
