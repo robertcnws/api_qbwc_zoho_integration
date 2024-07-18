@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { Container, CircularProgress, useMediaQuery, useTheme } from '@mui/material';
 import CustomersList from '../CustomersList/CustomersList';
-import axios from 'axios';
 import { AlertLoading } from '../../../Utils/components/AlertLoading/AlertLoading';
 import { AlertError } from '../../../Utils/components/AlertError/AlertError';
+import { fetchWithToken } from '../../../../utils';
 
 const apiUrl = process.env.REACT_APP_BACKEND_URL
 
@@ -15,18 +15,20 @@ const CustomersListPage = () => {
     const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
 
     useEffect(() => {
-        axios.get(`${apiUrl}/api_zoho_customers/list_customers/`)
-            .then(response => {
+        const fetchData = async () => {
+            try {
+                const url = `${apiUrl}/api_zoho_customers/list_customers/`
+                const response = await fetchWithToken(url, 'GET', null, {}, apiUrl);
                 const jsonData = JSON.parse(response.data); 
                 setCustomers(jsonData);  
-            })
-            .catch(error => {
+            } catch (error) {
                 console.error('Error fetching customers:', error);
                 setError(`Failed to fetch customers: ${error}`);
-            })
-            .finally(() => {
+            } finally {
                 setLoading(false);
-            })
+            }
+        };
+        fetchData();
     }, []);
 
     if (loading) {

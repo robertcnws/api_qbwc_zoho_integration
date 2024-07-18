@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import ApplicationSettingsForm from '../ApplicationSettingsForm/ApplicationSettingsForm';
-import axios from 'axios';
+import { fetchWithToken } from '../../../../utils'
 
 const apiUrl = process.env.REACT_APP_BACKEND_URL;
 
@@ -12,30 +12,29 @@ const ApplicationSettingsContainer = () => {
     const [success, setSuccess] = useState(null);
 
     useEffect(() => {
-        axios.get(`${apiUrl}/application_settings/`)
-            .then(response => {
+        const fetchData = async () => {
+            try {
+                const response = await fetchWithToken(`${apiUrl}/application_settings/`, 'GET', null, {}, apiUrl);
                 setFormData(response.data);
-            })
-            .catch(error => {
+            } catch (error) {
                 console.error('Error fetching application settings:', error);
                 setError('Error fetching application settings.');
-            });
+            }
+        };
+        fetchData();
     }, []);
 
-    const handleSubmit = (data) => {
-        axios.post(`${apiUrl}/application_settings/`, JSON.stringify(data), { 
-            withCredentials: true,
-            headers: {
-                'Content-Type': 'application/json',
-            }
-        }).then(response => {
-                setSuccess(response.data.message);
-                setError(null);
-        }).catch(error => {
-                console.error('Error updating application settings:', error);
-                setError('Error updating application settings.');
-                setSuccess(null);
-        });
+    const handleSubmit = async (data) => {
+        try {
+            data = JSON.stringify(data)
+            const response = await fetchWithToken(`${apiUrl}/application_settings/`, 'POST', data, {}, apiUrl);
+            setSuccess(response.data.message);
+            setError(null);
+        } catch (error) {
+            console.error('Error updating application settings:', error);
+            setError(`Error updating application settings: ${error}`);
+            setSuccess(null);
+        }
     };
 
     return (

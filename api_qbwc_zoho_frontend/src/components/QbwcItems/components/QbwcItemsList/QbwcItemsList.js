@@ -23,7 +23,7 @@ import Swal from 'sweetalert2';
 import axios from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
 import cookie from 'react-cookies';
-import { stableSort, getComparator, getCsrfToken, getCookie } from '../../../../utils';
+import { stableSort, getComparator, getAccessToken } from '../../../../utils';
 
 const apiUrl = process.env.REACT_APP_BACKEND_URL
 
@@ -102,16 +102,14 @@ const QbwcItemsList = ({ items, onSyncComplete }) => {
         confirmButtonText: 'Yes, never match them!'
     }).then(async (result) => {
         if (result.isConfirmed) {
-            axios.defaults.xsrfCookieName = "csrftoken";
-            axios.defaults.xsrfHeaderName = "X-CSRFTOKEN";
-            const token = cookie.load('csrftoken'); 
+            const token = getAccessToken(); 
             try {
                 const config = {
                     withCredentials: true,
                     headers: {
                         'Accept': 'application/json',
                         'Content-Type': 'application/json',
-                        'X-CSRFTOKEN': token,
+                        'Authorization': `Bearer ${token}`,
                     }
                 };
                 const body = {

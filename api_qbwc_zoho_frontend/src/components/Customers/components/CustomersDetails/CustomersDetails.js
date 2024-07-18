@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import axios from 'axios';
 import { Container, Grid, Typography, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Alert } from '@mui/material';
 import Swal from 'sweetalert2';
-import { getCsrfToken } from '../../../../utils';
+import { fetchWithToken } from '../../../../utils';
 
 const apiUrl = process.env.REACT_APP_BACKEND_URL;
 
@@ -15,17 +14,18 @@ const CustomersDetails = () => {
 
   useEffect(() => {
       if (location.state.customer && location.state.customer.fields && location.state.customer.fields.contact_id) {
-          const customerId = location.state.customer.fields.contact_id;
-          const fetchCustomerDetails = async () => {
-              try {
-                  const response = await axios.get(`${apiUrl}/api_zoho_customers/view_customer/${customerId}/`);
-                  setCustomer(response.data);
-                  setCoincidences(response.data.coincidences);
-              } catch (error) {
-                  console.error('Error fetching customer details:', error);
-              }
-          };
-          fetchCustomerDetails();
+        const fetchCustomerDetails = async () => {
+            try {
+                const customerId = location.state.customer.fields.contact_id;
+                const url = `${apiUrl}/api_zoho_customers/view_customer/${customerId}/`
+                const response = await fetchWithToken(url, 'GET', null, {}, apiUrl);
+                setCustomer(response.data);
+                setCoincidences(response.data.coincidences);
+            } catch (error) {
+                console.error('Error fetching customer details:', error);
+            }
+        };
+        fetchCustomerDetails();
       } else {
           console.error('Invalid customer data in location state:', location.state);
           navigate('/integration/api_qbwc_zoho/list_customers'); 
@@ -43,39 +43,41 @@ const CustomersDetails = () => {
             confirmButtonText: 'Yes, match it!'
         }).then((result) => {
             if (result.isConfirmed) {
-                const csrftoken = getCsrfToken(); // Obtener el token CSRF según tu implementación
-                axios.post(`${apiUrl}/api_zoho_customers/match_one_customer_ajax/`, {
-                    csrfmiddlewaretoken: csrftoken,
-                    contact_id: contact_id,
-                    qb_customer_list_id: qb_customer_list_id,
-                    action: 'match'
-                })
-                .then(response => {
-                    if (response.data.status === 'success') {
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Success',
-                            text: response.data.message,
-                            willClose: () => {
-                                navigate(-1); // Redirigir a la página anterior al cerrar el mensaje
-                            }
-                        });
-                    } else {
+                const matchOneCustomerAjax = async () => {
+                    try {
+                        const url = `${apiUrl}/api_zoho_customers/match_one_customer_ajax/`
+                        const data = {
+                            contact_id: contact_id,
+                            qb_customer_list_id: qb_customer_list_id,
+                            action: 'match'
+                        }
+                        const response = await fetchWithToken(url, 'POST', data, {}, apiUrl);
+                        if (response.data.status === 'success') {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Success',
+                                text: response.data.message,
+                                willClose: () => {
+                                    navigate(-1);
+                                }
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: response.data.message
+                            });
+                        }
+                    } catch (error) {
+                        console.error('Error matching customer:', error);
                         Swal.fire({
                             icon: 'error',
                             title: 'Error',
-                            text: response.data.message
+                            text: `Error matching customer: ${error}`
                         });
                     }
-                })
-                .catch(error => {
-                    console.error('Error matching customer:', error);
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: 'Something went wrong.'
-                    });
-                });
+                };
+                matchOneCustomerAjax();
             }
         });
     };

@@ -14,8 +14,11 @@ from api_zoho_customers.models import ZohoCustomer
 from api_zoho_items.models import ZohoItem
 from api_zoho_invoices.models import ZohoFullInvoice
 from .models import QbItem, QbCustomer, QbLoading
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
 import difflib
 import api_quickbook_soap.soap_service as soap_service
+import api_zoho.views as api_zoho_views
 import xmltodict
 import logging
 import re
@@ -94,10 +97,12 @@ def qbwc_items(request):
     
     return JsonResponse({'error': 'Invalid request method'}, status=405)
 
-@csrf_exempt
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def qbwc_customers(request):
     
-    if request.method == 'GET':
+    valid_token = api_zoho_views.validateJWTTokenRequest(request)
+    if valid_token:
         soap_customers_query = QbCustomer.objects.filter(never_match=False)
         batch_size = 200  # Ajusta este tamaño según tus necesidades
         soap_customers = []
@@ -111,16 +116,18 @@ def qbwc_customers(request):
         
         return JsonResponse(customers_data, safe=False)
     
-    return JsonResponse({'error': 'Invalid request method'}, status=405)
+    return JsonResponse({'error': 'Invalid JWT Token'}, status=401)
 
 
 #############################################
 # Force to sync AJAX methods
 #############################################
 
-@csrf_exempt
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
 def force_to_sync_one_invoice_ajax(request):
-    if request.method == 'POST':
+    valid_token = api_zoho_views.validateJWTTokenRequest(request)
+    if valid_token:
         try:
             data = json.loads(request.body)
             invoice_id = data.get('invoice', '')
@@ -132,11 +139,14 @@ def force_to_sync_one_invoice_ajax(request):
         except Exception as e:
             logger.error(f"An error occurred: {e}")
             return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
-    return JsonResponse({'status': 'error', 'message': 'Invalid request method'}, status=405)
+    return JsonResponse({'status': 'error', 'message': 'Invalid JWT Token'}, status=401)
 
-@csrf_exempt
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
 def force_to_sync_invoices_ajax(request):
-    if request.method == 'POST':
+    valid_token = api_zoho_views.validateJWTTokenRequest(request)
+    if valid_token:
         try:
             data = json.loads(request.body)
             list_id = data.get('invoices', [])
@@ -149,7 +159,7 @@ def force_to_sync_invoices_ajax(request):
         except Exception as e:
             logger.error(f"An error occurred: {e}")
             return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
-    return JsonResponse({'status': 'error', 'message': 'Invalid request method'}, status=405)
+    return JsonResponse({'status': 'error', 'message': 'Invalid JWT Token'}, status=401)
 
 
 #############################################
@@ -157,12 +167,11 @@ def force_to_sync_invoices_ajax(request):
 #############################################
 
 
-@require_POST
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
 def never_match_items_ajax(request):
-    print("Request received at never_match_items_ajax")  # Agrega esta línea para confirmar la llegada de la solicitud
-    logger.info("Request received at never_match_items_ajax")
-    print(request.headers)
-    if request.method == 'POST':
+    valid_token = api_zoho_views.validateJWTTokenRequest(request)
+    if valid_token:
         try:
             data = json.loads(request.body)
             list_id = data.get('items', [])
@@ -175,7 +184,7 @@ def never_match_items_ajax(request):
         except Exception as e:
             logger.error(f"An error occurred: {e}")
             return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
-    return JsonResponse({'status': 'error', 'message': 'Invalid request method'}, status=405)
+    return JsonResponse({'status': 'error', 'message': 'Invalid token'}, status=403)
     
 
 @require_POST    
@@ -400,9 +409,11 @@ def matched_customers(request):
     return JsonResponse({'error': 'Invalid request method'}, status=405)
 
 
-@csrf_exempt
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def matched_invoices(request):
-    if request.method == 'GET':
+    valid_token = api_zoho_views.validateJWTTokenRequest(request)
+    if valid_token:
         # Obtener la fecha desde los parámetros de consulta, o usar la fecha actual si no se proporciona
         date_str = request.GET.get('date')
         date_date = parse_date(date_str) if date_str else date.today()
@@ -433,7 +444,7 @@ def matched_invoices(request):
         }
         return JsonResponse(context, safe=False)
     
-    return JsonResponse({'error': 'Invalid request method'}, status=405)
+    return JsonResponse({'error': 'Invalid JWT Token'}, status=401)
     
 
 
@@ -485,41 +496,49 @@ def match_all_first_customers_ajax(request):
 # Match one by selected element
 #############################################
 
-@require_POST
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
 def match_one_item_ajax(request):
-    action = request.POST['action']
-    try:
-        qb_list_id = request.POST['qb_item_list_id']
-        zoho_item_id = request.POST['zoho_item_id']
-        qb_item = get_object_or_404(QbItem, list_id=qb_list_id)
-        zoho_item = get_object_or_404(ZohoItem, item_id=zoho_item_id)
-        zoho_item.qb_list_id = qb_list_id if action == 'match' else ''
-        zoho_item.save()
-        qb_item.matched = True if action == 'match' else False
-        qb_item.save()
-        message = 'Item matched successfully' if action == 'match' else 'Item unmatched successfully'
-        return JsonResponse({'status': 'success', 'message': message})
-    except Exception as e:
-        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+    valid_token = api_zoho_views.validateJWTTokenRequest(request)
+    if valid_token:
+        action = request.POST['action']
+        try:
+            qb_list_id = request.POST['qb_item_list_id']
+            zoho_item_id = request.POST['zoho_item_id']
+            qb_item = get_object_or_404(QbItem, list_id=qb_list_id)
+            zoho_item = get_object_or_404(ZohoItem, item_id=zoho_item_id)
+            zoho_item.qb_list_id = qb_list_id if action == 'match' else ''
+            zoho_item.save()
+            qb_item.matched = True if action == 'match' else False
+            qb_item.save()
+            message = 'Item matched successfully' if action == 'match' else 'Item unmatched successfully'
+            return JsonResponse({'status': 'success', 'message': message})
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+    return JsonResponse({'status': 'error', 'message': 'Invalid JWT Token'}, status=401)
     
 
-@require_POST
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
 def match_one_customer_ajax(request):
-    action = request.POST['action']
-    print(f"Action: {action}")
-    try:
-        qb_list_id = request.POST['qb_customer_list_id']
-        zoho_customer_id = request.POST['zoho_customer_id']
-        qb_customer = get_object_or_404(QbCustomer, list_id=qb_list_id)
-        zoho_customer = get_object_or_404(ZohoCustomer, contact_id=zoho_customer_id)
-        zoho_customer.qb_list_id = qb_list_id if action == 'match' else ''
-        zoho_customer.save()
-        qb_customer.matched = True if action == 'match' else False
-        qb_customer.save()
-        message = 'Customer matched successfully' if action == 'match' else 'Customer unmatched successfully'
-        return JsonResponse({'status': 'success', 'message': message})
-    except Exception as e:
-        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+    valid_token = api_zoho_views.validateJWTTokenRequest(request)
+    if valid_token:
+        action = request.POST['action']
+        print(f"Action: {action}")
+        try:
+            qb_list_id = request.POST['qb_customer_list_id']
+            zoho_customer_id = request.POST['zoho_customer_id']
+            qb_customer = get_object_or_404(QbCustomer, list_id=qb_list_id)
+            zoho_customer = get_object_or_404(ZohoCustomer, contact_id=zoho_customer_id)
+            zoho_customer.qb_list_id = qb_list_id if action == 'match' else ''
+            zoho_customer.save()
+            qb_customer.matched = True if action == 'match' else False
+            qb_customer.save()
+            message = 'Customer matched successfully' if action == 'match' else 'Customer unmatched successfully'
+            return JsonResponse({'status': 'success', 'message': message})
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+    return JsonResponse({'status': 'error', 'message': 'Invalid JWT Token'}, status=401)
     
     
 #############################################    

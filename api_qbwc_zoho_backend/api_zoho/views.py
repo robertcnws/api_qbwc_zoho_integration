@@ -17,6 +17,10 @@ from django.views.decorators.csrf import ensure_csrf_cookie
 from datetime import datetime, timezone
 from .models import AppConfig, ZohoLoading
 from .forms import ApiZohoForm, LoginForm, AppConfigForm
+from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
 
 #############################################
 # Configura el logging
@@ -62,17 +66,19 @@ def logout_view(request):
     return JsonResponse({'error': 'Method not allowed'}, status=405)
 
 
-@csrf_exempt
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def generate_auth_url(request):
-    if request.method == 'GET':
+    valid_token = validateJWTTokenRequest(request)
+    if valid_token:
         app_config = AppConfig.objects.first()
         client_id = app_config.zoho_client_id
         redirect_uri = app_config.zoho_redirect_uri
         scopes = settings.ZOHO_SCOPE_INVOICES + ',' + settings.ZOHO_SCOPE_ITEMS + ',' + settings.ZOHO_SCOPE_CUSTOMERS
         auth_url = f"https://accounts.zoho.com/oauth/v2/auth?scope={scopes}&client_id={client_id}&response_type=code&access_type=offline&redirect_uri={redirect_uri}"
         # return redirect(auth_url)
-        return JsonResponse({'auth_url': auth_url})
-    return JsonResponse({'error': 'Method not allowed'}, status=405)
+        return JsonResponse({'auth_url': auth_url}, status=200)
+    return JsonResponse({'error': 'Invalid JWT Token'}, status=401)
 
 
 def get_access_token(client_id, client_secret, refresh_token):
@@ -152,9 +158,12 @@ def get_refresh_token(request):
 
 
 # GET THE ZOHO API ACCESS TOKEN
-@csrf_exempt
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def zoho_api_settings(request):
-    if request.method == 'GET':
+    valid_token = validateJWTTokenRequest(request)
+    print(valid_token)
+    if valid_token:
         app_config = AppConfig.objects.first()
         if not app_config:
             app_config = AppConfig.objects.create()
@@ -175,8 +184,8 @@ def zoho_api_settings(request):
             "auth_url": auth_url,
             "zoho_connection_configured": app_config.zoho_connection_configured,
         }
-        return JsonResponse(data)
-    return JsonResponse({'error': 'Method not allowed'}, status=405)
+        return JsonResponse(data, status=200)
+    return JsonResponse({'error': 'Invalid JWT Token'}, status=401)
 
 
 @login_required(login_url='login')
@@ -239,41 +248,43 @@ def home(request):
 #     return render(request, 'api_zoho/application_settings.html', context=context)
 
 
-@csrf_exempt  
+@api_view(['GET', 'POST'])
+@permission_classes([IsAuthenticated])
 def application_settings(request):
-    try:
-        app_config = AppConfig.objects.first()  # Obtén la primera instancia de AppConfig
-    except AppConfig.DoesNotExist:
-        return JsonResponse({'error': 'No configuration found.'}, status=404)
-
-    if request.method == 'GET':
-        form = AppConfigForm(instance=app_config)
-        data = form.initial
-        return JsonResponse(data)
-
-    elif request.method == 'POST':
+    valid_token = validateJWTTokenRequest(request)
+    if valid_token:
         try:
-            data = json.loads(request.body) 
-        except json.JSONDecodeError:
-            return JsonResponse({'error': 'Invalid JSON.'}, status=400)
+            app_config = AppConfig.objects.first()  # Obtén la primera instancia de AppConfig
+        except AppConfig.DoesNotExist:
+            return JsonResponse({'error': 'No configuration found.'}, status=404)
 
-        logger.info(f'POST Data: {data}')
+        if request.method == 'GET':
+            form = AppConfigForm(instance=app_config)
+            data = form.initial
+            return JsonResponse(data)
 
-        form = AppConfigForm(data, instance=app_config)
-        if form.is_valid():
-            form.save()
-            return JsonResponse({'message': 'Application settings have been updated successfully.'}, status=200)
-        else:
-            logger.error(f'Form Errors: {form.errors}')
-            return JsonResponse(form.errors, status=400)
+        elif request.method == 'POST':
+            try:
+                data = json.loads(request.body) 
+            except json.JSONDecodeError:
+                return JsonResponse({'error': 'Invalid JSON.'}, status=400)
 
-    elif request.method == 'OPTIONS':
-        response = JsonResponse({})
-        response['Access-Control-Allow-Origin'] = 'http://localhost:3000'
-        response['Access-Control-Allow-Credentials'] = 'true'
-        response['Access-Control-Allow-Methods'] = 'GET, POST, PUT, PATCH, DELETE, OPTIONS'
-        response['Access-Control-Allow-Headers'] = 'content-type, authorization, x-csrftoken'
-        return response
+            form = AppConfigForm(data, instance=app_config)
+            if form.is_valid():
+                form.save()
+                return JsonResponse({'message': 'Application settings have been updated successfully.'}, status=200)
+            else:
+                logger.error(f'Form Errors: {form.errors}')
+                return JsonResponse(form.errors, status=400)
+
+        elif request.method == 'OPTIONS':
+            response = JsonResponse({})
+            response['Access-Control-Allow-Origin'] = 'http://localhost:3000'
+            response['Access-Control-Allow-Credentials'] = 'true'
+            response['Access-Control-Allow-Methods'] = 'GET, POST, PUT, PATCH, DELETE, OPTIONS'
+            response['Access-Control-Allow-Headers'] = 'content-type, authorization, x-csrftoken'
+            return response
+    return JsonResponse({'status': 'error', 'message': 'Invalid token'}, status=401) 
 
 
 @csrf_exempt
@@ -298,3 +309,18 @@ def create_zoho_loading_instance(module):
     item.zoho_record_created = datetime.now(timezone.utc)
     item.zoho_record_updated = datetime.now(timezone.utc)
     return item 
+
+
+def validateJWTTokenRequest(request):
+    auth_header = request.headers.get('Authorization')
+    if auth_header:
+        token = auth_header.split(' ')[1]
+        jwt_auth = JWTAuthentication()
+        try:
+            validated_token = jwt_auth.get_validated_token(token)
+            user = jwt_auth.get_user(validated_token)
+            return True if user else False
+        except (InvalidToken, TokenError) as e:
+            return False
+    else:
+        return False

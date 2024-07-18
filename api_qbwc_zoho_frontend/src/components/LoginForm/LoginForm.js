@@ -34,14 +34,14 @@ const LoginForm = () => {
         const loginResponse = await axios.post(`${apiUrl}/login/`, body, {
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRFToken': getCookie('csrftoken'),  // Asegúrate de que el token CSRF esté aquí
+                'X-CSRFToken': getCookie('csrftoken'), 
             },
         });
 
         if (loginResponse.status === 200) {
             setSuccess('Login successful');
-            login();  // Función para actualizar el estado después del login
-            console.log('Navigating to /integration');  // Añadir este log
+            login();  
+            console.log('Navigating to /integration');  
             navigate('/integration');
         } else {
             throw new Error('Invalid credentials');

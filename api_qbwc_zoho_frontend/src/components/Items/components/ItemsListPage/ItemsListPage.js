@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { Container, CircularProgress, useMediaQuery, useTheme } from '@mui/material';
 import ItemsList from '../ItemsList/ItemsList';
-import axios from 'axios';
 import { AlertLoading } from '../../../Utils/components/AlertLoading/AlertLoading';
 import { AlertError } from '../../../Utils/components/AlertError/AlertError';
+import { fetchWithToken } from '../../../../utils';
 
 const apiUrl = process.env.REACT_APP_BACKEND_URL
 
@@ -15,18 +15,20 @@ const ItemsListPage = () => {
     const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
 
     useEffect(() => {
-        axios.get(`${apiUrl}/api_zoho_items/list_items/`)
-            .then(response => {
+        const fetchData = async () => {
+            try {
+                const url = `${apiUrl}/api_zoho_items/list_items/`
+                const response = await fetchWithToken(url, 'GET', null, {}, apiUrl);
                 const jsonData = JSON.parse(response.data); 
                 setItems(jsonData);  
-            })
-            .catch(error => {
+            } catch (error) {
                 console.error('Error fetching items:', error);
                 setError(`Failed to fetch items: ${error}`);
-            })
-            .finally(() => {
+            } finally {
                 setLoading(false);
-            })
+            }
+        };
+        fetchData();
     }, []);
 
     if (loading) {

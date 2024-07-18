@@ -26,9 +26,9 @@ SECRET_KEY = 'django-insecure-8=q+a0063s232#ebj-9l94lv8p+v4cb1%qh+-%su93w)4f@8w#
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-# env = environ.Env(
-#     DEBUG=(bool, False)
-# )
+env = environ.Env(
+    DEBUG=(bool, False)
+)
 
 # Lee el archivo .env
 environ.Env.read_env()
@@ -89,10 +89,8 @@ SESSION_COOKIE_SECURE = False  # False para desarrollo, True para producción
 CORS_ALLOW_CREDENTIALS = True
 
 CORS_ALLOWED_ORIGINS = [
-    "http://10.1.10.216",
     "http://localhost:3000",
     "http://127.0.0.1:3000",
-    "http://127.0.0.1",
 ]
 
 CORS_ALLOW_METHODS = [
@@ -142,6 +140,9 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    ),
 }
 
 
@@ -190,7 +191,7 @@ WSGI_APPLICATION = 'project_api.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': f'{DB_ENGINE}',
-        'NAME': f'{DB_NAME_DEV}',
+        'NAME': f'{DB_NAME_QA}',
         'USER': f'{DB_USER}',
         'PASSWORD': f'{DB_PASSWORD}',
         'HOST': f'{DB_HOST}',

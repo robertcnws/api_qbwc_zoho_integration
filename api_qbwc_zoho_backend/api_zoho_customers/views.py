@@ -15,6 +15,8 @@ from django.views.decorators.csrf import csrf_exempt
 from django.forms.models import model_to_dict
 from api_quickbook_soap.models import QbCustomer
 from datetime import date as dt
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
 import datetime
 import pandas as pd
 import rapidfuzz
@@ -30,22 +32,26 @@ logger = logging.getLogger(__name__)
 # Match one AJAX
 #############################################
 
-@require_POST
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
 def match_one_customer_ajax(request):
-    action = request.POST['action']
-    try:
-        qb_list_id = request.POST['qb_customer_list_id']
-        zoho_customer_id = request.POST['contact_id']
-        qb_customer = get_object_or_404(QbCustomer, list_id=qb_list_id)
-        zoho_customer = get_object_or_404(ZohoCustomer, contact_id=zoho_customer_id)
-        zoho_customer.qb_list_id = qb_list_id if action == 'match' else ''
-        zoho_customer.save()
-        qb_customer.matched = True if action == 'match' else False
-        qb_customer.save()
-        message = 'Customer matched successfully' if action == 'match' else 'Customer unmatched successfully'
-        return JsonResponse({'status': 'success', 'message': message})
-    except Exception as e:
-        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+    valid_token = api_zoho_views.validateJWTTokenRequest(request)
+    if valid_token:
+        action = request.POST['action']
+        try:
+            qb_list_id = request.POST['qb_customer_list_id']
+            zoho_customer_id = request.POST['contact_id']
+            qb_customer = get_object_or_404(QbCustomer, list_id=qb_list_id)
+            zoho_customer = get_object_or_404(ZohoCustomer, contact_id=zoho_customer_id)
+            zoho_customer.qb_list_id = qb_list_id if action == 'match' else ''
+            zoho_customer.save()
+            qb_customer.matched = True if action == 'match' else False
+            qb_customer.save()
+            message = 'Customer matched successfully' if action == 'match' else 'Customer unmatched successfully'
+            return JsonResponse({'status': 'success', 'message': message})
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+    return JsonResponse({'status': 'error', 'message': 'Invalid token'}, status=401)
     
 
 #############################################
@@ -84,9 +90,11 @@ def unmatch_all_customers_ajax(request):
 #############################################
 
 
-@csrf_exempt
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def view_customer(request, customer_id):
-    if request.method == 'GET':
+    valid_token = api_zoho_views.validateJWTTokenRequest(request)
+    if valid_token:
         zoho_customer = ZohoCustomer.objects.get(contact_id=customer_id)
 
         # Consultar los datos necesarios de las tablas
@@ -140,12 +148,14 @@ def view_customer(request, customer_id):
         
         return JsonResponse(zoho_customer)
     
-    return JsonResponse({'error': 'Invalid request method'}, status=405)
+    return JsonResponse({'status': 'error', 'error': 'Invalid token'}, status=401)
 
 
-@csrf_exempt
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def  list_customers(request):
-    if request.method == 'GET':
+    valid_token = api_zoho_views.validateJWTTokenRequest(request)
+    if valid_token:
         customers_list_query = ZohoCustomer.objects.all()
         batch_size = 200  # Ajusta este tamaño según tus necesidades
         customers_list = []
@@ -159,12 +169,14 @@ def  list_customers(request):
         
         return JsonResponse(items_data, safe=False)
     
-    return JsonResponse({'error': 'Invalid request method'}, status=405)
+    return JsonResponse({'error': 'Invalid token'}, status=401)
 
 
-@csrf_exempt
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
 def load_customers(request):
-    if request.method == 'POST':
+    valid_token = api_zoho_views.validateJWTTokenRequest(request)
+    if valid_token:
         app_config = AppConfig.objects.first()
         try:
             headers = api_zoho_views.config_headers(request)  # Asegúrate de que esto esté configurado correctamente
@@ -197,8 +209,8 @@ def load_customers(request):
             try:
                 response = requests.get(url, headers=headers, params=params)
                 if response.status_code == 401:  # Si el token ha expirado
-                    new_token = api_zoho_views.refresh_zoho_token()
-                    headers['Authorization'] = f'Zoho-oauthtoken {new_token}'
+                    new_zoho_token = api_zoho_views.refresh_zoho_token()
+                    headers['Authorization'] = f'Zoho-oauthtoken {new_zoho_token}'
                     response = requests.get(url, headers=headers, params=params)  # Reintenta la solicitud
                 elif response.status_code != 200:
                     logger.error(f"Error fetching customers: {response.text}")
@@ -247,7 +259,7 @@ def load_customers(request):
     
         return JsonResponse({'message': 'Customers loaded successfully'}, status=200)
     
-    return JsonResponse({'error': 'Invalid request method'}, status=405)
+    return JsonResponse({'error': 'Invalid JWT token'}, status=401)
 
 
 @login_required(login_url='login')

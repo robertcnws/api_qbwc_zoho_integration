@@ -28,8 +28,12 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import Swal from 'sweetalert2';
 import ClearIcon from '@mui/icons-material/Clear';
 import dayjs from 'dayjs';
-import axios from 'axios';
-import { stableSort, getComparator } from '../../../../utils';
+import utc from 'dayjs/plugin/utc';
+import timezone from 'dayjs/plugin/timezone';
+import { stableSort, getComparator, fetchWithToken } from '../../../../utils';
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 const apiUrl = process.env.REACT_APP_BACKEND_URL;
 
@@ -90,35 +94,42 @@ const InvoicesList = ({ data, onSyncComplete, filterDate, setFilterDate }) => {
             confirmButtonText: 'Yes, force to sync!'
         }).then((result) => {
             if (result.isConfirmed) {
-                axios.post(`${apiUrl}/api_quickbook_soap/force_to_sync_invoices_ajax/`, { 
-                    invoices: selectedInvoices
-                }).then((response) => {
-                    if (response.data.status === 'success') {
-                        Swal.fire({
-                            title: 'Success!',
-                            text: 'Selected invoices have been forced to sync.',
-                            icon: 'success',
-                            confirmButtonText: 'OK'
-                        }).then(() => {
-                            setSelectedInvoices([]);
-                            onSyncComplete(); // Notify parent component to update data
-                        });
-                    } else {
+                const fetchData = async () => {
+                    try {
+                        const url = `${apiUrl}/api_quickbook_soap/force_to_sync_invoices_ajax/`
+                        const params = {
+                            invoices: selectedInvoices
+                        }
+                        const response = await fetchWithToken(url, 'POST', params, {}, apiUrl);
+                        if (response.data.status === 'success') {
+                            Swal.fire({
+                                title: 'Success!',
+                                text: 'Selected invoices have been forced to sync.',
+                                icon: 'success',
+                                confirmButtonText: 'OK'
+                            }).then(() => {
+                                setSelectedInvoices([]);
+                                onSyncComplete(); // Notify parent component to update data
+                            });
+                        } else {
+                            Swal.fire({
+                                title: 'Error!',
+                                text: `An error occurred while syncing invoices: ${response.data.message}`,
+                                icon: 'error',
+                                confirmButtonText: 'OK'
+                            });
+                        }
+                    } catch (error) {
+                        console.error('An error occurred while syncing invoices:', error);
                         Swal.fire({
                             title: 'Error!',
-                            text: `An error occurred while syncing invoices: ${response.data.message}`,
+                            text: `An error occurred while syncing invoices: ${error}`,
                             icon: 'error',
                             confirmButtonText: 'OK'
                         });
                     }
-                }).catch((error) => {
-                    Swal.fire({
-                        title: 'Error!',
-                        text: 'An error occurred while syncing invoices.',
-                        icon: 'error',
-                        confirmButtonText: 'OK'
-                    });
-                });
+                };
+                fetchData();
             }
         });
     };
@@ -140,8 +151,15 @@ const InvoicesList = ({ data, onSyncComplete, filterDate, setFilterDate }) => {
 
     const filterByDate = (invoice) => {
         if (!filterDate) return true;
-        const invoiceDate = new Date(invoice.fields.date);
-        return invoiceDate.toISOString().split('T')[0] === filterDate.toISOString().split('T')[0];
+        
+        // Convert invoice date and filterDate to YYYY-MM-DD format
+        const invoiceDate = new Date(invoice.fields.date).toISOString().split('T')[0];
+        const filterDateFormatted = filterDate.toISOString().split('T')[0];
+
+        console.log('Invoice Date:', invoiceDate);
+        console.log('Filter Date:', filterDateFormatted);
+
+        return invoiceDate === filterDateFormatted;
     };
 
     const filterBySearchTerm = (invoice) => {
@@ -211,7 +229,7 @@ const InvoicesList = ({ data, onSyncComplete, filterDate, setFilterDate }) => {
         filterBySearchTerm(invoice) && filterByDate(invoice)
     );
 
-    const sortedItems = stableSort(filteredInvoices, getComparator(order, orderBy));
+    const sortedInvoices = stableSort(filteredInvoices, getComparator(order, orderBy));
 
     const columns = [
         { id: 'invoice_number', label: 'Nr.' },
@@ -222,6 +240,8 @@ const InvoicesList = ({ data, onSyncComplete, filterDate, setFilterDate }) => {
         { id: 'force_sync', label: 'Force Sync?' },
         { id: 'actions', label: 'Actions' }
     ];
+
+    console.log("Sorted Invoices:", sortedInvoices); // Agrega este console.log para verificar los datos
 
     return (
         <Container maxWidth="lg" sx={{ marginLeft: '-3%', marginTop: '-5%', transition: 'margin-left 0.3s ease', minWidth:'97%' }}>
@@ -332,10 +352,11 @@ const InvoicesList = ({ data, onSyncComplete, filterDate, setFilterDate }) => {
                     </TableHead>
                     <TableBody>
                         {(rowsPerPage > 0
-                            ? sortedItems.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                            : sortedItems
+                            ? sortedInvoices.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                            : sortedInvoices
                         ).map((invoice, index) => {
                             const isItemSelected = isSelected(invoice.fields.invoice_id);
+                            console.log(invoice.fields.invoice_number); // Agrega este console.log para verificar los datos
                             return (
                                 <TableRow key={index} style={{ backgroundColor: getBackgroundColor(invoice) }}>
                                     <TableCell>{invoice.fields.invoice_number}</TableCell>

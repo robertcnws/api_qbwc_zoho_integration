@@ -39,7 +39,7 @@ services:
       - ./api_qbwc_zoho_backend/scripts_db:/docker-entrypoint-initdb.d
       - ./api_qbwc_zoho_backend/qbwc_web_services/FirstDB_bckp.sql:/backup.sql
     environment:
-      - POSTGRES_DB=api_qbwc_zoho_dev_db
+      - POSTGRES_DB=api_qbwc_zoho_qa_db
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
     ports:

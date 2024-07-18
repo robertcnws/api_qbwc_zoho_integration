@@ -1,10 +1,10 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { Container, useMediaQuery, useTheme } from '@mui/material';
 import InvoicesList from '../InvoicesList/InvoicesList';
-import axios from 'axios';
 import dayjs from 'dayjs';
 import { AlertLoading } from '../../../Utils/components/AlertLoading/AlertLoading';
 import { AlertError } from '../../../Utils/components/AlertError/AlertError';
+import { fetchWithToken } from '../../../../utils';
 
 const apiUrl = process.env.REACT_APP_BACKEND_URL;
 
@@ -17,24 +17,26 @@ const InvoicesListPage = () => {
     const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
 
     const fetchInvoices = useCallback(async () => {
-        try {
-            const response = await axios.get(`${apiUrl}/api_quickbook_soap/matched_invoices/`, {
-                params: { date: filterDate.format('YYYY-MM-DD') }
-            });
-            const data = response.data;
-            const invoices = JSON.parse(data.invoices);
-            setInvoices(invoices);
-        } catch (error) {
-            console.error('Error fetching invoices:', error);
-            setError(error); // Actualiza el estado de error
-        } finally {
-            setLoading(false);
-        }
-    }, [filterDate]);  {/* Añade filterDate como dependencia */}
+                try {
+                    const url = `${apiUrl}/api_quickbook_soap/matched_invoices/`
+                    const params = {
+                    	date: filterDate.format('YYYY-MM-DD')
+                    }
+                    const response = await fetchWithToken(url, 'GET', params, {}, apiUrl);
+                    const data = response.data;
+                    const invoices = JSON.parse(data.invoices);
+                    setInvoices(invoices);
+                } catch (error) {
+                    console.error('Error fetching invoices:', error);
+                    setError(error); 
+                } finally {
+                    setLoading(false);
+                }
+    }, [filterDate]);  
 
     useEffect(() => {
         fetchInvoices();
-    }, [fetchInvoices]);  {/* Solo `fetchInvoices` en el array de dependencias */}
+    }, [fetchInvoices]); 
 
     if (loading) return <AlertLoading isSmallScreen={isSmallScreen} />;
     if (error) return <AlertError isSmallScreen={isSmallScreen} error={error} />;
@@ -51,8 +53,8 @@ const InvoicesListPage = () => {
             <InvoicesList
                 data={{ invoices }}
                 onSyncComplete={fetchInvoices}
-                filterDate={filterDate} // Pasa filterDate al componente hijo
-                setFilterDate={setFilterDate} // Pasa setFilterDate al componente hijo
+                filterDate={filterDate} 
+                setFilterDate={setFilterDate} 
             />
         </Container>
     );

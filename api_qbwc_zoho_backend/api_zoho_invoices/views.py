@@ -11,6 +11,8 @@ from django.views.decorators.csrf import csrf_exempt
 from django.forms.models import model_to_dict
 from api_zoho.models import AppConfig, ZohoLoading   
 from api_zoho_invoices.models import ZohoFullInvoice
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
 import requests
 import json
 import logging
@@ -20,15 +22,17 @@ logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 
-@csrf_exempt
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def view_invoice(request, invoice_id):
-    if request.method == 'GET':
+    valid_token = api_zoho_views.validateJWTTokenRequest(request)
+    if valid_token:
         zoho_invoice = ZohoFullInvoice.objects.get(invoice_id=invoice_id)
         context = {
             'invoice': model_to_dict(zoho_invoice)
         }
         return JsonResponse(context, status=200)
-    return JsonResponse({'error': 'Invalid request method'}, status=405)
+    return JsonResponse({'error': 'Invalid JWT Token'}, status=401)
 
 
 @login_required(login_url='login')
@@ -46,9 +50,11 @@ def list_invoices(request):
     return render(request, 'api_zoho_invoices/list_invoices.html', context)
 
 
-@csrf_exempt
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
 def load_invoices(request):
-    if request.method == 'POST':
+    valid_token = api_zoho_views.validateJWTTokenRequest(request)
+    if valid_token:
         app_config = AppConfig.objects.first()
         try:
             headers = api_zoho_views.config_headers(request)  # Asegúrate de que esto esté configurado correctamente
@@ -139,7 +145,7 @@ def load_invoices(request):
         
         return JsonResponse({'message': 'Invoices loaded successfully'}, status=200)
     
-    return JsonResponse({'error': 'Invalid request method'}, status=405)
+    return JsonResponse({'error': 'Invalid JWT Token'}, status=401)
     
 
 def create_invoice_instance(data):

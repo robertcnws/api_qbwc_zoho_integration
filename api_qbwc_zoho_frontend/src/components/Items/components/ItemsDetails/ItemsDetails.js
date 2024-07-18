@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import axios from 'axios';
 import { Container, Grid, Typography, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Alert } from '@mui/material';
 import Swal from 'sweetalert2';
-import { getCsrfToken } from '../../../../utils';
+import { fetchWithToken } from '../../../../utils';
 
 const apiUrl = process.env.REACT_APP_BACKEND_URL;
 
@@ -18,7 +17,8 @@ const ItemsDetails = () => {
           const itemId = location.state.item.fields.item_id;
           const fetchItemDetails = async () => {
               try {
-                  const response = await axios.get(`${apiUrl}/api_zoho_items/view_item/${itemId}/`);
+                  const url = `${apiUrl}/api_zoho_items/view_item/${itemId}/`
+                  const response = await fetchWithToken(url, 'GET', null, {}, apiUrl);
                   setItem(response.data);
                   setCoincidences(response.data.coincidences);
               } catch (error) {
@@ -43,39 +43,41 @@ const ItemsDetails = () => {
             confirmButtonText: 'Yes, match it!'
         }).then((result) => {
             if (result.isConfirmed) {
-                const csrftoken = getCsrfToken(); // Obtener el token CSRF según tu implementación
-                axios.post(`${apiUrl}/api_zoho_items/match_one_item_ajax/`, {
-                    csrfmiddlewaretoken: csrftoken,
-                    item_id: item_id,
-                    qb_item_list_id: qb_item_list_id,
-                    action: 'match'
-                })
-                .then(response => {
-                    if (response.data.status === 'success') {
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Success',
-                            text: response.data.message,
-                            willClose: () => {
-                                navigate(-1); // Redirigir a la página anterior al cerrar el mensaje
-                            }
-                        });
-                    } else {
+                const matchOneItemAjax = async () => {
+                    try {
+                        const url = `${apiUrl}/api_zoho_items/match_one_item_ajax/`
+                        const params = {
+                            item_id: item_id,
+                            qb_item_list_id: qb_item_list_id,
+                            action: 'match'
+                        }
+                        const response = await fetchWithToken(url, 'POST', params, {}, apiUrl);
+                        if (response.data.status === 'success') {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Success',
+                                text: response.data.message,
+                                willClose: () => {
+                                    navigate(-1);
+                                }
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: response.data.message
+                            });
+                        }
+                    } catch (error) {
+                        console.error('Error matching item:', error);
                         Swal.fire({
                             icon: 'error',
                             title: 'Error',
-                            text: response.data.message
+                            text: `Error matching item: ${error}`
                         });
                     }
-                })
-                .catch(error => {
-                    console.error('Error matching item:', error);
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: 'Something went wrong.'
-                    });
-                });
+                };
+                matchOneItemAjax();
             }
         });
     };

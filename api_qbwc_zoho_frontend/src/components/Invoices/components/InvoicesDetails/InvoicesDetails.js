@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import axios from 'axios';
 import { Container, Grid, Typography, Button, Table, TableHead, TableBody, TableCell, TableContainer, TableRow, Paper, Alert } from '@mui/material';
+import { fetchWithToken } from '../../../../utils'
 
 const apiUrl = process.env.REACT_APP_BACKEND_URL;
 
@@ -15,7 +15,8 @@ const InvoicesDetails = () => {
           const invoiceId = location.state.invoice.fields.invoice_id;
           const fetchInvoiceDetails = async () => {
               try {
-                  const response = await axios.get(`${apiUrl}/api_zoho_invoices/view_invoice/${invoiceId}/`);
+                  const url = `${apiUrl}/api_zoho_invoices/view_invoice/${invoiceId}/`
+                  const response = await fetchWithToken(url, 'GET', null, {}, apiUrl);
                   setInvoice(response.data.invoice);
               } catch (error) {
                   console.error('Error fetching invoice details:', error);

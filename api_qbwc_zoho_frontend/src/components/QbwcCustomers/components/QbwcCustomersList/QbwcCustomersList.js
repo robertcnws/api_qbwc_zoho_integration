@@ -72,7 +72,7 @@ const QbwcCustomersList = ({ customers }) => {
 
   const renderForceSyncCheckbox = (customer, isSelected) => {
         return (
-            <FormControl sx={{ display: 'flex', alignCustomers: 'center', gap: 1 }}>
+            <FormControl sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <FormControlLabel sx={{ color: 'warning.main' }}
                     control={
                         <Checkbox sx={{ color: 'warning.main' }}
@@ -104,7 +104,7 @@ const QbwcCustomersList = ({ customers }) => {
 
   return (
     <Container maxWidth="lg" sx={{ marginLeft: '-3%', marginTop: '-5%', transition: 'margin-left 0.3s ease', minWidth:'97%' }}>
-        <Grid container spacing={2} alignCustomers="center" justifyContent="space-between" mb={3}>
+        <Grid container spacing={2} alignItems="center" justifyContent="space-between" mb={3}>
             <Grid item xs={6}>
                 <Typography
                     variant="h6"

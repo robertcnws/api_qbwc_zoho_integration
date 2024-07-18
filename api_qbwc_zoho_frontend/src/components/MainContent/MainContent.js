@@ -13,6 +13,7 @@ import {
 import { Link } from 'react-router-dom';
 import { AlertLoading } from '../Utils/components/AlertLoading/AlertLoading';
 import { AlertError } from '../Utils/components/AlertError/AlertError';
+import { fetchWithToken } from '../../utils';
 
 const apiUrl = process.env.REACT_APP_BACKEND_URL;
 
@@ -26,17 +27,11 @@ const MainContent = () => {
   const handleZohoOauth = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`${apiUrl}/generate_auth_url/`, {
-        method: 'GET',
-        credentials: 'include',  // Asegúrate de incluir las credenciales
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-      if (!response.ok) {
+      const response = await fetchWithToken(`${apiUrl}/generate_auth_url/`, 'GET', null, {}, apiUrl);
+      if (response.status !== 200) {
         throw new Error('Failed to fetch authentication URL');
       }
-      const data = await response.json();
+      const data = await response.data;
       window.location.href = data.auth_url; 
     } catch (err) {
       setError(err.message);
@@ -48,18 +43,13 @@ const MainContent = () => {
 
   useEffect(() => {
     const fetchConfig = async () => {
+
       try {
-        const response = await fetch(`${apiUrl}/zoho_api_settings/`, {
-          method: 'GET',
-          credentials: 'include',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
-        if (!response.ok) {
+        const response = await fetchWithToken(`${apiUrl}/zoho_api_settings/`, 'GET', null, {}, apiUrl);
+        if (response.status !== 200) {
           throw new Error('Failed to fetch configuration');
         }
-        const data = await response.json();
+        const data = response.data;
         setConfig(data);
       } catch (err) {
         setError(err.message);

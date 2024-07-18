@@ -61,15 +61,78 @@ export const descendingComparator = (a, b, orderBy) => {
 }
 
 function descendingComparatorUndefined(a, b, orderBy) {
-    if (!a || !b || !a[orderBy] || !b[orderBy]) {
-      return 0;
-    }
-    
-    if (b[orderBy] < a[orderBy]) {
-      return -1;
-    }
-    if (b[orderBy] > a[orderBy]) {
-      return 1;
-    }
+  if (!a || !b || !a[orderBy] || !b[orderBy]) {
     return 0;
   }
+  
+  if (b[orderBy] < a[orderBy]) {
+    return -1;
+  }
+  if (b[orderBy] > a[orderBy]) {
+    return 1;
+  }
+  return 0;
+}
+
+// JWT TOKENS
+
+export const getAccessToken = () => {
+  return localStorage.getItem('accessToken');
+};
+
+export const getRefreshToken = () => {
+  return localStorage.getItem('refreshToken');
+};
+
+const setTokens = (accessToken, refreshToken) => {
+  localStorage.setItem('accessToken', accessToken);
+  localStorage.setItem('refreshToken', refreshToken);
+};
+
+const refreshToken = async (apiUrl) => {
+  const refreshToken = getRefreshToken();
+  try {
+      const response = await axios.post(`${apiUrl}/api/token/refresh/`, {
+          refresh: refreshToken
+      });
+      const { access } = response.data;
+      setTokens(access, refreshToken);
+      return access;
+  } catch (error) {
+      console.error('Error refreshing token:', error);
+      return null;
+  }
+};
+
+export const fetchWithToken = async (url, method = 'GET', data = null, headers = {}, apiUrl) => {
+  let accessToken = getAccessToken();
+  
+  const makeRequest = async (token) => {
+      const config = {
+          method: method,
+          url: url,
+          withCredentials: true,
+          headers: {
+              ...headers,
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json',
+              'Accept': 'application/json'
+          },
+          ...(method === 'GET' ? { params: data } : { data: data })
+      };
+      return axios(config);
+  };
+
+  try {
+      return await makeRequest(accessToken);
+  } catch (error) {
+      if (error.response && error.response.status === 401) {
+          const newAccessToken = await refreshToken(apiUrl);
+          if (newAccessToken) {
+
+              return await makeRequest(newAccessToken);
+          }
+      }
+      throw error;
+  }
+};

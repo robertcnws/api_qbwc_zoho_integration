@@ -4,8 +4,8 @@ import { Container, Box } from '@mui/material';
 import Swal from 'sweetalert2';
 import Sidebar from '../Sidebar/Sidebar';
 import Topbar from '../Topbar/Topbar';
-import axios from 'axios';
 import { useAuth } from '../AuthContext/AuthContext'
+import { fetchWithToken } from '../../utils'
 
 const apiUrl = process.env.REACT_APP_BACKEND_URL
 
@@ -27,14 +27,16 @@ const Dashboard = () => {
       cancelButtonText: 'Cancel'
     }).then((result) => {
       if (result.isConfirmed) {
-        axios.get(`${apiUrl}/logout/`)
-            .then(response => {
-                logout()
-                navigate('/integration') 
-            })
-            .catch(error => {
-                console.error('Error loging out:', error);
-            })
+        const fetchData = async () => {
+          try {
+              await fetchWithToken(`${apiUrl}/logout/`, 'GET', null, {}, apiUrl);
+              logout()
+              navigate('/integration') 
+          } catch (error) {
+              console.error('Error loging out:', error);
+          }
+        };
+        fetchData();
       }
     });
   };

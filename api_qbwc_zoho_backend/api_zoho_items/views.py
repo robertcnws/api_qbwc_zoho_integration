@@ -13,6 +13,8 @@ from django.views.decorators.csrf import csrf_exempt
 from django.core import serializers
 from django.forms.models import model_to_dict
 from api_quickbook_soap.models import QbItem  
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
 import datetime
 import pandas as pd
 import rapidfuzz  
@@ -29,22 +31,26 @@ logger = logging.getLogger(__name__)
 # Match one AJAX
 #############################################
 
-@require_POST
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
 def match_one_item_ajax(request):
-    action = request.POST['action']
-    logger.debug(f"Action: {action}")
-    try:
-        qb_list_id = request.POST['qb_item_list_id']
-        zoho_item_id = request.POST['item_id']
-        qb_item = get_object_or_404(QbItem, list_id=qb_list_id)
-        zoho_item = get_object_or_404(ZohoItem, item_id=zoho_item_id)
-        zoho_item.qb_list_id = qb_list_id if action == 'match' else ''
-        zoho_item.save()
-        qb_item.matched = True if action == 'match' else False
-        qb_item.save()
-        return JsonResponse({'status': 'success', 'message': 'Item matched successfully'})
-    except Exception as e:
-        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+    valid_token = api_zoho_views.validateJWTTokenRequest(request)
+    if valid_token:
+        action = request.POST['action']
+        logger.debug(f"Action: {action}")
+        try:
+            qb_list_id = request.POST['qb_item_list_id']
+            zoho_item_id = request.POST['item_id']
+            qb_item = get_object_or_404(QbItem, list_id=qb_list_id)
+            zoho_item = get_object_or_404(ZohoItem, item_id=zoho_item_id)
+            zoho_item.qb_list_id = qb_list_id if action == 'match' else ''
+            zoho_item.save()
+            qb_item.matched = True if action == 'match' else False
+            qb_item.save()
+            return JsonResponse({'status': 'success', 'message': 'Item matched successfully'})
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+    return JsonResponse({'status': 'error', 'message': 'Invalid token'}, status=401)
     
     
 #############################################
@@ -84,10 +90,12 @@ def unmatch_all_items_ajax(request):
 #############################################
 
 
-@csrf_exempt
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def view_item(request, item_id):
 
-    if request.method == 'GET':
+    valid_token = api_zoho_views.validateJWTTokenRequest(request)
+    if valid_token:
 
         zoho_item = ZohoItem.objects.get(item_id=item_id)
 
@@ -139,12 +147,14 @@ def view_item(request, item_id):
         
         return JsonResponse(zoho_item)
     
-    return JsonResponse({'error': 'Invalid request method'}, status=405)  
+    return JsonResponse({'error': 'Invalid JWT Token'}, status=401)  
 
 
-@csrf_exempt 
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def list_items(request):
-    if request.method == 'GET':
+    valid_token = api_zoho_views.validateJWTTokenRequest(request)
+    if valid_token:
         items_list_query = ZohoItem.objects.all()
         batch_size = 200  # Ajusta este tamaño según tus necesidades
         items_list = []
@@ -163,12 +173,14 @@ def list_items(request):
         items_data = serializers.serialize('json', items_list)
         return JsonResponse(items_data, safe=False)
     
-    return JsonResponse({'error': 'Invalid request method'}, status=405) 
+    return JsonResponse({'error': 'Invalid JWT Token'}, status=401) 
 
 
-@csrf_exempt
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
 def load_items(request):
-    if request.method == 'POST':
+    valid_token = api_zoho_views.validateJWTTokenRequest(request)
+    if valid_token:
         app_config = AppConfig.objects.first()
         logger.debug(app_config)
         try:
@@ -240,7 +252,7 @@ def load_items(request):
                 
         return JsonResponse({'message': 'Items loaded successfully'}, status=200)
     
-    return JsonResponse({'error': 'Invalid request method'}, status=405)
+    return JsonResponse({'error': 'Invalid JWT Token'}, status=401)
 
     
 

@@ -9,14 +9,14 @@ const ApplicationSettingsForm = ({ formData, onSubmit, error, success }) => {
     const [showZohoSecret, setShowZohoSecret] = useState(false);
     const [showQBPassword, setShowQBPassword] = useState(false);
     const [errors, setErrors] = useState({});
-    const [formChanged, setFormChanged] = useState(false); // Estado para verificar cambios en el formulario
+    const [formChanged, setFormChanged] = useState(false);
 
     useEffect(() => {
         setData(formData);
+        setFormChanged(false);
     }, [formData]);
 
     useEffect(() => {
-        // Verificar si hay cambios comparando con formData
         const isFormChanged =
             data.zoho_client_id !== formData.zoho_client_id ||
             data.zoho_client_secret !== formData.zoho_client_secret ||
@@ -24,13 +24,15 @@ const ApplicationSettingsForm = ({ formData, onSubmit, error, success }) => {
             data.zoho_redirect_uri !== formData.zoho_redirect_uri ||
             data.qb_username !== formData.qb_username ||
             data.qb_password !== formData.qb_password;
-
         setFormChanged(isFormChanged);
     }, [data, formData]);
 
     const handleChange = (event) => {
         const { name, value } = event.target;
-        setData({ ...data, [name]: value });
+        const updatedData = { ...data, [name]: value };
+        setData(updatedData);
+        const isFormChanged = Object.keys(updatedData).some(key => updatedData[key] !== formData[key]);
+        setFormChanged(isFormChanged);
         setErrors((prevErrors) => ({
             ...prevErrors,
             [name]: value ? '' : prevErrors[name],
@@ -64,6 +66,7 @@ const ApplicationSettingsForm = ({ formData, onSubmit, error, success }) => {
         event.preventDefault();
         if (validateForm()) {
             onSubmit(data);
+            setFormChanged(false);
         }
     };
 
