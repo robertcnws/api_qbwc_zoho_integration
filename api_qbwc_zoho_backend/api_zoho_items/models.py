@@ -8,6 +8,7 @@ class ZohoItem(models.Model):
     status = models.CharField(max_length=20, blank=True)
     description = models.TextField(blank=True)
     rate = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    quantity = models.DecimalField(max_digits=10, decimal_places=2, default=0.00, null=True)
     sku = models.CharField(max_length=50, blank=True, null=True)
     created_time = models.DateTimeField()
     last_modified_time = models.DateTimeField()

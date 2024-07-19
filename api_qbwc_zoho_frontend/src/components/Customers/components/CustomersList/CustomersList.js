@@ -117,12 +117,12 @@ const CustomersList = ({ customers }) => {
                 </Grid>
                 <Grid item xs={6} container justifyContent="flex-end" spacing={1}>
                     <Grid item>
-                        <Button variant="contained" color="primary" size="small" component={Link}  to="/integration/qbwc_customers/similar">
+                        <Button variant="contained" color="primary" size="small" component={Link}  to="/integration/qbwc/customers/similar">
                             Similar Customers
                         </Button>
                     </Grid>
                     <Grid item>
-                        <Button variant="contained" color="success" size="small" component={Link}  to="/integration/qbwc_customers/matched">
+                        <Button variant="contained" color="success" size="small" component={Link}  to="/integration/qbwc/customers/matched">
                             Matched Customers
                         </Button>
                     </Grid>

@@ -324,60 +324,52 @@ def generate_invoice_add_response_new_version():
 
 
 def generate_invoice_add_response():
-    
     today = date.today()
-    
     logging.debug(f'Today: {today}')
-    
+
     invoices = ZohoFullInvoice.objects.filter(Q(force_to_sync=True) | Q(date=today), inserted_in_qb=False)
-    
+    logging.debug(f'Length Invoices: {len(invoices)}')
+
     data_xml = ''
-    
     response = None
-    
+
     for i in range(len(invoices)):
-        
+        logging.debug(f'Invoice: {invoices[i].date}, {invoices[i].invoice_number}, {invoices[i].customer_id}, {invoices[i].customer_name}')
+
         items_xml = ''
-        
         items_unmatched = []
-        
         customers_unmatched = []
-        
         counter_items_with_list_id = 0
-        
+
         invoices[i].last_sync_date = today
         invoices[i].number_of_times_synced += 1
-        
+
         for item in invoices[i].line_items:
-            
-            # Asegúrate de que item es una instancia del modelo
             if isinstance(item, ZohoItem):
-                desc = item.description
-                sku = item.sku
-                quantity = item.quantity
+                desc = item.description if item.description else 'default_desc_value_if_not_found'
+                name = item.name if item.name else 'default_name_value_if_not_found'
+                sku = item.sku if item.sku else 'default_sku_value_if_not_found'
+                quantity = item.quantity if item.quantity else 'default_quantity_value_if_not_found'
                 rate = item.rate
             else:
-                # Esto manejará el caso en que item no sea una instancia de ZohoItem
                 desc = item.get('description', 'default_desc_value_if_not_found')
+                name = item.get('name', 'default_name_value_if_not_found')
                 sku = item.get('sku', 'default_sku_value_if_not_found')
                 quantity = item.get('quantity', 'default_quantity_value_if_not_found')
                 rate = item.get('rate', 'default_rate_value_if_not_found')
-            
+
             if sku == 'default_sku_value_if_not_found' or sku == '':
-                zoho_item = ZohoItem.objects.get((Q(name=desc) | Q(description=desc)))
+                zoho_item = ZohoItem.objects.filter(Q(name=desc) | Q(description=desc) | Q(name=name)).first()
             else:
-                zoho_item = ZohoItem.objects.get(Q(sku=sku))
-                
-            if zoho_item: 
-            
+                zoho_item = ZohoItem.objects.filter(Q(sku=sku)).first()
+
+            logging.debug(f'Zoho Item: {zoho_item}')
+
+            if zoho_item:
                 if zoho_item.qb_list_id:
-                    
                     regex = re.compile(r'^[A-Za-z0-9]{8}-\d{10}$')
-                    
                     if regex.match(zoho_item.qb_list_id):
-                    
                         counter_items_with_list_id += 1
-                        
                         items_xml += f'''<InvoiceLineAdd>
                                         <ItemRef>
                                             <ListID>{zoho_item.qb_list_id}</ListID>
@@ -385,11 +377,9 @@ def generate_invoice_add_response():
                                         <Desc>{desc}</Desc>
                                         <Quantity>{quantity}</Quantity>
                                         <Rate>{rate}</Rate>
-                                    </InvoiceLineAdd>
-                                    '''
+                                    </InvoiceLineAdd>'''
                     else:
                         logger.debug(f'Item {zoho_item} has a QB List ID that is not valid (Proceed to match)')
-                        # Creando el listado de customer unmatched
                         info_item_unmatched = {
                             'zoho_item_id': zoho_item.item_id,
                             'zoho_item_unmatched': zoho_item.name,
@@ -398,7 +388,6 @@ def generate_invoice_add_response():
                         items_unmatched.append(info_item_unmatched)
                 else:
                     logger.debug(f'Item {zoho_item} has no QB List ID (Proceed to match)')
-                    # Creando el listado de customer unmatched
                     info_item_unmatched = {
                         'zoho_item_id': zoho_item.item_id,
                         'zoho_item_unmatched': zoho_item.name,
@@ -407,49 +396,44 @@ def generate_invoice_add_response():
                     items_unmatched.append(info_item_unmatched)
             else:
                 logger.debug(f'Item {desc} has no match in Zoho Items')
-                # Creando el listado de customer unmatched
                 info_item_unmatched = {
                     'zoho_item_id': None,
                     'zoho_item_unmatched': desc,
                     'reason': 'Item does not exist in Zoho Items'
                 }
                 items_unmatched.append(info_item_unmatched)
-                
+
+        logging.debug(f'--------------------------------------------------------------------------------------------')
+
         if len(items_unmatched) > 0:
             invoices[i].items_unmatched = items_unmatched
             invoices[i].inserted_in_qb = False
             invoices[i].save()
-            
         elif counter_items_with_list_id == len(invoices[i].line_items):
             invoices[i].items_unmatched = []
             invoices[i].save()
-            
-        zoho_customer = ZohoCustomer.objects.get(contact_id=invoices[i].customer_id)
-        
+
+        zoho_customer = ZohoCustomer.objects.filter(contact_id=invoices[i].customer_id).first()
+
         if zoho_customer:
-        
             if zoho_customer.qb_list_id:
-                
                 invoices[i].customer_unmatched = []
-                
+
                 street = invoices[i].billing_address['street'] if invoices[i].billing_address['street'] != '' else 'NO STREET'
                 address = invoices[i].billing_address['address'] if invoices[i].billing_address['address'] != '' else 'NO ADDRESS'
                 city = invoices[i].billing_address['city'] if invoices[i].billing_address['city'] != '' else 'NO CITY'
                 state = invoices[i].billing_address['state'] if invoices[i].billing_address['state'] != '' else 'NO STATE'
                 zip_code = invoices[i].billing_address['zip'] if invoices[i].billing_address['zip'] != '' else '00000'
                 terms = invoices[i].terms if invoices[i].terms else 'Net 30'
-                
+
                 if counter_items_with_list_id == len(invoices[i].line_items):
-                    
                     if items_xml != '':
-                        
                         sales_tax_list_id = os.environ.get('SALES_TAX_LIST_ID')
-                        
                         data_xml += f'''<InvoiceAddRq requestID="{i + 2}">
                                         <InvoiceAdd>
-                                            <CustomerRef>   
+                                            <CustomerRef>
                                                 <ListID>{zoho_customer.qb_list_id}</ListID>
-                                            </CustomerRef>  
+                                            </CustomerRef>
                                             <TxnDate>{invoices[i].date}</TxnDate>
                                             <RefNumber>{invoices[i].invoice_number}</RefNumber>
                                             <BillAddress>
@@ -471,10 +455,10 @@ def generate_invoice_add_response():
                                             </InvoiceLineAdd>
                                         </InvoiceAdd>
                                     </InvoiceAddRq>'''
-                                
+
                     logger.debug(f'Data XML: {data_xml}')
                     invoices[i].inserted_in_qb = True
-                    invoices[i].save() 
+                    invoices[i].save()
             else:
                 logger.debug(f'Customer {zoho_customer} has no QB List ID (Proceed to match)')
                 customer_unmatched = {
@@ -497,16 +481,15 @@ def generate_invoice_add_response():
             invoices[i].customer_unmatched = customers_unmatched
             invoices[i].inserted_in_qb = False
             invoices[i].save()
-            
+
     if data_xml != '':
-        
         request_xml = f'''<?qbxml version="8.0"?>
                                 <QBXML>
                                     <QBXMLMsgsRq onError="stopOnError">
                                         {data_xml}
                                     </QBXMLMsgsRq>
                                 </QBXML>'''
-                
+
         response = f'''<?xml version="1.0" encoding="utf-8"?>
                                 <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:qb="http://developer.intuit.com/">
                                     <soap:Header/>

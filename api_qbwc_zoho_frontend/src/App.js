@@ -27,7 +27,9 @@ const HomeRedirect = () => {
   const { isAuthenticated } = useAuth();
 
   if (isAuthenticated) {
-    return <Navigate to="/integration" />;
+    const redirectPath = localStorage.getItem('redirectPath') || '/integration';
+    localStorage.removeItem('redirectPath'); 
+    return <Navigate to={redirectPath} />;
   }
 
   return <LoginForm />;
@@ -51,14 +53,14 @@ const App = () => {
             <Route path="list_invoices" element={<InvoicesListPage />} />
             <Route path="invoice_details" element={<InvoicesDetails />} />
             <Route path="qbwc" element={<QbwcGetting />} />
-            <Route path="qbwc_items/list" element={<QbwcItemsListPage />} />
-            <Route path="qbwc_customers/list" element={<QbwcCustomersListPage />} />
-            <Route path="qbwc_items/similar" element={<QbwcSimilarItemsListPage />} />
-            <Route path="qbwc_customers/similar" element={<QbwcSimilarCustomersListPage />} />
-            <Route path="qbwc_items/matched" element={<QbwcMatchedItemsListPage />} />
-            <Route path="qbwc_customers/matched" element={<QbwcMatchedCustomersListPage />} />
-            <Route path="qbwc_items/never_match" element={<QbwcNeverMatchedItemsListPage />} />
-            <Route path="qbwc_customers/never_match" element={<QbwcNeverMatchedCustomersListPage />} />
+            <Route path="qbwc/items/list" element={<QbwcItemsListPage />} />
+            <Route path="qbwc/customers/list" element={<QbwcCustomersListPage />} />
+            <Route path="qbwc/items/similar" element={<QbwcSimilarItemsListPage />} />
+            <Route path="qbwc/customers/similar" element={<QbwcSimilarCustomersListPage />} />
+            <Route path="qbwc/items/matched" element={<QbwcMatchedItemsListPage />} />
+            <Route path="qbwc/customers/matched" element={<QbwcMatchedCustomersListPage />} />
+            <Route path="qbwc/items/never_match" element={<QbwcNeverMatchedItemsListPage />} />
+            <Route path="qbwc/customers/never_match" element={<QbwcNeverMatchedCustomersListPage />} />
           </Route>
         </Routes>
       </Router>

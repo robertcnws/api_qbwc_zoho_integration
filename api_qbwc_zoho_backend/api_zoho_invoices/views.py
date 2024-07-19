@@ -118,8 +118,6 @@ def load_invoices(request):
                 return JsonResponse({"error": "Failed to fetch invoices"}, status=500)
         
         existing_invoices = {invoice.invoice_id: invoice for invoice in invoices_saved}
-        
-        logger.info(f"Invoices to get: {invoices_to_get}")
 
         for data in invoices_to_get:
             new_invoice = create_invoice_instance(data)

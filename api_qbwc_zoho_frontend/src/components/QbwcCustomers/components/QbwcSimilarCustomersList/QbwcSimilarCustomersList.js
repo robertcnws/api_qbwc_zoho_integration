@@ -196,7 +196,7 @@ const QbwcSimilarCustomersList = ({ similarCustomers, onSyncComplete }) => {
             </Button>
           </Grid>
           <Grid item>
-            <Button variant="contained" color="success" size="small" component={Link} to="/integration/qbwc_customers/matched">
+            <Button variant="contained" color="success" size="small" component={Link} to="/integration/qbwc/customers/matched">
               Matched Customers
             </Button>
           </Grid>

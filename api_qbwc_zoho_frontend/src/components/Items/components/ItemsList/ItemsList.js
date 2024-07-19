@@ -98,12 +98,12 @@ const ItemsList = ({ items }) => {
                 </Grid>
                 <Grid item xs={6} container justifyContent="flex-end" spacing={1}>
                     <Grid item>
-                        <Button variant="contained" color="primary" size="small" component={Link} to='/integration/qbwc_items/similar'>
+                        <Button variant="contained" color="primary" size="small" component={Link} to='/integration/qbwc/items/similar'>
                             Similar Items
                         </Button>
                     </Grid>
                     <Grid item>
-                        <Button variant="contained" color="success" size="small" component={Link} to='/integration/qbwc_items/matched'>
+                        <Button variant="contained" color="success" size="small" component={Link} to='/integration/qbwc/items/matched'>
                             Matched Items
                         </Button>
                     </Grid>

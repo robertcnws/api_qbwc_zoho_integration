@@ -176,7 +176,7 @@ const QbwcSimilarItemsList = ({ similarItems, onSyncComplete }) => {
             </Button>
           </Grid>
           <Grid item>
-            <Button variant="contained" color="success" size="small" component={Link} to="/integration/qbwc_items/matched">
+            <Button variant="contained" color="success" size="small" component={Link} to="/integration/qbwc/items/matched">
               Matched Items
             </Button>
           </Grid>
