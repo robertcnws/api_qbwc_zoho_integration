@@ -19,6 +19,7 @@ import {
 import { Link, useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import { stableSort, getComparatorUndefined, fetchWithToken } from '../../../../utils';
+import { EmptyRecordsCell } from '../../../Utils/components/EmptyRecordsCell/EmptyRecordsCell';
 
 const apiUrl = process.env.REACT_APP_BACKEND_URL;
 
@@ -236,7 +237,11 @@ const QbwcSimilarCustomersList = ({ similarCustomers, onSyncComplete }) => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {renderTableRows(paginatedCustomers)}
+            {filteredCustomers.length === 0 ? (
+                <EmptyRecordsCell columns={columns} />
+              ) : (
+                renderTableRows(paginatedCustomers)
+            )}
           </TableBody>
         </Table>
       </TableContainer>

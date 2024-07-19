@@ -49,7 +49,7 @@ const Sidebar = ({ expanded, toggleSubmenu, handleLogout }) => {
         {expanded && (
           <>
             <Divider />
-            <List>
+            <List sx={{ pl: 4 }}>
               <ListItemButton component={Link} to="/integration/zoho">
                 <ListItemIcon><AppsIcon sx={{ color: '#fff' }} /></ListItemIcon>
                 <ListItemText primary="Zoho" />

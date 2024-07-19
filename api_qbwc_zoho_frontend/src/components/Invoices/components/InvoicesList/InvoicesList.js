@@ -31,6 +31,7 @@ import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
 import { stableSort, getComparator, fetchWithToken } from '../../../../utils';
+import { EmptyRecordsCell } from '../../../Utils/components/EmptyRecordsCell/EmptyRecordsCell';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -73,7 +74,6 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
 
 
     useEffect(() => {
-        // Actualiza la URL con el filtro de fecha
         const queryParams = new URLSearchParams(window.location.search);
         if (filterDate && filterDate.isValid()) {
             queryParams.set('date', filterDate.format('YYYY-MM-DD'));
@@ -118,7 +118,6 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
             setPage(0);
         }
     };
-    
 
     const handleForceToSync = () => {
         if (selectedInvoices.length === 0) {
@@ -428,38 +427,42 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {(rowsPerPage > 0
-                            ? sortedInvoices.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                            : sortedInvoices
-                        ).map((invoice, index) => {
-                            const isItemSelected = isSelected(invoice.fields.invoice_id);
-                            return (
-                                <TableRow key={index} style={{ backgroundColor: getBackgroundColor(invoice) }}>
-                                    <TableCell>{invoice.fields.invoice_number}</TableCell>
-                                    <TableCell>{invoice.fields.customer_name}</TableCell>
-                                    <TableCell>{invoice.fields.date}</TableCell>
-                                    <TableCell>{invoice.fields.total}</TableCell>
-                                    <TableCell align="center">
-                                        {renderSyncStatus(invoice)}
-                                    </TableCell>
-                                    <TableCell align="center">
-                                        {
-                                            !invoice.fields.force_to_sync ? 
-                                            renderForceSyncCheckbox(invoice, isItemSelected) : 
-                                            (<Box sx={{ display: 'flex', gap: 1 }}>
-                                                <CheckCircleIcon color="success" />
-                                                <Typography sx={{ color: 'success.main' }}><b>Forced to sync</b></Typography>
-                                            </Box>)
-                                        }
-                                    </TableCell>
-                                    <TableCell align="center">
-                                        <Button variant="contained" color="info" size="small" onClick={() => handleViewInvoice(invoice)} >
-                                            View
-                                        </Button>
-                                    </TableCell>
-                                </TableRow>
-                            );
-                        })}
+                        {filteredInvoices.length === 0 ? (
+                                <EmptyRecordsCell columns={columns} />
+                            ) : (
+                                    (rowsPerPage > 0
+                                ? sortedInvoices.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                                : sortedInvoices
+                            ).map((invoice, index) => {
+                                const isItemSelected = isSelected(invoice.fields.invoice_id);
+                                return (
+                                    <TableRow key={index} style={{ backgroundColor: getBackgroundColor(invoice) }}>
+                                        <TableCell>{invoice.fields.invoice_number}</TableCell>
+                                        <TableCell>{invoice.fields.customer_name}</TableCell>
+                                        <TableCell>{invoice.fields.date}</TableCell>
+                                        <TableCell>{invoice.fields.total}</TableCell>
+                                        <TableCell align="center">
+                                            {renderSyncStatus(invoice)}
+                                        </TableCell>
+                                        <TableCell align="center">
+                                            {
+                                                !invoice.fields.force_to_sync ? 
+                                                renderForceSyncCheckbox(invoice, isItemSelected) : 
+                                                (<Box sx={{ display: 'flex', gap: 1 }}>
+                                                    <CheckCircleIcon color="success" />
+                                                    <Typography sx={{ color: 'success.main' }}><b>Forced to sync</b></Typography>
+                                                </Box>)
+                                            }
+                                        </TableCell>
+                                        <TableCell align="center">
+                                            <Button variant="contained" color="info" size="small" onClick={() => handleViewInvoice(invoice)} >
+                                                View
+                                            </Button>
+                                        </TableCell>
+                                    </TableRow>
+                                );
+                            })
+                        )}
                     </TableBody>
                 </Table>
             </TableContainer>

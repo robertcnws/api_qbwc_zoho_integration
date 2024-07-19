@@ -22,6 +22,7 @@ import {
 import Swal from 'sweetalert2';
 import { Link } from 'react-router-dom';
 import { stableSort, getComparator, fetchWithToken } from '../../../../utils';
+import { EmptyRecordsCell } from '../../../Utils/components/EmptyRecordsCell/EmptyRecordsCell';
 
 const apiUrl = process.env.REACT_APP_BACKEND_URL
 
@@ -228,18 +229,22 @@ const QbwcNeverMatchedItemsList = ({ neverMatchedItems, onSyncComplete }) => {
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            {(rowsPerPage > 0
-                                ? sortedNeverMatchedItems.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                                : sortedNeverMatchedItems
-                            ).map((item, index) => (
-                                <TableRow key={index} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
-                                    <TableCell>{item.fields.name}</TableCell>
-                                    <TableCell>{item.fields.list_id}</TableCell>
-                                    <TableCell align="center">
-                                        {renderForceSyncCheckbox(item, isSelected(item.fields.list_id))}
-                                    </TableCell>
-                                </TableRow>
-                            ))}
+                            {filteredNeverMatchedItems.length === 0 ? (
+                                <EmptyRecordsCell columns={columns} />
+                            ) : (
+                                (rowsPerPage > 0
+                                    ? sortedNeverMatchedItems.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                                    : sortedNeverMatchedItems
+                                ).map((item, index) => (
+                                    <TableRow key={index} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
+                                        <TableCell>{item.fields.name}</TableCell>
+                                        <TableCell>{item.fields.list_id}</TableCell>
+                                        <TableCell align="center">
+                                            {renderForceSyncCheckbox(item, isSelected(item.fields.list_id))}
+                                        </TableCell>
+                                    </TableRow>
+                                ))
+                            )}
                         </TableBody>
                     </Table>
                 </TableContainer>

@@ -19,6 +19,7 @@ import {
 import { Link } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import { stableSort, getComparatorUndefined, fetchWithToken } from '../../../../utils';
+import { EmptyRecordsCell } from '../../../Utils/components/EmptyRecordsCell/EmptyRecordsCell';
 
 const apiUrl = process.env.REACT_APP_BACKEND_URL
 
@@ -184,28 +185,32 @@ const QbwcMatchedItemsList = ({ matchedItems, onSyncComplete }) => {
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            {(rowsPerPage > 0
-                                ? sortedItems.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                                : sortedItems
-                            ).map((item, index) => (
-                                <TableRow key={index} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
-                                    <TableCell>{item.qb_item_name}</TableCell>
-                                    <TableCell>
-                                      {item.zoho_item}<br />
-                                      (SKU: {item.zoho_item_sku && item.zoho_item_sku.length > 0 ? item.zoho_item_sku : '---'})
-                                    </TableCell>
-                                    <TableCell className="text-center align-middle">
-                                      <Button 
-                                        onClick={() => handleUnMatchItem(item)} 
-                                        variant="contained" 
-                                        color="warning" 
-                                        size="small"
-                                      >
-                                        UnMatch
-                                      </Button>
-                                    </TableCell>
-                                </TableRow>
-                            ))}
+                            {filteredItems.length === 0 ? (
+                                <EmptyRecordsCell columns={columns} />
+                                ) : (
+                                    (rowsPerPage > 0
+                                    ? sortedItems.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                                    : sortedItems
+                                ).map((item, index) => (
+                                    <TableRow key={index} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
+                                        <TableCell>{item.qb_item_name}</TableCell>
+                                        <TableCell>
+                                        {item.zoho_item}<br />
+                                        (SKU: {item.zoho_item_sku && item.zoho_item_sku.length > 0 ? item.zoho_item_sku : '---'})
+                                        </TableCell>
+                                        <TableCell className="text-center align-middle">
+                                        <Button 
+                                            onClick={() => handleUnMatchItem(item)} 
+                                            variant="contained" 
+                                            color="warning" 
+                                            size="small"
+                                        >
+                                            UnMatch
+                                        </Button>
+                                        </TableCell>
+                                    </TableRow>
+                                ))
+                            )}
                         </TableBody>
                     </Table>
                 </TableContainer>

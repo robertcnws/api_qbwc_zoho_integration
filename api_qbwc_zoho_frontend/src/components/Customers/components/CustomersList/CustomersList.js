@@ -18,6 +18,7 @@ import {
 } from '@mui/material';
 import { Link, useNavigate } from 'react-router-dom'; 
 import { stableSort, getComparator } from '../../../../utils';
+import { EmptyRecordsCell } from '../../../Utils/components/EmptyRecordsCell/EmptyRecordsCell';
 
 const CustomersList = ({ customers }) => {
     const [page, setPage] = useState(0);
@@ -162,31 +163,35 @@ const CustomersList = ({ customers }) => {
                                 </TableRow>
                             </TableHead>
                             <TableBody>
-                                {(rowsPerPage > 0
-                                    ? sortedCustomers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                                    : sortedCustomers
-                                ).map((customer, index) => (
-                                    <TableRow key={index} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
-                                        <TableCell>{customer.fields.contact_name}</TableCell>
-                                        <TableCell>{customer.fields.email}</TableCell>
-                                        <TableCell>{customer.fields.phone}</TableCell>
-                                        <TableCell>{customer.fields.company_name}</TableCell>
-                                        <TableCell sx={(theme) => ({
-                                                    color: !customer.fields.qb_list_id || customer.fields.qb_list_id === "" ? theme.palette.error.main : theme.palette.success.main,
-                                                    fontWeight: 'bold',
-                                                    borderBottom: '1px solid #ccc'
-                                                })}>
-                                                <b>{!customer.fields.qb_list_id || customer.fields.qb_list_id === "" ? "NO" : "YES"}</b>
-                                        </TableCell>
-                                        <TableCell className="text-center align-middle">
-                                            <Button 
-                                                onClick={() => handleViewCustomer(customer)} 
-                                                variant="contained" 
-                                                color="info" 
-                                                size="small">View</Button>
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
+                                {filteredCustomers.length === 0 ? (
+                                    <EmptyRecordsCell columns={columns} />
+                                ) : (
+                                        (rowsPerPage > 0
+                                            ? sortedCustomers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                                            : sortedCustomers
+                                        ).map((customer, index) => (
+                                            <TableRow key={index} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
+                                                <TableCell>{customer.fields.contact_name}</TableCell>
+                                                <TableCell>{customer.fields.email}</TableCell>
+                                                <TableCell>{customer.fields.phone}</TableCell>
+                                                <TableCell>{customer.fields.company_name}</TableCell>
+                                                <TableCell sx={(theme) => ({
+                                                            color: !customer.fields.qb_list_id || customer.fields.qb_list_id === "" ? theme.palette.error.main : theme.palette.success.main,
+                                                            fontWeight: 'bold',
+                                                            borderBottom: '1px solid #ccc'
+                                                        })}>
+                                                        <b>{!customer.fields.qb_list_id || customer.fields.qb_list_id === "" ? "NO" : "YES"}</b>
+                                                </TableCell>
+                                                <TableCell className="text-center align-middle">
+                                                    <Button 
+                                                        onClick={() => handleViewCustomer(customer)} 
+                                                        variant="contained" 
+                                                        color="info" 
+                                                        size="small">View</Button>
+                                                </TableCell>
+                                            </TableRow>
+                                        ))
+                                    )}
                             </TableBody>
                         </Table>
                     </TableContainer>

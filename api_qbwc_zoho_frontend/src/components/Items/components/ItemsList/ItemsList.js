@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Container, Grid, Typography, Alert, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, TablePagination, TextField, TableSortLabel } from '@mui/material';
 import { Link, useNavigate } from 'react-router-dom';
 import { stableSort, getComparator } from '../../../../utils';
+import { EmptyRecordsCell } from '../../../Utils/components/EmptyRecordsCell/EmptyRecordsCell';
 
 const ItemsList = ({ items }) => {
     const [page, setPage] = useState(0);
@@ -143,34 +144,38 @@ const ItemsList = ({ items }) => {
                                 </TableRow>
                             </TableHead>
                             <TableBody>
-                                {(rowsPerPage > 0
-                                    ? sortedItems.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                                    : sortedItems
-                                ).map((item, index) => (
-                                    <TableRow key={index} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
-                                        <TableCell>{item.fields.name}</TableCell>
-                                        <TableCell>{item.fields.status}</TableCell>
-                                        <TableCell>{item.fields.rate}</TableCell>
-                                        <TableCell>{item.fields.sku}</TableCell>
-                                        <TableCell sx={(theme) => ({
-                                            color: !item.fields.qb_list_id || item.fields.qb_list_id === "" ? theme.palette.error.main : theme.palette.success.main,
-                                            fontWeight: 'bold',
-                                            borderBottom: '1px solid #ccc'
-                                        })}>
-                                            <b>{!item.fields.qb_list_id || item.fields.qb_list_id === "" ? "NO" : "YES"}</b>
-                                        </TableCell>
-                                        <TableCell className="text-center align-middle">
-                                            <Button 
-                                                onClick={() => handleViewItem(item)} 
-                                                variant="contained" 
-                                                color="info" 
-                                                size="small"
-                                            >
-                                                View
-                                            </Button>
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
+                                {filteredItems.length === 0 ? (
+                                    <EmptyRecordsCell columns={columns} />
+                                    ) : (
+                                    (rowsPerPage > 0
+                                        ? sortedItems.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                                        : sortedItems
+                                    ).map((item, index) => (
+                                        <TableRow key={index} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
+                                            <TableCell>{item.fields.name}</TableCell>
+                                            <TableCell>{item.fields.status}</TableCell>
+                                            <TableCell>{item.fields.rate}</TableCell>
+                                            <TableCell>{item.fields.sku}</TableCell>
+                                            <TableCell sx={(theme) => ({
+                                                color: !item.fields.qb_list_id || item.fields.qb_list_id === "" ? theme.palette.error.main : theme.palette.success.main,
+                                                fontWeight: 'bold',
+                                                borderBottom: '1px solid #ccc'
+                                            })}>
+                                                <b>{!item.fields.qb_list_id || item.fields.qb_list_id === "" ? "NO" : "YES"}</b>
+                                            </TableCell>
+                                            <TableCell className="text-center align-middle">
+                                                <Button 
+                                                    onClick={() => handleViewItem(item)} 
+                                                    variant="contained" 
+                                                    color="info" 
+                                                    size="small"
+                                                >
+                                                    View
+                                                </Button>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))
+                                )}
                             </TableBody>
                         </Table>
                     </TableContainer>

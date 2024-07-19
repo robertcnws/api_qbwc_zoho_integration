@@ -22,6 +22,7 @@ import {
 import { Link } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import { stableSort, getComparator, fetchWithToken } from '../../../../utils';
+import { EmptyRecordsCell } from '../../../Utils/components/EmptyRecordsCell/EmptyRecordsCell';
 
 const apiUrl = process.env.REACT_APP_BACKEND_URL
 
@@ -230,20 +231,23 @@ const QbwcCustomersList = ({ customers, onSyncComplete }) => {
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            {(rowsPerPage > 0
-                                ? sortedCustomers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                                : sortedCustomers
-                            ).map((customer, index) => (
-                                <TableRow key={index} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
-                                    <TableCell>{customer.fields.name}</TableCell>
-                                    <TableCell>{customer.fields.email}</TableCell>
-                                    <TableCell>{customer.fields.phone}</TableCell>
-                                    <TableCell>{customer.fields.list_id}</TableCell>
-                                    <TableCell align="center">
-                                        {renderForceSyncCheckbox(customer, isSelected(customer.fields.list_id))}
-                                    </TableCell>
-                                </TableRow>
-                            ))}
+                        {filteredCustomers.length === 0 ? (
+                            <EmptyRecordsCell columns={columns} />
+                            ) : ((rowsPerPage > 0
+                                            ? sortedCustomers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                                            : sortedCustomers
+                                        ).map((customer, index) => (
+                                            <TableRow key={index} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
+                                                <TableCell>{customer.fields.name}</TableCell>
+                                                <TableCell>{customer.fields.email}</TableCell>
+                                                <TableCell>{customer.fields.phone}</TableCell>
+                                                <TableCell>{customer.fields.list_id}</TableCell>
+                                                <TableCell align="center">
+                                                    {renderForceSyncCheckbox(customer, isSelected(customer.fields.list_id))}
+                                                </TableCell>
+                                            </TableRow>
+                                        ))
+                                )}
                         </TableBody>
                     </Table>
                 </TableContainer>

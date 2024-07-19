@@ -19,6 +19,7 @@ import {
 import { Link } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import { stableSort, fetchWithToken, getComparatorUndefined } from '../../../../utils';
+import { EmptyRecordsCell } from '../../../Utils/components/EmptyRecordsCell/EmptyRecordsCell';
 
 const apiUrl = process.env.REACT_APP_BACKEND_URL
 
@@ -186,30 +187,34 @@ const QbwcMatchedCustomersList = ({ matchedCustomers, onSyncComplete }) => {
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            {(rowsPerPage > 0
-                                ? sortedCustomers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                                : sortedCustomers
-                            ).map((customer, index) => (
-                                <TableRow key={index} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
-                                    <TableCell>{customer.qb_customer_name}</TableCell>
-                                    <TableCell>
-                                      {customer.zoho_customer}<br />
-                                      (Email: {customer.zoho_customer_email && customer.zoho_customer_email.length > 0 ? customer.zoho_customer_email : '---'})<br />
-                                      (Phone: {customer.zoho_customer_phone && customer.zoho_customer_phone.length > 0 ? customer.zoho_customer_phone : '---'})<br />
-                                      (Company: {customer.zoho_customer_company && customer.zoho_customer_company.length > 0 ? customer.zoho_customer_company : '---'})
-                                    </TableCell>
-                                    <TableCell className="text-center align-middle">
-                                      <Button 
-                                        onClick={() => handleUnMatchCustomer(customer)} 
-                                        variant="contained" 
-                                        color="warning" 
-                                        size="small"
-                                      >
-                                        UnMatch
-                                      </Button>
-                                    </TableCell>
-                                </TableRow>
-                            ))}
+                        {filteredCustomers.length === 0 ? (
+                            <EmptyRecordsCell columns={columns} />
+                            ) : (
+                                (rowsPerPage > 0
+                                            ? sortedCustomers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                                            : sortedCustomers
+                                        ).map((customer, index) => (
+                                            <TableRow key={index} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
+                                                <TableCell>{customer.qb_customer_name}</TableCell>
+                                                <TableCell>
+                                                {customer.zoho_customer}<br />
+                                                (Email: {customer.zoho_customer_email && customer.zoho_customer_email.length > 0 ? customer.zoho_customer_email : '---'})<br />
+                                                (Phone: {customer.zoho_customer_phone && customer.zoho_customer_phone.length > 0 ? customer.zoho_customer_phone : '---'})<br />
+                                                (Company: {customer.zoho_customer_company && customer.zoho_customer_company.length > 0 ? customer.zoho_customer_company : '---'})
+                                                </TableCell>
+                                                <TableCell className="text-center align-middle">
+                                                <Button 
+                                                    onClick={() => handleUnMatchCustomer(customer)} 
+                                                    variant="contained" 
+                                                    color="warning" 
+                                                    size="small"
+                                                >
+                                                    UnMatch
+                                                </Button>
+                                                </TableCell>
+                                            </TableRow>
+                                    ))
+                                )}
                         </TableBody>
                     </Table>
                 </TableContainer>
