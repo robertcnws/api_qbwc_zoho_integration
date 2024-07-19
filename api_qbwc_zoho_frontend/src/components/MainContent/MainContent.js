@@ -13,7 +13,7 @@ import {
 import { Link } from 'react-router-dom';
 import { AlertLoading } from '../Utils/components/AlertLoading/AlertLoading';
 import { AlertError } from '../Utils/components/AlertError/AlertError';
-import { fetchWithToken } from '../../utils';
+import { clearLocalStorage, fetchWithToken } from '../../utils';
 
 const apiUrl = process.env.REACT_APP_BACKEND_URL;
 
@@ -42,6 +42,7 @@ const MainContent = () => {
 
 
   useEffect(() => {
+
     const fetchConfig = async () => {
 
       try {

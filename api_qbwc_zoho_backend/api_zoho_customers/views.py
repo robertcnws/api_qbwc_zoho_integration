@@ -23,6 +23,7 @@ import rapidfuzz
 import requests
 import json
 import logging
+import re
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -98,6 +99,9 @@ def unmatch_all_customers_ajax(request):
 def view_customer(request, customer_id):
     valid_token = api_zoho_views.validateJWTTokenRequest(request)
     if valid_token:
+        
+        pattern = r'^[A-Za-z0-9]{8}-[A-Za-z0-9]{10}$'
+        
         zoho_customer = ZohoCustomer.objects.get(contact_id=customer_id)
 
         # Consultar los datos necesarios de las tablas
@@ -146,8 +150,13 @@ def view_customer(request, customer_id):
                     sorted_dependences_list = []
         
         zoho_customer = model_to_dict(zoho_customer)
+        print(zoho_customer)
 
         zoho_customer['coincidences'] = sorted_dependences_list
+        if zoho_customer['qb_list_id']:
+            zoho_customer['matched'] = True if re.match(pattern, zoho_customer['qb_list_id']) else False
+        else:
+            zoho_customer['matched'] = False
         
         return JsonResponse(zoho_customer)
     

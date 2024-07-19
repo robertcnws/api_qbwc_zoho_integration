@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
     Container, 
     Grid, 
@@ -27,12 +27,29 @@ const CustomersList = ({ customers }) => {
     const [order, setOrder] = useState('asc');
     const navigate = useNavigate();
 
+    useEffect(() => {
+        const savedPage = localStorage.getItem('customerListPage');
+        const savedRowsPerPage = localStorage.getItem('customerListRowsPerPage');
+    
+        if (savedPage !== null) {
+          setPage(Number(savedPage));
+        }
+    
+        if (savedRowsPerPage !== null) {
+          setRowsPerPage(Number(savedRowsPerPage));
+        }
+      }, []);
+
+
     const handleChangePage = (event, newPage) => {
         setPage(newPage);
+        localStorage.setItem('customerListPage', newPage);
     };
 
     const handleChangeRowsPerPage = event => {
-        setRowsPerPage(parseInt(event.target.value, 10));
+        const rows = parseInt(event.target.value, 10);
+        setRowsPerPage(rows);
+        localStorage.setItem('customerListRowsPerPage', rows);
         setPage(0);
     };
 
@@ -49,6 +66,8 @@ const CustomersList = ({ customers }) => {
     );
 
     const handleViewCustomer = (customer) => {
+        localStorage.setItem('customerListPage', page);
+        localStorage.setItem('customerListRowsPerPage', rowsPerPage);
         navigate('/integration/customer_details', { state: { customer } })
     }
 

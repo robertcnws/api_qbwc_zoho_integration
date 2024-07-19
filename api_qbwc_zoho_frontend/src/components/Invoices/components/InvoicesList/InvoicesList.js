@@ -50,29 +50,75 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
     const today = dayjs();
     const oneYearAgo = today.subtract(1, 'year');
 
+
+    useEffect(() => {
+        // Restaurar el estado desde localStorage
+        const savedPage = localStorage.getItem('invoicesListPage');
+        const savedRowsPerPage = localStorage.getItem('invoicesListRowsPerPage');
+        const savedFilterDate = localStorage.getItem('invoicesListFilterDate');
+
+        const initialPage = savedPage !== null ? Number(savedPage) : 0;
+        const initialRowsPerPage = savedRowsPerPage !== null ? Number(savedRowsPerPage) : 10;
+
+        setPage(Number.isInteger(initialPage) ? initialPage : 0);
+        setRowsPerPage([5, 10, 25].includes(initialRowsPerPage) ? initialRowsPerPage : 10);
+
+        if (savedFilterDate) {
+            const parsedDate = dayjs(savedFilterDate);
+            setFilterDate(parsedDate.isValid() ? parsedDate : today);
+        } else {
+            setFilterDate(today);
+        }
+    }, [setFilterDate]);
+
+
     useEffect(() => {
         // Actualiza la URL con el filtro de fecha
         const queryParams = new URLSearchParams(window.location.search);
-        if (filterDate) {
+        if (filterDate && filterDate.isValid()) {
             queryParams.set('date', filterDate.format('YYYY-MM-DD'));
         } else {
             queryParams.delete('date');
+            // queryParams.set('date', today.format('YYYY-MM-DD'));
         }
         window.history.replaceState(null, '', `${window.location.pathname}?${queryParams.toString()}`);
     }, [filterDate]);
 
+
+    // useEffect(() => {
+    //     localStorage.setItem('invoicesListPage', page);
+    //     localStorage.setItem('invoicesListRowsPerPage', rowsPerPage);
+    //     localStorage.setItem('invoicesListFilterDate', filterDate ? filterDate.format('YYYY-MM-DD') : '');
+    // }, [page, rowsPerPage, filterDate]);
+    
+
     const handleViewInvoice = (invoice) => {
+        localStorage.setItem('invoicesListPage', page);
+        localStorage.setItem('invoicesListRowsPerPage', rowsPerPage);
+        localStorage.setItem('invoicesListFilterDate', filterDate ? filterDate.format('YYYY-MM-DD') : '');
+        setFilterDate(filterDate);
         navigate('/integration/invoice_details', { state: { invoice } });
     };
 
     const handleChangePage = (event, newPage) => {
-        setPage(newPage);
+        const maxPage = Math.max(0, Math.ceil(data.invoices.length / rowsPerPage) - 1);
+        setPage(Math.min(newPage, maxPage));
+        localStorage.setItem('invoicesListPage', Math.min(newPage, maxPage));
     };
 
     const handleChangeRowsPerPage = (event) => {
-        setRowsPerPage(parseInt(event.target.value, 10));
-        setPage(0);
+        const rows = parseInt(event.target.value, 10);
+        if ([5, 10, 25].includes(rows)) {
+            setRowsPerPage(rows);
+            setPage(0);
+            localStorage.setItem('invoicesListRowsPerPage', rows);
+            localStorage.setItem('invoicesListPage', 0); 
+        } else {
+            setRowsPerPage(10);
+            setPage(0);
+        }
     };
+    
 
     const handleForceToSync = () => {
         if (selectedInvoices.length === 0) {
@@ -153,12 +199,12 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
     const filterByDate = (invoice) => {
         if (!filterDate) return true;
         
-        // Convert invoice date and filterDate to YYYY-MM-DD format
-        const invoiceDate = new Date(invoice.fields.date).toISOString().split('T')[0];
-        const filterDateFormatted = filterDate.toISOString().split('T')[0];
-
-
-        return invoiceDate === filterDateFormatted;
+        const invoiceDate = new Date(invoice.fields.date);
+        const filterDateFormatted = filterDate.isValid() ? filterDate.toISOString().split('T')[0] : null;
+    
+        if (!invoiceDate || !filterDateFormatted) return false;
+    
+        return invoiceDate.toISOString().split('T')[0] === filterDateFormatted;
     };
 
     const filterBySearchTerm = (invoice) => {
@@ -173,8 +219,13 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
     };
 
     const clearFilters = () => {
-        setFilterDate(today); 
+        const today = dayjs();
+        setFilterDate(today);
+        localStorage.setItem('invoicesListFilterDate', today.format('YYYY-MM-DD'));
         setSearchTerm('');
+        const queryParams = new URLSearchParams(window.location.search);
+        queryParams.delete('date');
+        window.history.replaceState(null, '', `${window.location.pathname}?${queryParams.toString()}`);
     };
 
     const getBackgroundColor = (invoice) => {
@@ -215,6 +266,14 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
         } else {
             return <b>Synced</b>;
         }
+    };
+
+    const handleChangeDate = (date) => {
+        setFilterDate(date);
+        setPage(0);
+        localStorage.setItem('invoicesListPage', 0);
+        localStorage.setItem('invoicesListFilterDate', null);
+        localStorage.setItem('invoicesListRowsPerPage', null);
     };
 
     const handleSortChange = (columnId) => {
@@ -265,7 +324,7 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
                     >Invoices List</Typography>
                 </Grid>
                 <Grid item xs={8} container justifyContent="flex-end" spacing={1}>
-                    <Grid item xs={3}>
+                    <Grid item xs={3} sx={{ display: 'flex', flexDirection: 'column' }}>
                         <TextField
                             label="Search"
                             variant="outlined"
@@ -279,21 +338,32 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
                                     </IconButton>
                                 )
                             }}
+                            sx={{
+                                height: '75%', 
+                                '& .MuiInputBase-root': {
+                                    height: '75%'
+                                }
+                            }}
                         />
                     </Grid>
-                    <Grid item xs={3}>
+                    <Grid item xs={3} sx={{ display: 'flex', flexDirection: 'column' }}>
                         <LocalizationProvider dateAdapter={AdapterDayjs}>
                             <DatePicker
                                 label="Filter by date"
                                 inputFormat="yyyy-MM-dd"
                                 value={filterDate}
-                                onChange={(date) => setFilterDate(date)}
+                                onChange={(date) => handleChangeDate(date)}
                                 minDate={oneYearAgo}
                                 maxDate={today}
                                 textField={(params) => (
                                     <TextField
                                         {...params}
-                                        sx={{ '& .MuiInputBase-root': { height: 20 } }} // Ajusta la altura del TextField
+                                        sx={{
+                                            height: '80%', 
+                                            '& .MuiInputBase-root': {
+                                                height: '80%' 
+                                            }
+                                        }}
                                     />
                                 )}
                             />
@@ -304,10 +374,10 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
                             </Button>
                         )}
                     </Grid>
-                    <Grid item xs={2}>
+                    <Grid item xs={2} sx={{ display: 'flex', flexDirection: 'column' }}>
                         <Button
                             variant="contained"
-                            color="primary"
+                            color="info"
                             size="small"
                             onClick={handleForceToSync}
                         >
@@ -399,7 +469,7 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
                 component="div"
                 count={data.invoices.length}
                 rowsPerPage={rowsPerPage}
-                page={page}
+                page={Number.isFinite(page) && page >= 0 ? Math.min(page, Math.ceil(data.invoices.length / rowsPerPage) - 1) : 0}
                 onPageChange={handleChangePage}
                 onRowsPerPageChange={handleChangeRowsPerPage}
             />

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Container, Grid, Typography, Alert, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, TablePagination, TextField, TableSortLabel } from '@mui/material';
 import { Link, useNavigate } from 'react-router-dom';
 import { stableSort, getComparator } from '../../../../utils';
@@ -11,6 +11,19 @@ const ItemsList = ({ items }) => {
     const [order, setOrder] = useState('asc');
     const navigate = useNavigate();
 
+    useEffect(() => {
+        const savedPage = localStorage.getItem('itemListPage');
+        const savedRowsPerPage = localStorage.getItem('itemListRowsPerPage');
+    
+        if (savedPage !== null) {
+          setPage(Number(savedPage));
+        }
+    
+        if (savedRowsPerPage !== null) {
+          setRowsPerPage(Number(savedRowsPerPage));
+        }
+      }, []);
+
     const handleSortChange = (columnId) => {
         const isAsc = orderBy === columnId && order === 'asc';
         setOrder(isAsc ? 'desc' : 'asc');
@@ -19,10 +32,13 @@ const ItemsList = ({ items }) => {
 
     const handleChangePage = (event, newPage) => {
         setPage(newPage);
+        localStorage.setItem('itemListPage', newPage);
     };
 
     const handleChangeRowsPerPage = (event) => {
-        setRowsPerPage(parseInt(event.target.value, 10));
+        const rows = parseInt(event.target.value, 10);
+        setRowsPerPage(rows);
+        localStorage.setItem('itemListRowsPerPage', rows);
         setPage(0);
     };
 
@@ -32,6 +48,8 @@ const ItemsList = ({ items }) => {
     };
 
     const handleViewItem = (item) => {
+        localStorage.setItem('itemListPage', page);
+        localStorage.setItem('itemListRowsPerPage', rowsPerPage);
         navigate('/integration/item_details', { state: { item } });
     };
 

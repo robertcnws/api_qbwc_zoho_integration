@@ -1,4 +1,3 @@
-// src/components/ZohoLoading.jsx
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button, Container, Grid, Typography, Alert, CircularProgress } from '@mui/material';
@@ -18,6 +17,8 @@ const ZohoLoading = () => {
   const [lastDateLoadedInvoices, setlastDateLoadedInvoices] = useState(null);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
+
+  const isAnyLoading = loadingCustomers || loadingItems || loadingInvoices;
 
   const loadData = async (element, module, endpoint, setLoading) => {
     setLoading(true);
@@ -39,16 +40,20 @@ const ZohoLoading = () => {
   const handleLoadInvoices = () => loadData('invoices', 'api_zoho_invoices', 'load_invoices', setLoadingInvoices);
 
   useEffect(() => {
-    axios.get(`${apiUrl}/zoho_loading/`)
-            .then(response => {
-                setLastDateLoadedCustomers(response.data.zoho_loading_customers.zoho_record_updated)
-                setlastDateLoadedItems(response.data.zoho_loading_items.zoho_record_updated)
-                setlastDateLoadedInvoices(response.data.zoho_loading_invoices.zoho_record_updated)
-            })
-            .catch(error => {
-                console.error('Error fetching items:', error);
-                setError(`Failed to fetch items: ${error}`);
-            })
+
+    const fetchData = async () => {
+        try {
+            const response = await axios.get(`${apiUrl}/zoho_loading/`);
+            setLastDateLoadedCustomers(response.data.zoho_loading_customers.zoho_record_updated)
+            setlastDateLoadedItems(response.data.zoho_loading_items.zoho_record_updated)
+            setlastDateLoadedInvoices(response.data.zoho_loading_invoices.zoho_record_updated)
+        } catch (error) {
+            console.error('Error fetching items:', error);
+            setError(`Failed to fetch items: ${error}`);
+        }
+    };
+    fetchData();
+    
   }, []);
 
   return (
@@ -75,7 +80,7 @@ const ZohoLoading = () => {
                         variant="contained"
                         color="info"
                         size="small"
-                        disabled={loadingCustomers}
+                        disabled={isAnyLoading}
                         startIcon={loadingCustomers ? <CircularProgress size={24} /> : null}
                     >
                         {loadingCustomers ? 'Loading Customers...' : 'Load Customers'}
@@ -87,7 +92,7 @@ const ZohoLoading = () => {
                         variant="contained"
                         color="info"
                         size="small"
-                        disabled={loadingItems}
+                        disabled={isAnyLoading}
                         startIcon={loadingItems ? <CircularProgress size={24} /> : null}
                     >
                         {loadingItems ? 'Loading Items...' : 'Load Items'}
@@ -99,7 +104,7 @@ const ZohoLoading = () => {
                         variant="contained"
                         color="info"
                         size="small"
-                        disabled={loadingInvoices}
+                        disabled={isAnyLoading}
                         startIcon={loadingInvoices ? <CircularProgress size={24} /> : null}
                     >
                         {loadingInvoices ? 'Loading Invoices...' : 'Load Invoices'}

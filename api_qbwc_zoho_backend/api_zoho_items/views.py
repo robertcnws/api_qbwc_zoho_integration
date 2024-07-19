@@ -99,6 +99,8 @@ def view_item(request, item_id):
 
     valid_token = api_zoho_views.validateJWTTokenRequest(request)
     if valid_token:
+        
+        pattern = r'^[A-Za-z0-9]{8}-[A-Za-z0-9]{10}$'
 
         zoho_item = ZohoItem.objects.get(item_id=item_id)
 
@@ -142,11 +144,11 @@ def view_item(request, item_id):
         zoho_item = model_to_dict(zoho_item)
 
         zoho_item['coincidences'] = sorted_dependences_list
-
-        # zoho_item = serializers.serialize('json', [zoho_item])
-        # sorted_dependences_list = serializers.serialize('json', sorted_dependences_list)
         
-        # context = {'item': zoho_item }
+        if zoho_item['qb_list_id']:
+            zoho_item['matched'] = True if re.match(pattern, zoho_item['qb_list_id']) else False
+        else:
+            zoho_item['matched'] = False
         
         return JsonResponse(zoho_item)
     
@@ -166,8 +168,10 @@ def list_items(request):
         for i in range(0, items_list_query.count(), batch_size):
             batch = items_list_query[i:i + batch_size]
             items_list.extend(batch) 
+        
+        pattern = r'^[A-Za-z0-9]{8}-[A-Za-z0-9]{10}$'
             
-        regex = re.compile(r'^[A-Za-z0-9]{8}-\d{10}$')  # Cambia esto según tu necesidad
+        regex = re.compile(pattern)  
 
         # Añadir atributo 'matched' a cada item si cumple con la expresión regular
         for item in items_list:

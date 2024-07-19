@@ -141,7 +141,7 @@ const ItemsDetails = () => {
                                   <TableRow>
                                       <TableCell component="th" scope="row">Coincidences by Order</TableCell>
                                       <TableCell>
-                                          {coincidences.length > 0 ? (
+                                          {coincidences.length > 0 && !item.matched ? (
                                               <TableContainer component={Paper} elevation={0}>
                                                   <Table aria-label="coincidences table" size="small">
                                                       <TableHead sx={{ backgroundColor: '#e0e0e0' }}>
@@ -170,16 +170,25 @@ const ItemsDetails = () => {
                                                       </TableBody>
                                                   </Table>
                                               </TableContainer>
-                                          ) : (
-                                              <Alert severity="warning"
-                                                  style={{ 
-                                                      fontSize: '0.80rem',  
-                                                      padding: '4px 8px', 
-                                                      borderRadius: '4px',
-                                                  }}>
-                                                  <b>No coincidences found.</b>
-                                              </Alert>
-                                          )}
+                                          ) : item.matched ? (
+                                            <Alert severity="success"
+                                                style={{ 
+                                                    fontSize: '0.80rem',  
+                                                    padding: '4px 8px', 
+                                                    borderRadius: '4px',
+                                                }}>
+                                                <b>Item already matched.</b>
+                                            </Alert>
+                                        ) : (
+                                            <Alert severity="warning"
+                                                style={{ 
+                                                    fontSize: '0.80rem',  
+                                                    padding: '4px 8px', 
+                                                    borderRadius: '4px',
+                                                }}>
+                                                <b>No coincidences found.</b>
+                                            </Alert>
+                                        )}
                                       </TableCell>
                                   </TableRow>
                               </TableBody>

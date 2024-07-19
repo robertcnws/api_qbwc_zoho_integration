@@ -3,6 +3,13 @@ import axios from 'axios';
 
 const apiUrl = process.env.REACT_APP_BACKEND_URL
 
+
+export const clearLocalStorage = () => {
+  localStorage.removeItem('invoicesListPage');
+  localStorage.removeItem('invoicesListRowsPerPage');
+  localStorage.removeItem('invoicesListFilterDate');
+};
+
 export const getCsrfToken = async () => {
   try {
       const response = await axios.get(`${apiUrl}/get_csrf_token/`, { withCredentials: true });

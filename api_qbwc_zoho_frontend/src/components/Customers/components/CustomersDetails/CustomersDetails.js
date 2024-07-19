@@ -142,53 +142,62 @@ const CustomersDetails = () => {
                                   <TableRow>
                                       <TableCell component="th" scope="row">Coincidences by Order</TableCell>
                                       <TableCell>
-                                          {coincidences.length > 0 ? (
-                                              <TableContainer component={Paper} elevation={0}>
-                                                  <Table aria-label="coincidences table" size="small">
-                                                      <TableHead sx={{ backgroundColor: '#e0e0e0' }}>
-                                                          <TableRow>
-                                                              <TableCell>QB Customer Name</TableCell>
-                                                              <TableCell>Email</TableCell>
-                                                              <TableCell>Coincidence Email</TableCell>
-                                                              <TableCell>Phone</TableCell>
-                                                              <TableCell>Coincidence Phone</TableCell>
-                                                              <TableCell>Company Name</TableCell>
-                                                              <TableCell>Action</TableCell>
-                                                          </TableRow>
-                                                      </TableHead>
-                                                      <TableBody>
-                                                          {coincidences.map((coincidence, index) => (
-                                                              <TableRow key={index}>
-                                                                  <TableCell>{coincidence.qb_customer_name}</TableCell>
-                                                                  <TableCell>{coincidence.email}</TableCell>
-                                                                  <TableCell>{coincidence.coincidence_email}</TableCell>
-                                                                  <TableCell>{coincidence.phone}</TableCell>
-                                                                  <TableCell>{coincidence.coincidence_phone}</TableCell>
-                                                                  <TableCell>{coincidence.company_name}</TableCell>
-                                                                  <TableCell>
-                                                                      <Button 
-                                                                          variant="contained" 
-                                                                          color="info" 
-                                                                          size="small"
-                                                                          onClick={() => handleMatchCustomer(customer.contact_id, coincidence.qb_customer_list_id)}>
-                                                                          Match
-                                                                      </Button>
-                                                                  </TableCell>
-                                                              </TableRow>
-                                                          ))}
-                                                      </TableBody>
-                                                  </Table>
-                                              </TableContainer>
-                                          ) : (
-                                              <Alert severity="warning"
-                                                  style={{ 
-                                                      fontSize: '0.80rem',  
-                                                      padding: '4px 8px', 
-                                                      borderRadius: '4px',
-                                                  }}>
-                                                  <b>No coincidences found.</b>
-                                              </Alert>
-                                          )}
+                                      {coincidences.length > 0 && !customer.matched ? (
+                                        <TableContainer component={Paper} elevation={0}>
+                                            <Table aria-label="coincidences table" size="small">
+                                                <TableHead sx={{ backgroundColor: '#e0e0e0' }}>
+                                                    <TableRow>
+                                                        <TableCell>QB Customer Name</TableCell>
+                                                        <TableCell>Email</TableCell>
+                                                        <TableCell>Coincidence Email</TableCell>
+                                                        <TableCell>Phone</TableCell>
+                                                        <TableCell>Coincidence Phone</TableCell>
+                                                        <TableCell>Company Name</TableCell>
+                                                        <TableCell>Action</TableCell>
+                                                    </TableRow>
+                                                </TableHead>
+                                                <TableBody>
+                                                    {coincidences.map((coincidence, index) => (
+                                                        <TableRow key={index}>
+                                                            <TableCell>{coincidence.qb_customer_name}</TableCell>
+                                                            <TableCell>{coincidence.email}</TableCell>
+                                                            <TableCell>{coincidence.coincidence_email}</TableCell>
+                                                            <TableCell>{coincidence.phone}</TableCell>
+                                                            <TableCell>{coincidence.coincidence_phone}</TableCell>
+                                                            <TableCell>{coincidence.company_name}</TableCell>
+                                                            <TableCell>
+                                                                <Button 
+                                                                    variant="contained" 
+                                                                    color="info" 
+                                                                    size="small"
+                                                                    onClick={() => handleMatchCustomer(customer.contact_id, coincidence.qb_customer_list_id)}>
+                                                                    Match
+                                                                </Button>
+                                                            </TableCell>
+                                                        </TableRow>
+                                                    ))}
+                                                </TableBody>
+                                            </Table>
+                                        </TableContainer>
+                                    ) : customer.matched ? (
+                                        <Alert severity="success"
+                                            style={{ 
+                                                fontSize: '0.80rem',  
+                                                padding: '4px 8px', 
+                                                borderRadius: '4px',
+                                            }}>
+                                            <b>Customer already matched.</b>
+                                        </Alert>
+                                    ) : (
+                                        <Alert severity="warning"
+                                            style={{ 
+                                                fontSize: '0.80rem',  
+                                                padding: '4px 8px', 
+                                                borderRadius: '4px',
+                                            }}>
+                                            <b>No coincidences found.</b>
+                                        </Alert>
+                                    )}
                                       </TableCell>
                                   </TableRow>
                               </TableBody>
