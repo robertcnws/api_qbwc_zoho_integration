@@ -9,6 +9,12 @@ BEGIN
    IF NOT EXISTS (SELECT 1 FROM pg_database WHERE datname = 'api_qbwc_zoho_prod_db') THEN
       CREATE DATABASE api_qbwc_zoho_prod_db;
    END IF;
+   IF NOT EXISTS (SELECT 1 FROM pg_database WHERE datname = 'api_qbwc_zoho_envqa_db') THEN
+      CREATE DATABASE api_qbwc_zoho_prod_db;
+   END IF;
+   IF NOT EXISTS (SELECT 1 FROM pg_database WHERE datname = 'api_qbwc_zoho_envprod_db') THEN
+      CREATE DATABASE api_qbwc_zoho_prod_db;
+   END IF;
 
 END
 $$;
