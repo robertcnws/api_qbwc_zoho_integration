@@ -22,14 +22,14 @@ services:
     networks:
       - api_qbwc_zoho_network
 
-  # react_app:
-  #   build:
-  #     context: ./api_qbwc_zoho_frontend
-  #   container_name: react_app
-  #   volumes:
-  #   - ./api_qbwc_zoho_frontend/build:/app/build  # Monta el directorio build de React
-  #   networks:
-  #     - api_qbwc_zoho_network
+  react_app:
+    build:
+      context: ./api_qbwc_zoho_frontend
+    container_name: react_app
+    volumes:
+    - ./api_qbwc_zoho_frontend/build:/app/build  # Monta el directorio build de React
+    networks:
+      - api_qbwc_zoho_network
 
   postgres:
     image: postgres:16.0
@@ -39,7 +39,7 @@ services:
       - ./api_qbwc_zoho_backend/scripts_db:/docker-entrypoint-initdb.d
       - ./api_qbwc_zoho_backend/qbwc_web_services/FirstDB_bckp.sql:/backup.sql
     environment:
-      - POSTGRES_DB=api_qbwc_zoho_dev_db
+      - POSTGRES_DB=api_qbwc_zoho_envqa_db
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
     ports:
