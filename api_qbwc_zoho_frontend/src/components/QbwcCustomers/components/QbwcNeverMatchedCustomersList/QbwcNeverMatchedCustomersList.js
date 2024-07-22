@@ -181,7 +181,7 @@ const QbwcNeverMatchedCustomersList = ({ customers, onSyncComplete }) => {
                         fontWeight: 'bold',
                     }}
                 >
-                    QB Customers List
+                    QB Never Matched Customers List
                 </Typography>
             </Grid>
             <Grid item xs={6} container justifyContent="flex-end" spacing={1}>

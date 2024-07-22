@@ -166,7 +166,7 @@ const QbwcSimilarItemsList = ({ similarItems, onSyncComplete }) => {
               fontWeight: 'bold'
             }}
           >
-            Similar Items
+            QB Similar Items
           </Typography>
         </Grid>
         <Grid item xs={6} container justifyContent="flex-end" spacing={1}>

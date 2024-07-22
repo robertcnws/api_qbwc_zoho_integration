@@ -186,7 +186,7 @@ const QbwcSimilarCustomersList = ({ similarCustomers, onSyncComplete }) => {
               fontWeight: 'bold'
             }}
           >
-            Similar Customers
+            QB Similar Customers
           </Typography>
         </Grid>
         <Grid item xs={6} container justifyContent="flex-end" spacing={1}>
