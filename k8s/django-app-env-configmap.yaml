@@ -1,0 +1,25 @@
+apiVersion: v1
+data:
+  DB_ENGINE: django.db.backends.postgresql
+  DB_HOST: postgres
+  DB_NAME_DEV: api_qbwc_zoho_dev_db
+  DB_NAME_PROD: api_qbwc_zoho_envprod_db
+  DB_NAME_QA: api_qbwc_zoho_envqa_db
+  DB_PASSWORD: postgres
+  DB_PORT: "5432"
+  DB_USER: postgres
+  FRONTEND_URL: http://localhost:3000
+  SALES_TAX_LIST_ID: 80000047-1719335360
+  ZOHO_AUTH_URL: https://accounts.zoho.com/oauth/v2/auth
+  ZOHO_SCOPE_CUSTOMERS: ZohoBooks.contacts.READ
+  ZOHO_SCOPE_INVOICES: ZohoBooks.invoices.READ
+  ZOHO_SCOPE_ITEMS: ZohoBooks.settings.READ
+  ZOHO_TOKEN_URL: https://accounts.zoho.com/oauth/v2/token
+  ZOHO_URL_READ_CUSTOMERS: https://www.zohoapis.com/books/v3/contacts
+  ZOHO_URL_READ_INVOICES: https://www.zohoapis.com/books/v3/invoices
+  ZOHO_URL_READ_ITEMS: https://www.zohoapis.com/books/v3/items
+kind: ConfigMap
+metadata:
+  labels:
+    io.kompose.service: django-app-django-app-env
+  name: django-app-env

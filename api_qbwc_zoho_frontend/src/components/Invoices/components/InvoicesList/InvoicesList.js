@@ -379,6 +379,7 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
                             color="info"
                             size="small"
                             onClick={handleForceToSync}
+                            disabled={filteredInvoices.length === 0}
                         >
                             Sync Selected
                         </Button>

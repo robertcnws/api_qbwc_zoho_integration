@@ -187,7 +187,7 @@ const QbwcItemsList = ({ items, onSyncComplete }) => {
                     </Button>
                 </Grid>
                 <Grid item>
-                    <Button variant="contained" color="primary" size="small" onClick={handleNeverMatchItems}>
+                    <Button variant="contained" color="primary" size="small" onClick={handleNeverMatchItems} disabled={filteredItems.length === 0}>
                         Never match selected
                     </Button>
                 </Grid>

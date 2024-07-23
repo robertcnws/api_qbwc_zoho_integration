@@ -20,6 +20,8 @@ const ZohoLoading = () => {
 
   const isAnyLoading = loadingCustomers || loadingItems || loadingInvoices;
 
+  const zohoConnectionConfigured = localStorage.getItem('zohoConnectionConfigured')
+
   const loadData = async (element, module, endpoint, setLoading) => {
     setLoading(true);
     try {
@@ -56,6 +58,11 @@ const ZohoLoading = () => {
     
   }, []);
 
+  useEffect(() => {
+
+    
+  }, []);
+
   return (
     <Container component="main" maxWidth="md" sx={{ mt: 5, p: 3, bgcolor: '#FFFFFF', boxShadow: 3, borderRadius: 2 }}>
             <Typography
@@ -80,7 +87,7 @@ const ZohoLoading = () => {
                         variant="contained"
                         color="info"
                         size="small"
-                        disabled={isAnyLoading}
+                        disabled={isAnyLoading || !zohoConnectionConfigured}
                         startIcon={loadingCustomers ? <CircularProgress size={24} /> : null}
                     >
                         {loadingCustomers ? 'Loading Customers...' : 'Load Customers'}
@@ -92,7 +99,7 @@ const ZohoLoading = () => {
                         variant="contained"
                         color="info"
                         size="small"
-                        disabled={isAnyLoading}
+                        disabled={isAnyLoading || !zohoConnectionConfigured}
                         startIcon={loadingItems ? <CircularProgress size={24} /> : null}
                     >
                         {loadingItems ? 'Loading Items...' : 'Load Items'}
@@ -104,7 +111,7 @@ const ZohoLoading = () => {
                         variant="contained"
                         color="info"
                         size="small"
-                        disabled={isAnyLoading}
+                        disabled={isAnyLoading || !zohoConnectionConfigured}
                         startIcon={loadingInvoices ? <CircularProgress size={24} /> : null}
                     >
                         {loadingInvoices ? 'Loading Invoices...' : 'Load Invoices'}

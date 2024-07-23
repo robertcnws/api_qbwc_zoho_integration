@@ -15,8 +15,9 @@ import { Link } from 'react-router-dom';
 import { AlertLoading } from '../Utils/components/AlertLoading/AlertLoading';
 import { AlertError } from '../Utils/components/AlertError/AlertError';
 import { fetchWithToken } from '../../utils';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, BarChart, Bar } from 'recharts';
-import PieChart from '../DataCharts/components/PieChart/PieChart';
+import PieChartComponent from '../DataCharts/components/PieChartComponent/PieChartComponent';
+import BarChartComponent from '../DataCharts/components/BarChartComponent/BarChartComponent';
+import LineChartComponent from '../DataCharts/components/LineChartComponent/LineChartComponent';
 
 const apiUrl = process.env.REACT_APP_BACKEND_URL;
 
@@ -43,11 +44,8 @@ const MainContent = () => {
     }
   };
 
-
   useEffect(() => {
-
     const fetchConfig = async () => {
-
       try {
         const response = await fetchWithToken(`${apiUrl}/zoho_api_settings/`, 'GET', null, {}, apiUrl);
         if (response.status !== 200) {
@@ -55,6 +53,7 @@ const MainContent = () => {
         }
         const data = response.data;
         setConfig(data);
+        localStorage.setItem('zohoConnectionConfigured', data.zoho_connection_configured)
       } catch (err) {
         setError(err.message);
       } finally {
@@ -71,29 +70,38 @@ const MainContent = () => {
     return (<AlertError isSmallScreen={isSmallScreen} error={error} />);
   }
 
-  const lineData = [
-    { name: 'Page A', uv: 4000, pv: 2400, amt: 2400 },
-    { name: 'Page B', uv: 3000, pv: 1398, amt: 2210 },
-    { name: 'Page C', uv: 2000, pv: 9800, amt: 2290 },
-    { name: 'Page D', uv: 2780, pv: 3908, amt: 2000 },
-    { name: 'Page E', uv: 1890, pv: 4800, amt: 2181 },
-    { name: 'Page F', uv: 2390, pv: 3800, amt: 2500 },
-    { name: 'Page G', uv: 3490, pv: 4300, amt: 2100 },
-  ];
-  
-  const barData = [
-    { name: 'Jan', sales: 4000 },
-    { name: 'Feb', sales: 3000 },
-    { name: 'Mar', sales: 5000 },
-    { name: 'Apr', sales: 4000 },
-    { name: 'May', sales: 6000 },
-    { name: 'Jun', sales: 4700 },
-  ];
+  const lineData = {
+    labels: ['Page A', 'Page B', 'Page C', 'Page D', 'Page E', 'Page F', 'Page G'],
+    datasets: [
+      {
+        label: 'UV',
+        data: [4000, 3000, 2000, 2780, 1890, 2390, 3490],
+        borderColor: '#8884d8',
+        backgroundColor: 'rgba(136, 132, 216, 0.2)',
+      },
+      {
+        label: 'PV',
+        data: [2400, 1398, 9800, 3908, 4800, 3800, 4300],
+        borderColor: '#82ca9d',
+        backgroundColor: 'rgba(130, 202, 157, 0.2)',
+      },
+    ],
+  };
+
+  const barData = {
+    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+    datasets: [
+      {
+        label: 'Sales',
+        data: [4000, 3000, 5000, 4000, 6000, 4700],
+        backgroundColor: '#8884d8',
+      },
+    ],
+  };
 
   return (
     <Container component="main" maxWidth="md" sx={{ mt: 5, p: 2, bgcolor: 'background.paper', boxShadow: 3, borderRadius: 2, minWidth:'100%', minHeight: '100%' }}>
-      <Grid container xs={12}>
-        <Grid container xs={12} spacing={2}>
+      <Grid container spacing={2}>
           <Grid item xs={12}>
               <Typography
                       variant="h6"
@@ -129,6 +137,7 @@ const MainContent = () => {
                   variant="contained"
                   color="success"
                   component={Link}
+                  disabled={!config.zoho_connection_configured}
                   onClick={() => handleZohoOauth()}
                   // to={`${apiUrl}/generate_auth_url`}
                   sx={{ mb: 2 }}
@@ -137,9 +146,15 @@ const MainContent = () => {
                   Connect to Zoho
                 </Button>
               )}
+              {!config.zoho_connection_configured && (
+                <Alert severity="warning">
+                  <AlertTitle>Warning</AlertTitle>
+                  You need to configure the application settings before connecting to Zoho (Go to SETTINGS button).
+                </Alert>
+              )}
             </Box>        
           </Grid>
-          <Grid item container xs={12}> 
+          <Grid item container> 
             <Grid item>
               <Typography
                     sx={{
@@ -151,7 +166,7 @@ const MainContent = () => {
                     }}
                 ></Typography>
               </Grid>
-              <Grid item xs={12} container>
+              <Grid item container>
                 <Grid item>
                   <Button
                       variant="contained"
@@ -167,38 +182,23 @@ const MainContent = () => {
               </Grid>
           </Grid>
         </Grid>
-        <Grid container spacing={3} xs={12}>
+        <Grid container spacing={1}>
           <Grid item xs={4} md={4}>
             <Paper elevation={3} style={{ padding: 5 }} >
               <Typography variant="h6">Line Chart</Typography>
-              <LineChart width={500} height={360} data={lineData}>
-                <CartesianGrid strokeDasharray="2 2" />
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Line type="monotone" dataKey="uv" stroke="#8884d8" />
-                <Line type="monotone" dataKey="pv" stroke="#82ca9d" />
-              </LineChart>
+              <LineChartComponent data={lineData} />
             </Paper>
           </Grid>
-          <Grid item xs={4} md={3}>
-            <Paper elevation={3} style={{ padding: 10 }}>
+          <Grid item xs={4} md={4}>
+            <Paper elevation={5} style={{ padding: 10 }}>
               <Typography variant="h6">Pie Chart</Typography>
-              <PieChart />
+              <PieChartComponent />
             </Paper>
           </Grid>
-          <Grid item xs={4} md={5}>
+          <Grid item xs={4} md={4}>
             <Paper elevation={3} style={{ padding: 5 }}>
               <Typography variant="h6">Bar Chart</Typography>
-              <BarChart width={500} height={360} data={barData}>
-                <CartesianGrid strokeDasharray="2 2" />
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Bar dataKey="sales" fill="#8884d8" />
-              </BarChart>
+              <BarChartComponent data={barData} />
             </Paper>
           </Grid>
         </Grid>
@@ -211,7 +211,6 @@ const MainContent = () => {
                         fontWeight: 'bold',
                     }}
                 ></Typography>
-      </Grid>
     </Container>
   );
 };

@@ -191,7 +191,7 @@ const QbwcNeverMatchedCustomersList = ({ customers, onSyncComplete }) => {
                     </Button>
                 </Grid>
                 <Grid item>
-                    <Button variant="contained" color="error" size="small" onClick={handleNeverMatchCustomers}>
+                    <Button variant="contained" color="error" size="small" onClick={handleNeverMatchCustomers} disabled={filteredCustomers.length === 0}>
                         Undo match selected
                     </Button>
                 </Grid>

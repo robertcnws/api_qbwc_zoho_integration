@@ -190,7 +190,7 @@ const QbwcCustomersList = ({ customers, onSyncComplete }) => {
                     </Button>
                 </Grid>
                 <Grid item>
-                    <Button variant="contained" color="primary" size="small" onClick={handleNeverMatchCustomers}>
+                    <Button variant="contained" color="primary" size="small" onClick={handleNeverMatchCustomers} disabled={filteredCustomers.length === 0}>
                         Never match selected
                     </Button>
                 </Grid>

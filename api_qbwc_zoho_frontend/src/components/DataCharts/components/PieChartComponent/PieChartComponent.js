@@ -4,7 +4,7 @@ import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
-const PieChart = () => {
+const PieChartComponent = () => {
   const data = {
     labels: ['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange'],
     datasets: [
@@ -35,4 +35,4 @@ const PieChart = () => {
   return <Pie data={data} />;
 };
 
-export default PieChart;
+export default PieChartComponent;
