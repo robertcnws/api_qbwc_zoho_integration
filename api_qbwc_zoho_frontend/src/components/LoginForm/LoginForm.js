@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Container, TextField, Button, Typography, Box, Alert } from '@mui/material';
+import { Container, TextField, Button, Typography, Box, Alert, CircularProgress } from '@mui/material';
 import { useAuth } from '../AuthContext/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -12,46 +12,49 @@ const LoginForm = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
+    setError('');
+    setSuccess('');
 
     try {
-        const body_jwt = JSON.stringify({ username, password });
-        const jwtResponse = await axios.post(`${apiUrl}/api/token/`, body_jwt, {
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-            },
-        });
+      const body_jwt = JSON.stringify({ username, password });
+      const jwtResponse = await axios.post(`${apiUrl}/api/token/`, body_jwt, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+      });
 
-        localStorage.setItem('accessToken', jwtResponse.data.access);
-        localStorage.setItem('refreshToken', jwtResponse.data.refresh);
+      localStorage.setItem('accessToken', jwtResponse.data.access);
+      localStorage.setItem('refreshToken', jwtResponse.data.refresh);
 
-        const body = JSON.stringify({ username, password });
-        const loginResponse = await axios.post(`${apiUrl}/login/`, body, {
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': getCookie('csrftoken'), 
-            },
-        });
+      const body = JSON.stringify({ username, password });
+      const loginResponse = await axios.post(`${apiUrl}/login/`, body, {
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCookie('csrftoken'), 
+        },
+      });
 
-        if (loginResponse.status === 200) {
-            setSuccess('Login successful');
-            login();  
-            console.log('Navigating to /integration');  
-            navigate('/integration');
-        } else {
-            throw new Error('Invalid credentials');
-        }
-
+      if (loginResponse.status === 200) {
+        setSuccess('Login successful');
+        login();
+        navigate('/integration');
+      } else {
+        throw new Error('Invalid credentials');
+      }
     } catch (error) {
-        setError(error.message);
+      setError(error.message);
+    } finally {
+      setLoading(false);
     }
-};
-
+  };
 
   return (
     <Container maxWidth="xs" sx={{ mt: 8 }}>
@@ -85,15 +88,30 @@ const LoginForm = () => {
         />
         {success && <Alert severity="success" sx={{ mt: 2 }}>{success}</Alert>}
         {error && <Alert severity="error" sx={{ mt: 2 }}>{error}</Alert>}
-        <Button
-          type="submit"
-          variant="contained"
-          color="primary"
-          fullWidth
-          sx={{ mt: 3, mb: 2 }}
-        >
-          Login
-        </Button>
+        <Box sx={{ position: 'relative', mt: 3, mb: 2 }}>
+          <Button
+            type="submit"
+            variant="contained"
+            color="primary"
+            fullWidth
+            disabled={loading}
+          >
+            Login
+          </Button>
+          {loading && (
+            <CircularProgress
+              size={24}
+              sx={{
+                color: 'primary.main',
+                position: 'absolute',
+                top: '50%',
+                left: '50%',
+                marginTop: '-12px',
+                marginLeft: '-12px',
+              }}
+            />
+          )}
+        </Box>
       </Box>
     </Container>
   );

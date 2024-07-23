@@ -41,9 +41,11 @@ environ.Env.read_env()
 # ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['localhost', '10.1.10.216', '127.0.0.1'])
 
 # ALLOWED_HOSTS = []
-ALLOWED_HOSTS = ['localhost', '10.1.10.216', '127.0.0.1']
+ALLOWED_HOSTS = ['localhost', '10.1.10.216', '127.0.0.1', 'host.docker.internal', 'integration.nws.com']
 
 # Env Vars
+ENVIRONMENT = env('ENVIRONMENT')
+
 ZOHO_SCOPE_INVOICES = env('ZOHO_SCOPE_INVOICES')
 ZOHO_SCOPE_CUSTOMERS = env('ZOHO_SCOPE_CUSTOMERS')
 ZOHO_SCOPE_ITEMS = env('ZOHO_SCOPE_ITEMS')
@@ -53,19 +55,20 @@ ZOHO_URL_READ_ITEMS = env('ZOHO_URL_READ_ITEMS')
 ZOHO_TOKEN_URL = env('ZOHO_TOKEN_URL')
 ZOHO_AUTH_URL = env('ZOHO_AUTH_URL')
 SALES_TAX_LIST_ID = env('SALES_TAX_LIST_ID')
-DB_NAME_DEV = env('DB_NAME_DEV')
-DB_NAME_QA = env('DB_NAME_QA')
-DB_NAME_PROD = env('DB_NAME_PROD')
-DB_USER = env('DB_USER')
-DB_PASSWORD = env('DB_PASSWORD')
-DB_HOST = env('DB_HOST')
+DB_NAME = env('DB_NAME_DEV') if ENVIRONMENT == 'DEV' else env('DB_NAME_QA') if ENVIRONMENT == 'QA' else env('DB_NAME_PROD')
+DB_USER = env('DB_USER_DEV') if ENVIRONMENT == 'DEV' else env('DB_USER_QA') if ENVIRONMENT == 'QA' else env('DB_USER_PROD')
+DB_PASSWORD = env('DB_PASSWORD_DEV') if ENVIRONMENT == 'DEV' else env('DB_PASSWORD_QA') if ENVIRONMENT == 'QA' else env('DB_PASSWORD_PROD')
+DB_HOST = env('DB_HOST_DEV') if ENVIRONMENT == 'DEV' else env('DB_HOST_QA') if ENVIRONMENT == 'QA' else env('DB_HOST_PROD')
 DB_PORT = env('DB_PORT')
 DB_ENGINE = env('DB_ENGINE')
-FRONTEND_URL = env('FRONTEND_URL')
+FRONTEND_URL = env('FRONTEND_URL_DEV') if ENVIRONMENT == 'DEV' else env('FRONTEND_URL_QA') if ENVIRONMENT == 'QA' else env('FRONTEND_URL_PROD')
 
 CSRF_TRUSTED_ORIGINS = [
     'http://localhost:3000',
     'http://127.0.0.1:3000',
+    'https://localhost:8000',
+    'https://host.docker.internal',
+    'https://integration.nws.com'
 ]
 
 CSRF_COOKIE_SECURE = False  # False para desarrollo, True para producción
@@ -91,6 +94,8 @@ CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
+    "https://host.docker.internal",
+    "https://integration.nws.com"
 ]
 
 CORS_ALLOW_METHODS = [
@@ -191,8 +196,7 @@ WSGI_APPLICATION = 'project_api.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': f'{DB_ENGINE}',
-        # 'NAME': f'{DB_NAME_DEV}',
-        'NAME': f'{DB_NAME_QA}',
+        'NAME': f'{DB_NAME}',
         'USER': f'{DB_USER}',
         'PASSWORD': f'{DB_PASSWORD}',
         'HOST': f'{DB_HOST}',
