@@ -5,7 +5,6 @@ services:
     container_name: django_app
     volumes:
       - ./api_qbwc_zoho_backend:/app
-      # - ./api_qbwc_zoho_backend/static:/app/static  # Monta la carpeta estática de Django
       - ./api_qbwc_zoho_backend/nginx/gunicorn.conf.py:/etc/nginx/gunicorn.conf.py
     ports:
       - "8000:8000"
@@ -27,7 +26,7 @@ services:
       context: ./api_qbwc_zoho_frontend
     container_name: react_app
     volumes:
-      - ./api_qbwc_zoho_frontend/build:/app/build  # Monta el directorio build de React
+      - ./api_qbwc_zoho_frontend/build:/app/build 
     env_file:
       - ./api_qbwc_zoho_frontend/.env
     networks:
@@ -39,10 +38,8 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./api_qbwc_zoho_backend/scripts_db:/docker-entrypoint-initdb.d
-      # - ./api_qbwc_zoho_backend/qbwc_web_services/FirstDB_bckp.sql:/backup.sql
     environment:
       - POSTGRES_DB=api_qbwc_zoho_envqa_db
-      # - POSTGRES_DB=api_qbwc_zoho_dev_db
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
     ports:
@@ -51,25 +48,31 @@ services:
       - api_qbwc_zoho_network
 
   nginx:
-    image: nginx:latest
+    build:
+      context: ./api_qbwc_zoho_backend/nginx
     container_name: nginx_server
     ports:
       - "80:80"
       - "443:443"
+    extra_hosts:
+      - "integration.nws.com:10.1.10.216"
     volumes:
       - ./api_qbwc_zoho_backend/nginx/nginx_react_django.conf:/etc/nginx/nginx.conf:ro
       - ./api_qbwc_zoho_backend/nginx/certificates:/etc/nginx/certificates:ro
       - ./api_qbwc_zoho_frontend/build:/usr/share/nginx/html 
     depends_on:
       - django_app
-      # - react_app
+      - react_app
     networks:
-      - api_qbwc_zoho_network
+      api_qbwc_zoho_network:
+        ipv4_address: 10.1.10.216
 
 volumes:
   postgres_data:
 
 networks:
   api_qbwc_zoho_network:
-    # external: true
     driver: bridge
+    ipam:
+      config:
+        - subnet: "10.1.10.0/24"
