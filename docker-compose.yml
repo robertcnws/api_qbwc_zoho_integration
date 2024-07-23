@@ -16,10 +16,14 @@ services:
       - LOGINUSER_USERNAME=test
       - LOGINUSER_EMAIL=test@example.com
       - LOGINUSER_PASSWORD=Hialeah2024*-
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
     env_file:
       - ./api_qbwc_zoho_backend/project_api/.env
     networks:
       - api_qbwc_zoho_network
+    depends_on:
+      - redis
 
   react_app:
     build:
@@ -62,10 +66,16 @@ services:
       - ./api_qbwc_zoho_frontend/build:/usr/share/nginx/html 
     depends_on:
       - django_app
-      - react_app
+      # - react_app
     networks:
       api_qbwc_zoho_network:
         ipv4_address: 10.1.10.216
+
+  redis:
+    image: redis:latest
+    container_name: redis
+    networks:
+      - api_qbwc_zoho_network
 
 volumes:
   postgres_data:

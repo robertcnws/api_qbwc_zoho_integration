@@ -26,9 +26,9 @@ const ZohoLoading = () => {
     setLoading(true);
     try {
       const response = await fetchWithToken(`${apiUrl}/${module}/${endpoint}/`, 'POST', null, {}, apiUrl);
-      if (response.status !== 200) {
+      if (response.status !== 200 && response.status !== 202) {
         throw new Error(`Failed to load data: ${module}`);
-      }  
+      }
       navigate(`/integration/list_${element}`);
     } catch (error) {
       setError(error.message);
