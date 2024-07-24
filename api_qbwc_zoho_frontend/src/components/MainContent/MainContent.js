@@ -23,10 +23,29 @@ const apiUrl = process.env.REACT_APP_ENVIRONMENT === 'DEV' ? process.env.REACT_A
 
 const MainContent = () => {
   const [config, setConfig] = useState({});
+  const [invoicesHistoricStats, setInvoicesHistoricStats] = useState({});
+  const [invoicesMonthlyStats, setInvoicesMonthlyStats] = useState([]);
+  const [invoicesDailyStats, setInvoicesDailyStats] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const theme = useTheme();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
+
+  const fetchInvoicesStats = async (element, module, setLoading, setData) => {
+    try {
+      const response = await fetchWithToken(`${apiUrl}/data/data_invoice_${module}_statistics/`, 'GET', null, {}, apiUrl);
+      if (response.status !== 200) {
+        throw new Error(`Failed to fetch: ${element}`);
+      }
+      const data = response.data;
+      // console.log(data)
+      setData(data);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleZohoOauth = async () => {
     setLoading(true);
@@ -61,6 +80,10 @@ const MainContent = () => {
       }
     };
     fetchConfig();
+    fetchInvoicesStats('Invoices Historic Statistics', 'historic', setLoading, setInvoicesHistoricStats);
+    fetchInvoicesStats('Invoices Monthly Statistics', 'monthly', setLoading, setInvoicesMonthlyStats);
+    fetchInvoicesStats('Invoices Daily Statistics', 'daily', setLoading, setInvoicesDailyStats);
+
   }, []);
 
   if (loading){
@@ -69,35 +92,6 @@ const MainContent = () => {
   if (error) {
     return (<AlertError isSmallScreen={isSmallScreen} error={error} />);
   }
-
-  const lineData = {
-    labels: ['Page A', 'Page B', 'Page C', 'Page D', 'Page E', 'Page F', 'Page G'],
-    datasets: [
-      {
-        label: 'UV',
-        data: [4000, 3000, 2000, 2780, 1890, 2390, 3490],
-        borderColor: '#8884d8',
-        backgroundColor: 'rgba(136, 132, 216, 0.2)',
-      },
-      {
-        label: 'PV',
-        data: [2400, 1398, 9800, 3908, 4800, 3800, 4300],
-        borderColor: '#82ca9d',
-        backgroundColor: 'rgba(130, 202, 157, 0.2)',
-      },
-    ],
-  };
-
-  const barData = {
-    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-    datasets: [
-      {
-        label: 'Sales',
-        data: [4000, 3000, 5000, 4000, 6000, 4700],
-        backgroundColor: '#8884d8',
-      },
-    ],
-  };
 
   return (
     <Container component="main" maxWidth="md" sx={{ mt: 5, p: 2, bgcolor: 'background.paper', boxShadow: 3, borderRadius: 2, minWidth:'100%', minHeight: '100%' }}>
@@ -184,21 +178,21 @@ const MainContent = () => {
         </Grid>
         <Grid container spacing={1} style={{ height: '100%' }}>
           <Grid item xs={12} md={5}>
-            <Paper elevation={3} style={{ padding: 5, minHeight: '100mv' }}>
-              <Typography variant="h6">Line Chart</Typography>
-              <LineChartComponent data={lineData} />
+            <Paper elevation={3} style={{ padding: 5, height: '51%' }}>
+              <Typography variant="h6">Invoices Last 7 Days Statistics</Typography>
+              <LineChartComponent data={invoicesDailyStats} />
             </Paper>
           </Grid>
           <Grid item xs={12} md={3}>
-            <Paper elevation={3} style={{ padding: 5, minHeight: '50mv' }}>
-              <Typography variant="h6">Pie Chart</Typography>
-              <PieChartComponent />
+            <Paper elevation={3} style={{ padding: 5, height: '51%' }}>
+              <Typography variant="h6">Invoices Historic Statistics</Typography>
+              <PieChartComponent data={invoicesHistoricStats}/>
             </Paper>
           </Grid>
           <Grid item xs={12} md={4}>
-            <Paper elevation={3} style={{ padding: 5, minHeight: '100mv' }}>
-              <Typography variant="h6">Bar Chart</Typography>
-              <BarChartComponent data={barData} />
+            <Paper elevation={3} style={{ padding: 5, height: '51%' }}>
+              <Typography variant="h6">Invoices Last 5 Months Statistics</Typography>
+              <BarChartComponent data={invoicesMonthlyStats} />
             </Paper>
           </Grid>
         </Grid>

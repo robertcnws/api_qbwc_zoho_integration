@@ -58,11 +58,6 @@ const ZohoLoading = () => {
     
   }, []);
 
-  useEffect(() => {
-
-    
-  }, []);
-
   return (
     <Container component="main" maxWidth="md" sx={{ mt: 5, p: 3, bgcolor: '#FFFFFF', boxShadow: 3, borderRadius: 2 }}>
             <Typography

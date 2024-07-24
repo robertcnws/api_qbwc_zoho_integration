@@ -16,7 +16,10 @@ urlpatterns = [
     path("get_refresh_token/", views.get_refresh_token, name="get_refresh_token"),
     path("get_csrf_token/", views.csrf_token_view, name="get_csrf_token"),
     path("zoho_loading/", views.zoho_loading, name="zoho_loading"),
-     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('data/data_invoice_historic_statistics/', views.data_invoice_historic_statistics, name='data_invoice_historic_statistics'),
+    path('data/data_invoice_monthly_statistics/', views.data_invoice_monthly_statistics, name='data_invoice_monthly_statistics'),
+    path('data/data_invoice_daily_statistics/', views.data_invoice_daily_statistics, name='data_invoice_daily_statistics'),
 
 ]

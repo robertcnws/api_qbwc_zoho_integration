@@ -5,6 +5,8 @@ from django.views.decorators.csrf import csrf_exempt
 from django.middleware.csrf import get_token
 from django.core import serializers
 from django.forms.models import model_to_dict
+from django.db.models import Q, Count
+from django.db.models.functions import TruncMonth, TruncDate
 import requests
 import os
 import logging
@@ -14,13 +16,14 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import ensure_csrf_cookie
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from .models import AppConfig, ZohoLoading
 from .forms import ApiZohoForm, LoginForm, AppConfigForm
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
+from api_zoho_invoices.models import ZohoFullInvoice
 
 #############################################
 # Configura el logging
@@ -34,6 +37,10 @@ def csrf_token_view(request):
     csrf_token = get_token(request)
     print(csrf_token)
     return JsonResponse({'csrftoken': csrf_token})
+
+#############################################
+# Login View
+#############################################
 
 @csrf_exempt
 def login_view(request):
@@ -58,12 +65,22 @@ def login_view(request):
     return JsonResponse({'error': 'Method not allowed'}, status=405)
 
 
+#############################################
+# Logout view
+#############################################
+
+
 @csrf_exempt
 def logout_view(request):
     if request.method == 'GET':
         logout(request) 
         return JsonResponse({'status': 'success'}, status=200)
     return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+
+#############################################
+# Auth URLs
+#############################################
 
 
 @api_view(['GET'])
@@ -157,7 +174,10 @@ def get_refresh_token(request):
         return JsonResponse({'error': f'An error occurred: {str(e)}'}, status=500)
 
 
+#############################################
 # GET THE ZOHO API ACCESS TOKEN
+#############################################
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def zoho_api_settings(request):
@@ -226,25 +246,6 @@ def config_headers(request):
 @login_required(login_url='login')
 def home(request):
     return render(request, 'api_zoho/base.html')    
-
-
-# @login_required(login_url='login')  
-# def application_settings(request):
-#     app_config = AppConfig.objects.first()
-#     if request.method == 'POST':
-#         app_config.zoho_client_id = request.POST.get('zoho_client_id')
-#         logger.info(app_config.zoho_client_id)  
-#         app_config.zoho_client_secret = request.POST.get('zoho_client_secret')
-#         app_config.zoho_redirect_uri = request.POST.get('zoho_redirect_uri')
-#         app_config.zoho_org_id = request.POST.get('zoho_organization_id')
-#         app_config.qb_username = request.POST.get('qb_username')
-#         app_config.qb_password = request.POST.get('qb_password')
-#         app_config.save()
-#         messages.success(request, 'Application settings have been updated successfully.')
-#     context = {
-#         'app_config': app_config
-#     }
-#     return render(request, 'api_zoho/application_settings.html', context=context)
 
 
 @api_view(['GET', 'POST'])
@@ -323,3 +324,111 @@ def validateJWTTokenRequest(request):
             return False
     else:
         return False
+    
+#############################################
+# QUERIES TO DATACHARTS
+#############################################
+
+@api_view(['GET', 'POST'])
+@permission_classes([IsAuthenticated])
+def data_invoice_historic_statistics(request):
+    valid_token = validateJWTTokenRequest(request)
+    if valid_token:
+        invoices = ZohoFullInvoice.objects.all()
+        stats = invoices.aggregate(
+                matched_number=Count('id', filter=Q(inserted_in_qb=True)),
+                total_items_unmatched=Count('id', filter=Q(items_unmatched__isnull=False, items_unmatched__gt=0)),
+                total_customers_unmatched=Count('id', filter=Q(customer_unmatched__isnull=False, customer_unmatched__gt=0)),
+                unprocessed_number=Count('id', filter=Q(inserted_in_qb=False))
+            )
+        matched_number = stats['matched_number']
+        total_items_unmatched = stats['total_items_unmatched']
+        total_customers_unmatched = stats['total_customers_unmatched']
+        unmatched_number = max(total_items_unmatched, total_customers_unmatched)
+        unprocessed_number = stats['unprocessed_number'] - unmatched_number
+        total_number = invoices.count()
+        
+        return JsonResponse({
+            'matched_per_cent': matched_number / total_number if total_number > 0 else 0,
+            'unmatched_per_cent': unmatched_number / total_number if total_number > 0 else 0,
+            'unprocessed_per_cent': unprocessed_number / total_number if total_number > 0 else 0,
+        }, status=200)
+    return JsonResponse({'error': 'Invalid JWT Token'}, status=401)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def data_invoice_monthly_statistics(request):
+    valid_token = validateJWTTokenRequest(request)
+    if valid_token:
+        five_months_ago = datetime.now() - timedelta(days=5*30)
+        invoices = ZohoFullInvoice.objects.filter(date__gte=five_months_ago)
+        
+        stats = invoices.annotate(month=TruncMonth('date')).values('month').annotate(
+            matched_number=Count('id', filter=Q(inserted_in_qb=True)),
+            total_items_unmatched=Count('id', filter=Q(items_unmatched__isnull=False, items_unmatched__gt=0)),
+            total_customers_unmatched=Count('id', filter=Q(customer_unmatched__isnull=False, customer_unmatched__gt=0)),
+            unprocessed_number=Count('id', filter=Q(inserted_in_qb=False))
+        ).order_by('month')
+        
+        response_data = []
+        for stat in stats:
+            month = stat['month'].strftime('%Y-%m') 
+            total_number = invoices.filter(date__month=stat['month'].month, date__year=stat['month'].year).count()
+            matched_number = stat['matched_number']
+            total_items_unmatched = stat['total_items_unmatched']
+            total_customers_unmatched = stat['total_customers_unmatched']
+            unmatched_number = max(total_items_unmatched, total_customers_unmatched)
+            unprocessed_number = stat['unprocessed_number'] - unmatched_number
+            
+            response_data.append({
+                'month': month,
+                'matched_number': matched_number,
+                'unmatched_number': unmatched_number,
+                'unprocessed_number': unprocessed_number,
+                'total_number': total_number,
+            })
+        
+        return JsonResponse(response_data, safe=False, status=200)
+    
+    return JsonResponse({'error': 'Invalid JWT Token'}, status=401)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def data_invoice_daily_statistics(request):
+    valid_token = validateJWTTokenRequest(request)
+    if valid_token:
+        seven_days_ago = datetime.now() - timedelta(days=7)
+        
+        invoices = ZohoFullInvoice.objects.filter(date__gte=seven_days_ago)
+        
+        stats = invoices.annotate(day=TruncDate('date')).values('day').annotate(
+            matched_number=Count('id', filter=Q(inserted_in_qb=True)),
+            total_items_unmatched=Count('id', filter=Q(items_unmatched__isnull=False, items_unmatched__gt=0)),
+            total_customers_unmatched=Count('id', filter=Q(customer_unmatched__isnull=False, customer_unmatched__gt=0)),
+            unprocessed_number=Count('id', filter=Q(inserted_in_qb=False))
+        ).order_by('day')
+        
+        response_data = []
+        for stat in stats:
+            day = stat['day'].strftime('%Y-%m-%d')
+            total_number = invoices.annotate(day=TruncDate('date')).filter(day=stat['day']).count()
+            
+            matched_number = stat['matched_number']
+            total_items_unmatched = stat['total_items_unmatched']
+            total_customers_unmatched = stat['total_customers_unmatched']
+            unmatched_number = max(total_items_unmatched, total_customers_unmatched)
+            unprocessed_number = stat['unprocessed_number'] - unmatched_number
+            
+            response_data.append({
+                'day': day,
+                'matched_number': matched_number,
+                'unmatched_number': unmatched_number,
+                'unprocessed_number': unprocessed_number,
+                'total_number': total_number,
+            })
+        
+        return JsonResponse(response_data, safe=False, status=200)
+    
+    return JsonResponse({'error': 'Invalid JWT Token'}, status=401)
