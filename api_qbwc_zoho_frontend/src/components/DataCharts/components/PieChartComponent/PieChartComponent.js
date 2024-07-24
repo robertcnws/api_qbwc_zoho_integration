@@ -32,7 +32,15 @@ const PieChartComponent = () => {
     ],
   };
 
-  return <Pie data={data} />;
+  const options = {
+    plugins: {
+      legend: {
+        position: 'right', // Cambia la posición de la leyenda a la derecha
+      },
+    },
+  };
+
+  return <Pie data={data} options={options}/>;
 };
 
 export default PieChartComponent;

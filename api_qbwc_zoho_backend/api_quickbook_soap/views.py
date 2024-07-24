@@ -8,6 +8,7 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
 from django.core import serializers
 from django.utils.dateparse import parse_date
+from django.conf import settings
 from datetime import datetime, timezone
 from datetime import date as date
 from api_zoho_customers.models import ZohoCustomer
@@ -248,7 +249,7 @@ def matching_items(request):
             for zoho_item_data in zoho_items_data:
                 zoho_name = zoho_item_data['name']
                 seem = rapidfuzz.fuzz.ratio(qb_name, zoho_name) / 100  # Normaliza a un rango de 0 a 1
-                if seem > 0.4:
+                if seem > float(settings.SEEM_ITEMS):
                     # Agregar coincidencias a la lista
                     dependences_list.append({
                         'zoho_item_id': zoho_item_data['item_id'],
@@ -310,10 +311,10 @@ def matching_customers(request):
                 # Asegurarse de que al menos uno de los dos campos (email o teléfono) no esté vacío
                 if (qb_email or qb_phone) and (zoho_email or zoho_phone):
                     # Comparar email y teléfono usando `rapidfuzz`
-                    seem_email = rapidfuzz.fuzz.ratio(qb_email, zoho_email) / 100  # Normaliza a un rango de 0 a 1
-                    seem_phone = rapidfuzz.fuzz.ratio(qb_phone, zoho_phone) / 100  # Normaliza a un rango de 0 a 1
+                    seem_email = rapidfuzz.fuzz.ratio(qb_email, zoho_email) / 100  if qb_email and zoho_email else 0
+                    seem_phone = rapidfuzz.fuzz.ratio(qb_phone, zoho_phone) / 100  if qb_phone and zoho_phone else 0
 
-                    if (seem_email > 0.8 or seem_phone > 0.8):
+                    if (seem_email > float(settings.SEEM_CUSTOMERS) or seem_phone > float(settings.SEEM_CUSTOMERS)):
                         # Agregar coincidencias a la lista
                         dependences_list.append({
                             'zoho_customer_id': zoho_customer_data['contact_id'],

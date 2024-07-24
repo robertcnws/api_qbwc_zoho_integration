@@ -131,7 +131,7 @@ def view_customer(request, customer_id):
                     seem_email = rapidfuzz.fuzz.ratio(zoho_email, qb_email) / 100 if zoho_email and qb_email else 0
                     seem_phone = rapidfuzz.fuzz.ratio(zoho_phone, qb_phone) / 100 if zoho_phone and qb_phone else 0
 
-                    if seem_email > 0.7 or seem_phone > 0.7:
+                    if seem_email > float(settings.SEEM_CUSTOMERS) or seem_phone > float(settings.SEEM_CUSTOMERS):
                             # Agregar coincidencias a la lista
                         dependences_list.append({
                                 'qb_customer_list_id': qb_customer_data['list_id'],

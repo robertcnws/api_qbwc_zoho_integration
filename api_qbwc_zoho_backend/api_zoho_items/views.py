@@ -126,7 +126,7 @@ def view_item(request, item_id):
                 # logger.debug(f"Comparing {zoho_name} with {qb_name}")
                 # logger.debug(f"Name similarity: {seem_name}")
 
-                if seem_name > 0.7:
+                if seem_name > float(settings.SEEM_ITEMS):
                         # Agregar coincidencias a la lista
                     dependences_list.append({
                             'qb_item_list_id': qb_item_data['list_id'],
