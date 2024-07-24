@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { Container, Grid, Typography, Button, Table, TableHead, TableBody, TableCell, TableContainer, TableRow, Paper, Alert } from '@mui/material';
 import { fetchWithToken } from '../../../../utils'
 
-const apiUrl = process.env.REACT_APP_BACKEND_URL;
+const apiUrl = process.env.REACT_APP_ENVIRONMENT === 'DEV' ? process.env.REACT_APP_BACKEND_URL_DEV : process.env.REACT_APP_BACKEND_URL_PROD;;
 
 const InvoicesDetails = () => {
   const navigate = useNavigate();

@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { getCookie } from '../../utils';
 
-const apiUrl = process.env.REACT_APP_BACKEND_URL;
+const apiUrl = process.env.REACT_APP_ENVIRONMENT === 'DEV' ? process.env.REACT_APP_BACKEND_URL_DEV : process.env.REACT_APP_BACKEND_URL_PROD;;
 
 const LoginForm = () => {
   const [username, setUsername] = useState('');

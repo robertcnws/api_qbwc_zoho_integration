@@ -5,7 +5,7 @@ import { AlertLoading } from '../../../Utils/components/AlertLoading/AlertLoadin
 import { AlertError } from '../../../Utils/components/AlertError/AlertError';
 import { fetchWithToken } from '../../../../utils';
 
-const apiUrl = process.env.REACT_APP_BACKEND_URL
+const apiUrl = process.env.REACT_APP_ENVIRONMENT === 'DEV' ? process.env.REACT_APP_BACKEND_URL_DEV : process.env.REACT_APP_BACKEND_URL_PROD;
 
 const ItemsListPage = () => {
     const [items, setItems] = useState([]);

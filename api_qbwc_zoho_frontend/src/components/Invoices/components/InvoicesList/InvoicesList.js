@@ -36,7 +36,7 @@ import { EmptyRecordsCell } from '../../../Utils/components/EmptyRecordsCell/Emp
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-const apiUrl = process.env.REACT_APP_BACKEND_URL;
+const apiUrl = process.env.REACT_APP_ENVIRONMENT === 'DEV' ? process.env.REACT_APP_BACKEND_URL_DEV : process.env.REACT_APP_BACKEND_URL_PROD;;
 
 const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterDate }) => {
 

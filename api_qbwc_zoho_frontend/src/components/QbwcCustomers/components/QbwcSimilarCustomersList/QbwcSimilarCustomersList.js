@@ -21,7 +21,7 @@ import Swal from 'sweetalert2';
 import { stableSort, getComparatorUndefined, fetchWithToken } from '../../../../utils';
 import { EmptyRecordsCell } from '../../../Utils/components/EmptyRecordsCell/EmptyRecordsCell';
 
-const apiUrl = process.env.REACT_APP_BACKEND_URL;
+const apiUrl = process.env.REACT_APP_ENVIRONMENT === 'DEV' ? process.env.REACT_APP_BACKEND_URL_DEV : process.env.REACT_APP_BACKEND_URL_PROD;;
 
 const QbwcSimilarCustomersList = ({ similarCustomers, onSyncComplete }) => {
   const [page, setPage] = useState(0);

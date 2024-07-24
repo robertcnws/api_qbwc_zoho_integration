@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import ApplicationSettingsForm from '../ApplicationSettingsForm/ApplicationSettingsForm';
 import { fetchWithToken } from '../../../../utils'
 
-const apiUrl = process.env.REACT_APP_BACKEND_URL;
+const apiUrl = process.env.REACT_APP_ENVIRONMENT === 'DEV' ? process.env.REACT_APP_BACKEND_URL_DEV : process.env.REACT_APP_BACKEND_URL_PROD;
 
 const ApplicationSettingsContainer = () => {
     const [formData, setFormData] = useState({});

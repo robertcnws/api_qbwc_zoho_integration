@@ -25,16 +25,16 @@ services:
     depends_on:
       - redis
 
-  react_app:
-    build:
-      context: ./api_qbwc_zoho_frontend
-    container_name: react_app
-    volumes:
-      - ./api_qbwc_zoho_frontend/build:/app/build 
-    env_file:
-      - ./api_qbwc_zoho_frontend/.env
-    networks:
-      - api_qbwc_zoho_network
+  # react_app:
+  #   build:
+  #     context: ./api_qbwc_zoho_frontend
+  #   container_name: react_app
+  #   volumes:
+  #     - ./api_qbwc_zoho_frontend/build:/app/build 
+  #   env_file:
+  #     - ./api_qbwc_zoho_frontend/.env
+  #   networks:
+  #     - api_qbwc_zoho_network
 
   postgres:
     image: postgres:16.0

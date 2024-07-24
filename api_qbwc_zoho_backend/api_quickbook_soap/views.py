@@ -14,8 +14,11 @@ from api_zoho_customers.models import ZohoCustomer
 from api_zoho_items.models import ZohoItem
 from api_zoho_invoices.models import ZohoFullInvoice
 from .models import QbItem, QbCustomer, QbLoading
+from .tasks import start_qbwc_query_request_task, authenticate_qbwc_request_task
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
+from celery import chain
+from lxml import etree
 import difflib
 import api_quickbook_soap.soap_service as soap_service
 import api_zoho.views as api_zoho_views
@@ -43,7 +46,6 @@ soap_customers = []
 soap_items = []
 similar_customers = []
 similar_items = []
-insert = False
 
 #############################################
 # Endpoints to Serve SOAP Requests
@@ -575,96 +577,154 @@ def start_qbwc_invoice_add_request(request):
         return HttpResponse(response_xml, content_type='text/xml')
     else:
         return HttpResponse(status=405)
-
+    
+    
 def start_qbwc_query_request(request, query_object_name, list_of_objects):
     if request.method == 'POST':
         module = ''
         xml_data = request.body.decode('utf-8')
-        # logger.debug(f"Received XML data: {xml_data}")
-        # if 'ItemSalesTax' in xml_data:
         if f'{query_object_name}Ret' in xml_data:
             xml_dict = xmltodict.parse(xml_data)
             response_xml = xml_dict['soap:Envelope']['soap:Body']['receiveResponseXML']['response']
             data_dict = xmltodict.parse(response_xml)
-            print(f"Data Dict: {data_dict}")
+            # logger.info(f"Data dict: {data_dict}")
             if f'{query_object_name}QueryRs' in xml_data:
                 elements_query_rs = data_dict['QBXML']['QBXMLMsgsRs'][f'{query_object_name}QueryRs'][f'{query_object_name}Ret']
                 list_of_objects = [elem for elem in elements_query_rs]
-                print(f"SOAP Elements ({query_object_name}): {list_of_objects}")
+                logger.info(f"Number of {query_object_name} detected: {len(list_of_objects)}")
+
                 if query_object_name == 'ItemInventory':
                     module = 'items'
-                    items_saved = QbItem.objects.all()
-                    items_to_save = []
-                    for item in list_of_objects:
-                        qb_item = QbItem.objects.create(
-                            list_id=item['ListID'], 
-                            name=item['Name'] if 'Name' in item else '',
-                        )
-                        existing_values = list(filter(lambda x: x.list_id == qb_item.list_id, items_saved))
-                        if len(existing_values) == 0:
-                            items_to_save.append(qb_item)
-                            # qb_item.save()
-                            
-                    def save_items_in_batches(items_to_save, batch_size=100):
-                        for i in range(0, len(items_to_save), batch_size):
-                            batch = items_to_save[i:i + batch_size]
-                            try:
-                                with transaction.atomic():
-                                    QbItem.objects.bulk_create(batch)
-                            except IntegrityError as e:
-                                logger.error(f"IntegrityError during bulk_create: {e}")
-                                for item in batch:
-                                    try:
-                                        item.save()
-                                    except IntegrityError as e:
-                                        logger.error(f"Failed to save item with list_id {item.list_id}: {e}")
-                                
-                    save_items_in_batches(items_to_save, batch_size=100)
-                    
+                    existing_items_ids = set(QbItem.objects.values_list('list_id', flat=True))
+                    items_to_save = [
+                        QbItem(list_id=item['ListID'], name=item.get('Name', ''))
+                        for item in list_of_objects
+                        if item['ListID'] not in existing_items_ids
+                    ]
+                    logger.info(f"Number of {query_object_name} to save: {len(items_to_save)}")
+                    save_items_in_batches(items_to_save)
+
                 elif query_object_name == 'Customer':
                     module = 'customers'
-                    customers_saved = QbCustomer.objects.all()
-                    customers_to_save = []
-                    for customer in list_of_objects:
-                        qb_customer = QbCustomer.objects.create(
-                            list_id=customer['ListID'], 
-                            name=customer['FullName'] if 'FullName' in customer else '',  
-                            email=customer['Email'] if 'Email' in customer else '', 
-                            phone=customer['Phone'] if 'Phone' in customer else ''
+                    existing_customers_ids = set(QbCustomer.objects.values_list('list_id', flat=True))
+                    customers_to_save = [
+                        QbCustomer(
+                            list_id=customer['ListID'],
+                            name=customer.get('FullName', ''),
+                            email=customer.get('Email', ''),
+                            phone=customer.get('Phone', '')
                         )
-                        existing_values = list(filter(lambda x: x.list_id == qb_customer.list_id, customers_saved))
-                        if len(existing_values) == 0:
-                            customers_to_save.append(qb_customer)
-                            # qb_customer.save()
-                            
-                    def save_customers_in_batches(customers_to_save, batch_size=100):
-                        for i in range(0, len(customers_to_save), batch_size):
-                            batch = customers_to_save[i:i + batch_size]
-                            try:
-                                with transaction.atomic():
-                                    QbCustomer.objects.bulk_create(batch)
-                            except IntegrityError as e:
-                                logger.error(f"IntegrityError during bulk_create: {e}")
-                                for customer in batch:
-                                    try:
-                                        customer.save()
-                                    except IntegrityError as e:
-                                        logger.error(f"Failed to save invoice {customer.list_id}: {e}")
-                                
-                    save_customers_in_batches(customers_to_save, batch_size=100)
-                    
-        if module != '':
+                        for customer in list_of_objects
+                        if customer['ListID'] not in existing_customers_ids
+                    ]
+                    logger.info(f"Number of {query_object_name} to save: {len(customers_to_save)}")
+                    save_customers_in_batches(customers_to_save)
+
+        if module:
             qb_loading = QbLoading.objects.filter(qb_module=module, qb_record_created=datetime.now(timezone.utc)).first()
             if not qb_loading:
                 qb_loading = create_qb_loading_instance(module)
             else:
                 qb_loading.qb_record_updated = datetime.now(timezone.utc)
             qb_loading.save()
-                    
+            logger.info(f"QB Loading instance created/updated for module {module}")
+            logger.info(f"Task done: {qb_loading}")
+
         response_xml = process_qbwc_query_request(xml_data, query_object_name)
         return HttpResponse(response_xml, content_type='text/xml')
     else:
         return HttpResponse(status=405)
+    
+
+def save_items_in_batches(items_to_save, batch_size=100):
+    for i in range(0, len(items_to_save), batch_size):
+        batch = items_to_save[i:i + batch_size]
+        try:
+            with transaction.atomic():
+                QbItem.objects.bulk_create(batch)
+        except IntegrityError as e:
+            logger.error(f"IntegrityError during bulk_create: {e}")
+            for item in batch:
+                try:
+                    item.save()
+                except IntegrityError as e:
+                    logger.error(f"Failed to save item with list_id {item.list_id}: {e}")
+                    
+
+def save_customers_in_batches(customers_to_save, batch_size=100):
+    for i in range(0, len(customers_to_save), batch_size):
+        batch = customers_to_save[i:i + batch_size]
+        try:
+            with transaction.atomic():
+                QbCustomer.objects.bulk_create(batch)
+        except IntegrityError as e:
+            logger.error(f"IntegrityError during bulk_create: {e}")
+            for customer in batch:
+                try:
+                    customer.save()
+                except IntegrityError as e:
+                    logger.error(f"Failed to save customer {customer.list_id}: {e}")
+    
+
+def process_qbwc_query_request(xml_data, query_object_name):
+    global counter
+    global soap_customers
+    response = None
+    try:
+        xml_dict = xmltodict.parse(xml_data)
+        body = xml_dict['soap:Envelope']['soap:Body']
+        if 'authenticate' in body:
+            response = soap_service.handle_authenticate(body)
+        elif 'sendRequestXML' in body and counter == 0:
+            counter += 1
+            if query_object_name == 'ItemInventory':
+                response = soap_service.generate_item_query_response()
+            else:
+                response = soap_service.generate_customer_query_response()
+        elif 'closeConnection' in body:
+            counter = 0
+            response = soap_service.generate_close_connection_response()
+        else:
+            response = soap_service.generate_unsupported_request_response()
+        return response
+    except Exception as e:
+        logger.error(f"Error processing request: {e}")
+        return soap_service.generate_error_response(str(e))
+    
+    
+def create_xml_response(task_id):
+    # Crear el elemento raíz del SOAP Envelope
+    envelope = etree.Element("{http://schemas.xmlsoap.org/soap/envelope/}Envelope", nsmap={
+        "soap": "http://schemas.xmlsoap.org/soap/envelope/",
+        "qb": "http://developer.intuit.com/"
+    })
+    
+    # Crear el elemento Header (vacío en este caso)
+    header = etree.SubElement(envelope, "{http://schemas.xmlsoap.org/soap/envelope/}Header")
+    
+    # Crear el elemento Body
+    body = etree.SubElement(envelope, "{http://schemas.xmlsoap.org/soap/envelope/}Body")
+    
+    # Crear el elemento authenticateResponse dentro de Body
+    authenticate_response = etree.SubElement(body, "{http://developer.intuit.com/}authenticateResponse")
+    
+    # Crear el elemento authenticateResult dentro de authenticateResponse
+    authenticate_result = etree.SubElement(authenticate_response, "{http://developer.intuit.com/}authenticateResult")
+    
+    # Crear el primer string elemento dentro de authenticateResult
+    string_element1 = etree.SubElement(authenticate_result, "{http://developer.intuit.com/}string")
+    string_element1.text = task_id  # Usar el task_id como ticket
+    
+    # Crear el segundo string elemento dentro de authenticateResult (vacío)
+    string_element2 = etree.SubElement(authenticate_result, "{http://developer.intuit.com/}string")
+    string_element2.text = ""
+
+    # Convertir el árbol XML a una cadena
+    xml_str = etree.tostring(envelope, pretty_print=True, xml_declaration=True, encoding='UTF-8')
+    
+    # Devolver la respuesta HTTP con el XML y el tipo de contenido correcto
+    return HttpResponse(xml_str, content_type='text/xml')
+
         
 def process_qbwc_invoice_add_request(xml_data):
     global counter
@@ -687,31 +747,7 @@ def process_qbwc_invoice_add_request(xml_data):
         logger.error(f"Error processing request: {e}")
         return soap_service.generate_error_response(str(e))
 
-def process_qbwc_query_request(xml_data, query_object_name):
-    global counter
-    global soap_customers
-    global insert
-    response = None
-    try:
-        xml_dict = xmltodict.parse(xml_data)
-        body = xml_dict['soap:Envelope']['soap:Body']
-        if 'authenticate' in body:
-            response = soap_service.handle_authenticate(body)
-        elif 'sendRequestXML' in body and counter == 0 and not insert:
-            if query_object_name == 'ItemInventory':
-                response = soap_service.generate_item_query_response()
-            else:
-                response = soap_service.generate_customer_query_response()
-            insert = True
-        elif 'closeConnection' in body:
-            counter = 0
-            response = soap_service.generate_close_connection_response()
-        else:
-            response = soap_service.generate_unsupported_request_response()
-        return response
-    except Exception as e:
-        logger.error(f"Error processing request: {e}")
-        return soap_service.generate_error_response(str(e))
+
     
 
 #############################################

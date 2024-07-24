@@ -4,7 +4,7 @@ import { Container, Grid, Typography, Button, Table, TableBody, TableCell, Table
 import Swal from 'sweetalert2';
 import { fetchWithToken } from '../../../../utils';
 
-const apiUrl = process.env.REACT_APP_BACKEND_URL;
+const apiUrl = process.env.REACT_APP_ENVIRONMENT === 'DEV' ? process.env.REACT_APP_BACKEND_URL_DEV : process.env.REACT_APP_BACKEND_URL_PROD;;
 
 const CustomersDetails = () => {
   const navigate = useNavigate();

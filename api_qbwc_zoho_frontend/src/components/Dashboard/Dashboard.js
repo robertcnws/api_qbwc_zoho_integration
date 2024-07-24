@@ -7,7 +7,7 @@ import Topbar from '../Topbar/Topbar';
 import { useAuth } from '../AuthContext/AuthContext'
 import { fetchWithToken } from '../../utils'
 
-const apiUrl = process.env.REACT_APP_BACKEND_URL
+const apiUrl = process.env.REACT_APP_ENVIRONMENT === 'DEV' ? process.env.REACT_APP_BACKEND_URL_DEV : process.env.REACT_APP_BACKEND_URL_PROD;
 
 
 const Dashboard = () => {

@@ -5,7 +5,7 @@ import { AlertError } from '../../../Utils/components/AlertError/AlertError';
 import { fetchWithToken } from '../../../../utils';
 import QbwcNeverMatchedCustomersList from '../QbwcNeverMatchedCustomersList/QbwcNeverMatchedCustomersList';
 
-const apiUrl = process.env.REACT_APP_BACKEND_URL
+const apiUrl = process.env.REACT_APP_ENVIRONMENT === 'DEV' ? process.env.REACT_APP_BACKEND_URL_DEV : process.env.REACT_APP_BACKEND_URL_PROD;
 
 const QbwcNeverMatchedCustomersListPage = () => {
     const [customers, setCustomers] = useState([]);

@@ -19,7 +19,7 @@ import PieChartComponent from '../DataCharts/components/PieChartComponent/PieCha
 import BarChartComponent from '../DataCharts/components/BarChartComponent/BarChartComponent';
 import LineChartComponent from '../DataCharts/components/LineChartComponent/LineChartComponent';
 
-const apiUrl = process.env.REACT_APP_BACKEND_URL;
+const apiUrl = process.env.REACT_APP_ENVIRONMENT === 'DEV' ? process.env.REACT_APP_BACKEND_URL_DEV : process.env.REACT_APP_BACKEND_URL_PROD;;
 
 const MainContent = () => {
   const [config, setConfig] = useState({});
