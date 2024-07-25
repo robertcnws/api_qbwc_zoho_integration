@@ -14,10 +14,14 @@ import {
     TableSortLabel,
     Paper, 
     TablePagination, 
-    TextField 
+    TextField, 
+    FormControl,
+    InputLabel,
+    Select,
+    MenuItem
 } from '@mui/material';
 import { Link, useNavigate } from 'react-router-dom'; 
-import { stableSort, getComparator } from '../../../../utils';
+import { stableSort, getComparator, getComparatorUndefined } from '../../../../utils';
 import { EmptyRecordsCell } from '../../../Utils/components/EmptyRecordsCell/EmptyRecordsCell';
 
 const CustomersList = ({ customers }) => {
@@ -26,6 +30,7 @@ const CustomersList = ({ customers }) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [orderBy, setOrderBy] = useState('');
     const [order, setOrder] = useState('asc');
+    const [filter, setFilter] = useState('all');
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -59,17 +64,23 @@ const CustomersList = ({ customers }) => {
         setPage(0);
     };
 
-    const filteredCustomers = customers.filter(customer =>
-        customer.fields.contact_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        customer.fields.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        customer.fields.company_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        customer.fields.phone.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const filteredCustomers = customers.filter(customer => {
+        const matchesSearchTerm = customer.fields.contact_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            customer.fields.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            customer.fields.company_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            customer.fields.phone.toLowerCase().includes(searchTerm.toLowerCase());
+        
+        if (filter === 'all') return matchesSearchTerm;
+        if (filter === 'matched') return matchesSearchTerm && customer.fields.qb_list_id && customer.fields.qb_list_id !== "";
+        if (filter === 'unmatched') return matchesSearchTerm && (!customer.fields.qb_list_id || customer.fields.qb_list_id === "");
+        
+        return matchesSearchTerm;
+    });
 
     const handleViewCustomer = (customer) => {
         localStorage.setItem('customerListPage', page);
         localStorage.setItem('customerListRowsPerPage', rowsPerPage);
-        navigate('/integration/customer_details', { state: { customer } })
+        navigate('/integration/customer_details', { state: { customer, filteredCustomers, filter } })
     }
 
     const handleSortChange = (columnId) => {
@@ -78,7 +89,12 @@ const CustomersList = ({ customers }) => {
         setOrderBy(columnId);
     };
 
-    const sortedCustomers = stableSort(filteredCustomers, getComparator(order, orderBy));
+    const handleFilterChange = event => {
+        setFilter(event.target.value);
+        setPage(0);
+    };
+
+    const sortedCustomers = stableSort(filteredCustomers, getComparatorUndefined(order, orderBy));
 
     const columns = [
         { id: 'name', label: 'Name' },
@@ -114,8 +130,34 @@ const CustomersList = ({ customers }) => {
                 >
                     Customers List
                 </Typography>
+                <FormControl variant="outlined" size="small">
+                    <InputLabel>Filter</InputLabel>
+                    <Select
+                        value={filter}
+                        onChange={handleFilterChange}
+                        label="Filter"
+                    >
+                        <MenuItem value="all">All Customers</MenuItem>
+                        <MenuItem value="matched">Matched Customers</MenuItem>
+                        <MenuItem value="unmatched">Unmatched Customers</MenuItem>
+                    </Select>
+                </FormControl>
                 </Grid>
-                <Grid item xs={6} container justifyContent="flex-end" spacing={1}>
+                {/* <Grid item xs={6} container justifyContent="flex-end" spacing={1}>
+                        <FormControl fullWidth size="small" sx={{ mb: 2 }}>
+                            <InputLabel>Filter</InputLabel>
+                            <Select
+                                value={filter}
+                                onChange={handleFilterChange}
+                                label="Filter"
+                            >
+                                <MenuItem value="all">All Customers</MenuItem>
+                                <MenuItem value="matched">Matched Customers</MenuItem>
+                                <MenuItem value="unmatched">Unmatched Customers</MenuItem>
+                            </Select>
+                        </FormControl>
+                </Grid> */}
+                {/* <Grid item xs={6} container justifyContent="flex-end" spacing={1}>
                     <Grid item>
                         <Button variant="contained" color="primary" size="small" component={Link}  to="/integration/qbwc/customers/similar">
                             Similar Customers
@@ -126,7 +168,7 @@ const CustomersList = ({ customers }) => {
                             Matched Customers
                         </Button>
                     </Grid>
-                </Grid>
+                </Grid> */}
                 <Grid item xs={12} container justifyContent="flex-end" spacing={1}>
                     <Grid item xs={8}>
                         <Alert severity="info" sx={{ mb: 2 }}>

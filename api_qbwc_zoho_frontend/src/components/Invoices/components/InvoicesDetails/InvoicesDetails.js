@@ -33,6 +33,10 @@ const InvoicesDetails = () => {
     navigate('/integration/item_details', { state: { item } });
   };
 
+  const handleViewCustomer = (customer) => {
+    navigate('/integration/customer_details', { state: { customer } });
+  };
+
     return (
       <Container maxWidth="lg" sx={{ marginLeft: '1%', marginTop: '1%', transition: 'margin-left 0.3s ease', minWidth:'97%' }}>
       {/* <Container component="main" maxWidth="md" sx={{ mt: 5, p: 3, bgcolor: '#FFFFFF', boxShadow: 3, borderRadius: 2 }}> */}
@@ -72,7 +76,18 @@ const InvoicesDetails = () => {
                                   </TableRow>
                                   <TableRow>
                                       <TableCell component="th" scope="row">Customer</TableCell>
-                                      <TableCell><b>{invoice.customer_name}</b></TableCell>
+                                      <TableCell>
+                                            <TableRow>
+                                                <TableCell>
+                                                    <b>{invoice.customer_name}</b>
+                                                </TableCell>
+                                                <TableCell>
+                                                    <Button variant="contained" color="info" size="small" onClick={() => handleViewCustomer(invoice.customer_id)} >
+                                                        View
+                                                    </Button>
+                                                </TableCell>
+                                            </TableRow>
+                                      </TableCell>
                                   </TableRow>
                                   <TableRow>
                                       <TableCell component="th" scope="row">Date</TableCell>

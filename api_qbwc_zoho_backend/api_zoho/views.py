@@ -9,6 +9,7 @@ from django.db.models import Q, Count
 from django.db.models.functions import TruncMonth, TruncDate
 import requests
 import os
+import re
 import logging
 import json
 from django.urls import reverse
@@ -18,7 +19,7 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import ensure_csrf_cookie
 from datetime import datetime, timezone, timedelta
 from .models import AppConfig, ZohoLoading
-from .forms import ApiZohoForm, LoginForm, AppConfigForm
+from .forms import AppConfigForm
 from .backup_db import create_backup
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
@@ -458,5 +459,44 @@ def download_backup_db(request):
         backup_dir = settings.PATH_FROM_BACKUP_DB
         files = os.listdir(backup_dir)
         files.sort(reverse=True)
-        return JsonResponse({'backups': files}, status=200)
+        pattern = r"backup_(\d{8})_(\d{6})\.(\w+)"
+        list_of_files = []
+        
+        for file in files:
+        
+            match = re.search(pattern, file)
+
+            if match:
+                date_str = match.group(1)  
+                time_str = match.group(2)  
+                file_type = match.group(3)
+                
+                # Convertir las cadenas de fecha y hora en un objeto datetime
+                date_time_str = f"{date_str} {time_str}"
+                date_time_obj = datetime.strptime(date_time_str, '%Y%m%d %H%M%S')
+                
+                file_path = os.path.join(backup_dir, file)
+                file_size = os.path.getsize(file_path)
+                formatted_size = format_size(file_size)
+                
+                list_of_files.append({
+                    'file_name': file,
+                    'date_time': date_time_obj.strftime('%Y-%m-%d %H:%M:%S'),
+                    'file_type': file_type.upper(),
+                    'size': formatted_size
+                })
+        
+        return JsonResponse({'backups': list_of_files}, status=200)
     return JsonResponse({'error': 'Invalid JWT Token'}, status=401)
+
+
+def format_size(size_bytes):
+    """Convierte el tamaño en bytes a KB, MB o GB dependiendo del tamaño."""
+    if size_bytes < 1024:
+        return f"{size_bytes} bytes"
+    elif size_bytes < 1024 ** 2:
+        return f"{size_bytes / 1024:.2f} KB"
+    elif size_bytes < 1024 ** 3:
+        return f"{size_bytes / (1024 ** 2):.2f} MB"
+    else:
+        return f"{size_bytes / (1024 ** 3):.2f} GB"

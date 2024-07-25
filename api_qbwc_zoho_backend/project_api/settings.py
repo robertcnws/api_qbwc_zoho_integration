@@ -259,7 +259,6 @@ USE_TZ = True
 STATIC_URL = '/static/'
 BASE_DIR_STATIC = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BACKUP_DIR = os.path.join(BASE_DIR, 'backup')
-print(BACKUP_DIR)
 
 MEDIA_URL = '/backup/'
 MEDIA_ROOT = BACKUP_DIR

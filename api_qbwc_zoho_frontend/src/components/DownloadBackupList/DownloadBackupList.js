@@ -14,6 +14,7 @@ import {
   Paper, 
   TablePagination, 
   TableSortLabel,
+  TextField,
 } from '@mui/material';
 import { Link } from 'react-router-dom';
 import { EmptyRecordsCell } from '../Utils/components/EmptyRecordsCell/EmptyRecordsCell';
@@ -29,6 +30,7 @@ const DownloadBackupList = () => {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [orderBy, setOrderBy] = useState('');
   const [order, setOrder] = useState('asc');
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
 
@@ -74,10 +76,23 @@ const DownloadBackupList = () => {
       setPage(0);
   };
 
-  const sortedItems = stableSort(backups, getComparatorUndefined(order, orderBy));
+  const handleSearchChange = (event) => {
+      setSearchTerm(event.target.value);
+      setPage(0);
+ };
+
+  const filteredItems = backups.filter(item =>
+    item.date_time.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    item.file_type.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    item.size.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const sortedItems = stableSort(filteredItems, getComparatorUndefined(order, orderBy));
 
   const columns = [
-      { id: 'name', label: 'BackUp Name' },
+      { id: 'date_time', label: 'Date & Time' },
+      { id: 'type', label: 'Type' },
+      { id: 'size', label: 'Size' },
       { id: 'actions', label: 'Actions' }
   ];
 
@@ -85,8 +100,8 @@ const DownloadBackupList = () => {
     <Container
             maxWidth="xl"
             sx={{
-                marginLeft: '-3%',
-                marginTop: '-5%',
+                marginLeft: '1%',
+                marginTop: '0%',
                 transition: 'margin-left 0.3s ease',
                 minHeight: '100vh',
                 minWidth: '82vw',
@@ -104,7 +119,7 @@ const DownloadBackupList = () => {
                         fontWeight: 'bold',
                     }}
                 >
-                    QB Items List
+                    DB BackUps
                 </Typography>
             </Grid>
             <Grid item xs={6} container justifyContent="flex-end" spacing={1}>
@@ -115,10 +130,20 @@ const DownloadBackupList = () => {
                 </Grid>
             </Grid>
             <Grid item xs={12} container justifyContent="flex-end" spacing={1}>
-                <Grid item xs={12}>
+                <Grid item xs={8}>
                     <Alert severity="info" sx={{ mb: 2 }}>
-                        There are {backups.length} items found.
+                        There are {filteredItems.length} items found.
                     </Alert>
+                </Grid>
+                <Grid item xs={4}>
+                    <TextField
+                        label="Search"
+                        variant="outlined"
+                        size="small"
+                        value={searchTerm}
+                        onChange={handleSearchChange}
+                        sx={{ width: '100%', mb: 2 }}
+                    />
                 </Grid>
             </Grid>
             <Grid item xs={12}>
@@ -140,7 +165,7 @@ const DownloadBackupList = () => {
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                        {backups.length === 0 ? (
+                        {filteredItems.length === 0 ? (
                             <EmptyRecordsCell columns={columns} />
                             ) : (
                                 (rowsPerPage > 0
@@ -148,7 +173,9 @@ const DownloadBackupList = () => {
                                             : sortedItems
                                         ).map((item, index) => (
                                             <TableRow key={index} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
-                                                <TableCell>{item}</TableCell>
+                                                <TableCell>{item.date_time}</TableCell>
+                                                <TableCell>{item.file_type}</TableCell>
+                                                <TableCell>{item.size}</TableCell>
                                                 <TableCell>
                                                   <Button variant="contained" onClick={() => downloadBackup(item)} size='small'>Download</Button>
                                                 </TableCell>
@@ -161,7 +188,7 @@ const DownloadBackupList = () => {
                 <TablePagination
                     rowsPerPageOptions={[5, 10, 25, 50]}
                     component="div"
-                    count={backups.length}
+                    count={filteredItems.length}
                     rowsPerPage={rowsPerPage}
                     page={page}
                     onPageChange={handleChangePage}
