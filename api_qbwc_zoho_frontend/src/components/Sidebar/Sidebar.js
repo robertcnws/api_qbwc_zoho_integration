@@ -1,12 +1,13 @@
 import React from 'react';
 import { Container, Box, Typography, List, ListItemButton, ListItemIcon, ListItemText, Divider } from '@mui/material';
 import { Dashboard, People, Receipt, RocketLaunch, Settings, ExpandMore, ExpandLess } from '@mui/icons-material';
+import BackupIcon from '@mui/icons-material/Backup';
 import InventoryIcon from '@mui/icons-material/Inventory';
 import AppsIcon from '@mui/icons-material/Apps';
 import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
 import { Link, useLocation } from 'react-router-dom';
 
-const Sidebar = ({ expanded, toggleSubmenu, handleLogout }) => {
+const Sidebar = ({ expanded, toggleSubmenu, handleLogout, handleDoBackup }) => {
   const location = useLocation();
   const currentPath = location.pathname;
 
@@ -17,6 +18,8 @@ const Sidebar = ({ expanded, toggleSubmenu, handleLogout }) => {
     }
     return false;
   };
+
+  
 
   return (
     <Container maxWidth="lg" sx={{
@@ -74,6 +77,10 @@ const Sidebar = ({ expanded, toggleSubmenu, handleLogout }) => {
             </List>
           </>
         )}
+        <ListItemButton onClick={handleDoBackup}>
+          <ListItemIcon><BackupIcon sx={{ color: '#fff' }} /></ListItemIcon>
+          <ListItemText primary="Backup DB" />
+        </ListItemButton>
       </List>
     </Container>
   );

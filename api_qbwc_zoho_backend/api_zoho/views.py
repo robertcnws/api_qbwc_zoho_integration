@@ -19,6 +19,7 @@ from django.views.decorators.csrf import ensure_csrf_cookie
 from datetime import datetime, timezone, timedelta
 from .models import AppConfig, ZohoLoading
 from .forms import ApiZohoForm, LoginForm, AppConfigForm
+from .backup_db import create_backup
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 from rest_framework.decorators import api_view, permission_classes
@@ -431,4 +432,19 @@ def data_invoice_daily_statistics(request):
         
         return JsonResponse(response_data, safe=False, status=200)
     
+    return JsonResponse({'error': 'Invalid JWT Token'}, status=401)
+
+
+#############################################
+# DO BACKUP DB
+#############################################
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def do_backup_db(request):
+    valid_token = validateJWTTokenRequest(request)
+    if valid_token:
+        if create_backup():
+            return JsonResponse({'message': 'Backup DB started successfully.'}, status=200)
+        return JsonResponse({'error': 'Error creating the backup.'}, status=500)
     return JsonResponse({'error': 'Invalid JWT Token'}, status=401)

@@ -6,6 +6,7 @@ services:
     volumes:
       - ./api_qbwc_zoho_backend:/app
       - ./api_qbwc_zoho_backend/nginx/gunicorn.conf.py:/etc/nginx/gunicorn.conf.py
+      - ./api_qbwc_zoho_backend/local_backup:/app/backup
     ports:
       - "8000:8000"
     environment:
@@ -25,16 +26,16 @@ services:
     depends_on:
       - redis
 
-  # react_app:
-  #   build:
-  #     context: ./api_qbwc_zoho_frontend
-  #   container_name: react_app
-  #   volumes:
-  #     - ./api_qbwc_zoho_frontend/build:/app/build 
-  #   env_file:
-  #     - ./api_qbwc_zoho_frontend/.env
-  #   networks:
-  #     - api_qbwc_zoho_network
+  react_app:
+    build:
+      context: ./api_qbwc_zoho_frontend
+    container_name: react_app
+    volumes:
+      - ./api_qbwc_zoho_frontend/build:/app/build 
+    env_file:
+      - ./api_qbwc_zoho_frontend/.env
+    networks:
+      - api_qbwc_zoho_network
 
   postgres:
     image: postgres:16.0
@@ -66,7 +67,7 @@ services:
       - ./api_qbwc_zoho_frontend/build:/usr/share/nginx/html 
     depends_on:
       - django_app
-      # - react_app
+      - react_app
     networks:
       api_qbwc_zoho_network:
         ipv4_address: 10.1.10.216

@@ -179,6 +179,10 @@ cython_debug/
 */nginx/certificates
 */nginx/nginx_react_django.conf
 
+# backups
+*/local_backup/*
+*/backup/*
+
 # misc
 *.DS_Store
 *.env.local

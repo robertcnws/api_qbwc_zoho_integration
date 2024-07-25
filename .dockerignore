@@ -25,3 +25,5 @@ cython_debug/
 *.env.test.local
 *.env.production.local
 .gitignore
+*/local_backup/*
+*/backup/*

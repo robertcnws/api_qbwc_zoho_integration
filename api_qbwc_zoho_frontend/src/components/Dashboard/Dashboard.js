@@ -15,7 +15,48 @@ const Dashboard = () => {
   const { logout } = useAuth()
   const navigate = useNavigate()
 
-  
+  const handleDoBackup = () => {
+    Swal.fire({
+      title: 'Are you sure?',
+      text: 'Want to do this DB BackUp?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, Do backUp!',
+      cancelButtonText: 'Cancel'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        const fetchData = async () => {
+          try {
+              const url = `${apiUrl}/do_backup_db/`
+              const response = await fetchWithToken(url, 'GET', null, {}, apiUrl);
+              if (response.status === 200) {
+                Swal.fire({
+                  title: 'Success!',
+                  text: 'DB Backup was successful!',
+                  icon: 'success'
+                })
+              } else {
+                Swal.fire({
+                  title: 'Error!',
+                  text: 'DB Backup failed!',
+                  icon: 'error'
+                })
+              }
+          } catch (error) {
+              console.error('Error doing Backup:', error);
+              Swal.fire({
+                title: 'Error!',
+                text: `Error doing Backup: ${error}`,
+                icon: 'error'
+              })
+          } 
+      };
+      fetchData();
+      }
+    });
+  }
 
   const handleLogout = () => {
     Swal.fire({
@@ -62,6 +103,7 @@ const Dashboard = () => {
         expanded={expanded} 
         toggleSubmenu={toggleSubmenu} 
         handleLogout={handleLogout} 
+        handleDoBackup={handleDoBackup}
       />
       <Box 
         sx={{ 
@@ -71,7 +113,7 @@ const Dashboard = () => {
           width: '100%' 
         }}
       >
-        <Topbar handleLogout={handleLogout} />
+        <Topbar handleLogout={handleLogout} handleDoBackup={handleDoBackup}/>
         <Box 
           sx={{ 
             flexGrow: 1, 
