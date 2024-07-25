@@ -30,6 +30,7 @@ import json
 import numpy as np
 import pandas as pd
 import rapidfuzz
+import math
 
 #############################################
 # Configura el logging
@@ -278,12 +279,9 @@ def matching_items(request):
 def matching_customers(request):
     valid_token = api_zoho_views.validateJWTTokenRequest(request)
     if valid_token:
-        global similar_customers
-        similar_customers = []
-        # pattern = r'^[A-Za-z0-9]{8}\d-[A-Za-z0-9]{10}$'
         pattern = r'^[A-Za-z0-9]{8}-[A-Za-z0-9]{10}$'
-        
-        # Usar consultas eficientes con `values` para obtener solo los datos necesarios
+
+        # Obtener datos de clientes
         qb_customers = QbCustomer.objects.filter(matched=False, never_match=False).values_list('list_id', 'name', 'email', 'phone')
         zoho_customers = ZohoCustomer.objects.filter(
             Q(qb_list_id__isnull=True) | Q(qb_list_id='') | ~Q(qb_list_id__regex=pattern)
@@ -298,48 +296,60 @@ def matching_customers(request):
         qb_phones = qb_df['phone'].to_numpy()
         zoho_customers_data = zoho_df[['contact_id', 'customer_name', 'email', 'phone']].to_dict(orient='records')
 
-        # Crear una lista para almacenar los resultados
+        # Tamaño de lote para procesamiento
+        batch_size = 1000
+        num_batches = math.ceil(len(qb_df) / batch_size)
         similar_customers = []
 
-        # Comparar clientes usando `rapidfuzz` para comparación de cadenas
-        for qb_index, (qb_email, qb_phone) in enumerate(zip(qb_emails, qb_phones)):
-            dependences_list = []
-            for zoho_customer_data in zoho_customers_data:
-                zoho_email = zoho_customer_data['email']
-                zoho_phone = zoho_customer_data['phone']
+        try:
+            threshold = float(settings.SEEM_CUSTOMERS)
+        except ValueError:
+            return JsonResponse({'error': 'Invalid SEEM_CUSTOMERS value'}, status=500)
 
-                # Asegurarse de que al menos uno de los dos campos (email o teléfono) no esté vacío
-                if (qb_email or qb_phone) and (zoho_email or zoho_phone):
-                    # Comparar email y teléfono usando `rapidfuzz`
-                    seem_email = rapidfuzz.fuzz.ratio(qb_email, zoho_email) / 100  if qb_email and zoho_email else 0
-                    seem_phone = rapidfuzz.fuzz.ratio(qb_phone, zoho_phone) / 100  if qb_phone and zoho_phone else 0
+        for batch_num in range(num_batches):
+            start_idx = batch_num * batch_size
+            end_idx = min((batch_num + 1) * batch_size, len(qb_df))
+            qb_batch = qb_df.iloc[start_idx:end_idx]
+            qb_emails_batch = qb_emails[start_idx:end_idx]
+            qb_phones_batch = qb_phones[start_idx:end_idx]
 
-                    if (seem_email > float(settings.SEEM_CUSTOMERS) or seem_phone > float(settings.SEEM_CUSTOMERS)):
-                        # Agregar coincidencias a la lista
-                        dependences_list.append({
-                            'zoho_customer_id': zoho_customer_data['contact_id'],
-                            'zoho_customer': zoho_customer_data['customer_name'],
-                            'email': zoho_customer_data['email'],
-                            'seem_email': seem_email,
-                            'coincidence_email': f'{round(seem_email * 100, 2)} %',
-                            'phone': zoho_customer_data['phone'],
-                            'seem_phone': seem_phone,
-                            'coincidence_phone': f'{round(seem_phone * 100, 2)} %'
-                        })
+            for qb_index, (qb_email, qb_phone) in enumerate(zip(qb_emails_batch, qb_phones_batch)):
+                dependences_list = []
+                for zoho_customer_data in zoho_customers_data:
+                    zoho_email = zoho_customer_data['email']
+                    zoho_phone = zoho_customer_data['phone']
 
-            if dependences_list:
-                # Ordenar dependencias por `seem_email`
-                sorted_dependences_list = sorted(dependences_list, key=lambda x: x['seem_email'], reverse=True)
-                similar_customers.append({
-                    'qb_customer_list_id': qb_df.iloc[qb_index]['list_id'],
-                    'qb_customer_name': qb_df.iloc[qb_index]['name'],
-                    'qb_customer_email': qb_email,
-                    'qb_customer_phone': qb_phone,
-                    'coincidences_by_order': sorted_dependences_list
-                })
-        
+                    if (qb_email or qb_phone) and (zoho_email or zoho_phone):
+                        try:
+                            seem_email = rapidfuzz.fuzz.ratio(qb_email, zoho_email) / 100 if qb_email and zoho_email else 0
+                            seem_phone = rapidfuzz.fuzz.ratio(qb_phone, zoho_phone) / 100 if qb_phone and zoho_phone else 0
+
+                            if (seem_email > threshold or seem_phone > threshold):
+                                dependences_list.append({
+                                    'zoho_customer_id': zoho_customer_data['contact_id'],
+                                    'zoho_customer': zoho_customer_data['customer_name'],
+                                    'email': zoho_customer_data['email'],
+                                    'seem_email': seem_email,
+                                    'coincidence_email': f'{round(seem_email * 100, 2)} %',
+                                    'phone': zoho_customer_data['phone'],
+                                    'seem_phone': seem_phone,
+                                    'coincidence_phone': f'{round(seem_phone * 100, 2)} %'
+                                })
+                        except Exception as e:
+                            logger.error(f"Error during similarity comparison: {e}")
+
+                if dependences_list:
+                    sorted_dependences_list = sorted(dependences_list, key=lambda x: x['seem_email'], reverse=True)
+                    similar_customers.append({
+                        'qb_customer_list_id': qb_batch.iloc[qb_index]['list_id'],
+                        'qb_customer_name': qb_batch.iloc[qb_index]['name'],
+                        'qb_customer_email': qb_email,
+                        'qb_customer_phone': qb_phone,
+                        'coincidences_by_order': sorted_dependences_list
+                    })
+
         return JsonResponse(similar_customers, safe=False)
-    
+
     return JsonResponse({'error': 'Invalid JWT Token'}, status=401)
 
 

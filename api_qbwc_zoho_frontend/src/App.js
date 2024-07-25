@@ -22,6 +22,7 @@ import QbwcMatchedCustomersListPage from './components/QbwcCustomers/components/
 import QbwcMatchedItemsListPage from './components/QbwcItems/components/QbwcMatchedItemsListPage/QbwcMatchedItemsListPage';
 import QbwcNeverMatchedItemsListPage from './components/QbwcItems/components/QbwcNeverMatchedItemsListPage/QbwcNeverMatchedItemsListPage';
 import QbwcNeverMatchedCustomersListPage from './components/QbwcCustomers/components/QbwcNeverMatchedCustomersListPage/QbwcNeverMatchedCustomersListPage';
+import DownloadBackupList from './components/DownloadBackupList/DownloadBackupList';
 
 const HomeRedirect = () => {
   const { isAuthenticated } = useAuth();
@@ -61,6 +62,7 @@ const App = () => {
             <Route path="qbwc/customers/matched" element={<QbwcMatchedCustomersListPage />} />
             <Route path="qbwc/items/never_match" element={<QbwcNeverMatchedItemsListPage />} />
             <Route path="qbwc/customers/never_match" element={<QbwcNeverMatchedCustomersListPage />} />
+            <Route path="download_backup_db" element={<DownloadBackupList />} />
           </Route>
         </Routes>
       </Router>

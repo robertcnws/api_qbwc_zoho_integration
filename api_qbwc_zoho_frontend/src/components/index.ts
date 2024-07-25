@@ -14,3 +14,4 @@ export {QbwcGetting} from './QbwcGetting';
 export {CSRFToken} from './CSRFToken';
 export {ContainerFrame} from './ContainerFrame';
 export {DataCharts} from './DataCharts';
+export {DownloadBackup} from './DownloadBackup';

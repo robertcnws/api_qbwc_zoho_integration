@@ -1,6 +1,8 @@
 # project/urls.py
 from django.urls import path  # Importa include
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from django.conf.urls.static import static
+from django.conf import settings
 from . import views
 
 app_name = 'api_zoho'
@@ -17,10 +19,11 @@ urlpatterns = [
     path("get_csrf_token/", views.csrf_token_view, name="get_csrf_token"),
     path("zoho_loading/", views.zoho_loading, name="zoho_loading"),
     path("do_backup_db/", views.do_backup_db, name="do_backup_db"),
+    path("download_backup_db/", views.download_backup_db, name="download_backup_db"),
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('data/data_invoice_historic_statistics/', views.data_invoice_historic_statistics, name='data_invoice_historic_statistics'),
     path('data/data_invoice_monthly_statistics/', views.data_invoice_monthly_statistics, name='data_invoice_monthly_statistics'),
     path('data/data_invoice_daily_statistics/', views.data_invoice_daily_statistics, name='data_invoice_daily_statistics'),
 
-]
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

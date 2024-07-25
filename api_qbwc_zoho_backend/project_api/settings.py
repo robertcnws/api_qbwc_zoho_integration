@@ -62,10 +62,12 @@ DB_HOST = env('DB_HOST_DEV') if ENVIRONMENT == 'DEV' else env('DB_HOST_QA') if E
 DB_PORT = env('DB_PORT')
 DB_ENGINE = env('DB_ENGINE')
 FRONTEND_URL = env('FRONTEND_URL_DEV') if ENVIRONMENT == 'DEV' else env('FRONTEND_URL_QA') if ENVIRONMENT == 'QA' else env('FRONTEND_URL_PROD')
-SEEM_CUSTOMERS=env('SEEM_CUSTOMERS')
-SEEM_ITEMS=env('SEEM_ITEMS')
-ROUTE_TO_BACKUP_DB=env('ROUTE_TO_BACKUP_DB')
-CONTAINER_NAME=env('CONTAINER_NAME')
+SEEM_CUSTOMERS = env('SEEM_CUSTOMERS')
+SEEM_ITEMS = env('SEEM_ITEMS')
+ROUTE_TO_BACKUP_DB = env('ROUTE_TO_BACKUP_DB')
+CONTAINER_NAME = env('CONTAINER_NAME')
+PATH_FROM_BACKUP_DB = env('PATH_FROM_BACKUP_DB_DEV') if ENVIRONMENT == 'DEV' else env('PATH_FROM_BACKUP_DB_QA') if ENVIRONMENT == 'QA' else env('PATH_FROM_BACKUP_DB_PROD')
+PATH_TO_BACKUP_DB = env('PATH_TO_BACKUP_DB')
 
 # CELERY
 CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL', 'redis://localhost:6379/0')
@@ -256,6 +258,12 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 BASE_DIR_STATIC = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+BACKUP_DIR = os.path.join(BASE_DIR, 'backup')
+print(BACKUP_DIR)
+
+MEDIA_URL = '/backup/'
+MEDIA_ROOT = BACKUP_DIR
+
 # print(BASE_DIR_STATIC)
 
 # STATICFILES_DIRS = [
@@ -266,3 +274,6 @@ BASE_DIR_STATIC = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+DATA_UPLOAD_MAX_MEMORY_SIZE = 52428800  # 50 MB en bytes
+

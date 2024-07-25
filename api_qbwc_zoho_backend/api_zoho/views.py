@@ -448,3 +448,15 @@ def do_backup_db(request):
             return JsonResponse({'message': 'Backup DB started successfully.'}, status=200)
         return JsonResponse({'error': 'Error creating the backup.'}, status=500)
     return JsonResponse({'error': 'Invalid JWT Token'}, status=401)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def download_backup_db(request):
+    valid_token = validateJWTTokenRequest(request)
+    if valid_token:
+        backup_dir = settings.PATH_FROM_BACKUP_DB
+        files = os.listdir(backup_dir)
+        files.sort(reverse=True)
+        return JsonResponse({'backups': files}, status=200)
+    return JsonResponse({'error': 'Invalid JWT Token'}, status=401)

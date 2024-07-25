@@ -13,8 +13,8 @@ const ItemsDetails = () => {
   const [item, setItem] = useState(null); 
 
   useEffect(() => {
-      if (location.state.item && location.state.item.fields && location.state.item.fields.item_id) {
-          const itemId = location.state.item.fields.item_id;
+      if (location.state.item) {
+          const itemId = location.state.item.fields ? location.state.item.fields.item_id : location.state.item.item_id;
           const fetchItemDetails = async () => {
               try {
                   const url = `${apiUrl}/api_zoho_items/view_item/${itemId}/`

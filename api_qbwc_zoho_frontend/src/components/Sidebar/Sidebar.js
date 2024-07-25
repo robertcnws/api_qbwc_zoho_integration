@@ -1,6 +1,6 @@
 import React from 'react';
 import { Container, Box, Typography, List, ListItemButton, ListItemIcon, ListItemText, Divider } from '@mui/material';
-import { Dashboard, People, Receipt, RocketLaunch, Settings, ExpandMore, ExpandLess } from '@mui/icons-material';
+import { Dashboard, People, Receipt, RocketLaunch, Settings, ExpandMore, ExpandLess, Download } from '@mui/icons-material';
 import BackupIcon from '@mui/icons-material/Backup';
 import InventoryIcon from '@mui/icons-material/Inventory';
 import AppsIcon from '@mui/icons-material/Apps';
@@ -80,6 +80,10 @@ const Sidebar = ({ expanded, toggleSubmenu, handleLogout, handleDoBackup }) => {
         <ListItemButton onClick={handleDoBackup}>
           <ListItemIcon><BackupIcon sx={{ color: '#fff' }} /></ListItemIcon>
           <ListItemText primary="Backup DB" />
+        </ListItemButton>
+        <ListItemButton component={Link} to="/integration/download_backup_db">
+          <ListItemIcon><Download sx={{ color: '#fff' }} /></ListItemIcon>
+          <ListItemText primary="Download Backup" />
         </ListItemButton>
       </List>
     </Container>

@@ -1,5 +1,4 @@
 import subprocess
-import os
 import logging
 from datetime import datetime
 from django.conf import settings
@@ -16,8 +15,8 @@ pg_password = settings.DB_PASSWORD
 timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
 sql_backup_filename = f"backup_{timestamp}.sql"
 custom_backup_filename = f"backup_{timestamp}.custom"
-backup_path_sql_in_container = f"/app/backup/{sql_backup_filename}"
-backup_path_custom_in_container = f"/app/backup/{custom_backup_filename}"
+backup_path_sql_in_container = f"{settings.PATH_FROM_BACKUP_DB}/{sql_backup_filename}"
+backup_path_custom_in_container = f"{settings.PATH_FROM_BACKUP_DB}/{custom_backup_filename}"
 
 #############################################
 # Configura el logging
@@ -51,8 +50,9 @@ def create_backup():
         subprocess.run(sql_backup_command, check=True, env={'PGPASSWORD': pg_password})
         subprocess.run(custom_backup_command, check=True, env={'PGPASSWORD': pg_password})
         
-        
+        logger.info(f'Backup {sql_backup_filename} and {custom_backup_filename} created successfully')
         return True
+    
     except subprocess.CalledProcessError as e:
-        print(f'Error during backup: {e}')
+        logger.error(f'Error during backup: {e}')
         return False

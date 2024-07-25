@@ -52,6 +52,7 @@ const ItemsList = ({ items }) => {
         localStorage.setItem('itemListPage', page);
         localStorage.setItem('itemListRowsPerPage', rowsPerPage);
         navigate('/integration/item_details', { state: { item } });
+        
     };
 
     const filteredItems = items.filter(item =>

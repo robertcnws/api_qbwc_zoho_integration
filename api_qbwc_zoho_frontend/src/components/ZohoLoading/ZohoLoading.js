@@ -6,7 +6,7 @@ import { fetchWithToken } from '../../utils';
 import axios from 'axios'
 import moment from 'moment'
 
-const apiUrl = process.env.REACT_APP_ENVIRONMENT === 'DEV' ? process.env.REACT_APP_BACKEND_URL_DEV : process.env.REACT_APP_BACKEND_URL_PROD;;
+const apiUrl = process.env.REACT_APP_ENVIRONMENT === 'DEV' ? process.env.REACT_APP_BACKEND_URL_DEV : process.env.REACT_APP_BACKEND_URL_PROD;
 
 const ZohoLoading = () => {
   const [loadingCustomers, setLoadingCustomers] = useState(false);

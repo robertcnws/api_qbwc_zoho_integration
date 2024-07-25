@@ -29,6 +29,10 @@ const InvoicesDetails = () => {
       }
   }, [location.state, navigate]);
 
+  const handleViewItem = (item) => {
+    navigate('/integration/item_details', { state: { item } });
+  };
+
     return (
       <Container maxWidth="lg" sx={{ marginLeft: '1%', marginTop: '1%', transition: 'margin-left 0.3s ease', minWidth:'97%' }}>
       {/* <Container component="main" maxWidth="md" sx={{ mt: 5, p: 3, bgcolor: '#FFFFFF', boxShadow: 3, borderRadius: 2 }}> */}
@@ -96,6 +100,7 @@ const InvoicesDetails = () => {
                                                           <TableRow>
                                                               <TableCell>Item Desc</TableCell>
                                                               <TableCell>Amount</TableCell>
+                                                              <TableCell>Actions</TableCell>
                                                           </TableRow>
                                                       </TableHead>
                                                       <TableBody>
@@ -103,6 +108,16 @@ const InvoicesDetails = () => {
                                                               <TableRow key={index}>
                                                                   <TableCell>{item.description}</TableCell>
                                                                   <TableCell>{item.item_total}</TableCell>
+                                                                  <TableCell>
+                                                                    <Button 
+                                                                        onClick={() => handleViewItem(item)} 
+                                                                        variant="contained" 
+                                                                        color="info" 
+                                                                        size="small"
+                                                                    >
+                                                                        View
+                                                                    </Button>
+                                                                  </TableCell>
                                                               </TableRow>
                                                           ))}
                                                       </TableBody>
