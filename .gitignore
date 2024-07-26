@@ -180,8 +180,8 @@ cython_debug/
 */nginx/nginx_react_django.conf
 
 # backups
-*/local_backup/*
-*/backup/*
+# */local_backup/*
+# */backup/*
 
 # misc
 *.DS_Store

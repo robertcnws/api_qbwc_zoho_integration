@@ -54,9 +54,9 @@ similar_items = []
 #############################################
 
 @csrf_exempt
-def item_query(request):
+def item_query(request, item_type):
     global soap_items
-    return start_qbwc_query_request(request, 'ItemInventory', soap_items)
+    return start_qbwc_query_request(request, item_type, soap_items)
 
 @csrf_exempt
 def customer_query(request):
@@ -89,7 +89,7 @@ def qbwc_items(request, is_never_match):
     valid_token = api_zoho_views.validateJWTTokenRequest(request)
     if valid_token:
         never_match = True if is_never_match == 'true' else False
-        soap_items_query = QbItem.objects.filter(never_match=never_match)
+        soap_items_query = QbItem.objects.filter(never_match=never_match).order_by('name')
         batch_size = 200  
         soap_items = []
         
@@ -110,11 +110,10 @@ def qbwc_customers(request, is_never_match):
     valid_token = api_zoho_views.validateJWTTokenRequest(request)
     if valid_token:
         never_match = True if is_never_match == 'true' else False
-        soap_customers_query = QbCustomer.objects.filter(never_match=never_match)
-        batch_size = 200  # Ajusta este tamaño según tus necesidades
+        soap_customers_query = QbCustomer.objects.filter(never_match=never_match).order_by('name')
+        batch_size = 200  
         soap_customers = []
         
-        # Dividir en partes y procesar cada parte
         for i in range(0, soap_customers_query.count(), batch_size):
             batch = soap_customers_query[i:i + batch_size]
             soap_customers.extend(batch)  # Agregar datos al acumulador
@@ -449,7 +448,7 @@ def matched_invoices(request):
         date_date = parse_date(date_str) if date_str else date.today()
 
         # Agregar filtro de fecha para obtener solo las facturas del día
-        invoices = ZohoFullInvoice.objects.filter(date=date_date)
+        invoices = ZohoFullInvoice.objects.filter(date=date_date).order_by('-invoice_number')
 
         # Calcular estadísticas basadas en las facturas del día
         stats = invoices.aggregate(
@@ -558,8 +557,11 @@ def match_one_customer_ajax(request):
         try:
             qb_list_id = request.POST['qb_customer_list_id']
             zoho_customer_id = request.POST['zoho_customer_id']
-            qb_customer = get_object_or_404(QbCustomer, list_id=qb_list_id)
             zoho_customer = get_object_or_404(ZohoCustomer, contact_id=zoho_customer_id)
+            if qb_list_id != 'UNMATCH':
+                qb_customer = get_object_or_404(QbCustomer, list_id=qb_list_id)
+            elif action != 'match':
+                qb_customer = get_object_or_404(QbCustomer,list_id=zoho_customer.qb_list_id)
             zoho_customer.qb_list_id = qb_list_id if action == 'match' else ''
             zoho_customer.save()
             qb_customer.matched = True if action == 'match' else False
@@ -604,11 +606,11 @@ def start_qbwc_query_request(request, query_object_name, list_of_objects):
                 list_of_objects = [elem for elem in elements_query_rs]
                 logger.info(f"Number of {query_object_name} detected: {len(list_of_objects)}")
 
-                if query_object_name == 'ItemInventory':
+                if query_object_name in ['ItemInventory','ItemSalesTax', 'ItemService']:
                     module = 'items'
                     existing_items_ids = set(QbItem.objects.values_list('list_id', flat=True))
                     items_to_save = [
-                        QbItem(list_id=item['ListID'], name=item.get('Name', ''))
+                        QbItem(list_id=item['ListID'], name=item.get('Name', ''), item_type=query_object_name)
                         for item in list_of_objects
                         if item['ListID'] not in existing_items_ids
                     ]
@@ -688,8 +690,8 @@ def process_qbwc_query_request(xml_data, query_object_name):
             response = soap_service.handle_authenticate(body)
         elif 'sendRequestXML' in body and counter == 0:
             counter += 1
-            if query_object_name == 'ItemInventory':
-                response = soap_service.generate_item_query_response()
+            if query_object_name in ['ItemInventory', 'ItemSalesTax', 'ItemService']:
+                response = soap_service.generate_item_query_response(query_object_name)
             else:
                 response = soap_service.generate_customer_query_response()
         elif 'closeConnection' in body:

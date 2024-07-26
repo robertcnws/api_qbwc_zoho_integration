@@ -37,7 +37,7 @@ const QbwcMatchedItemsListPage = () => {
 
     if (loading) {
         return (
-            <AlertLoading isSmallScreen={isSmallScreen} />
+            <AlertLoading isSmallScreen={isSmallScreen} message='QBWC Matched Items List'/>
         );
     }
 

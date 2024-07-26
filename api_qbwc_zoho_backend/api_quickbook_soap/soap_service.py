@@ -92,11 +92,11 @@ def generate_customer_query_response():
 ################ Item Query ##################
 ##############################################
 
-def generate_item_query_response():
-    data_xml = '''<ItemInventoryQueryRq requestID="2">
+def generate_item_query_response(query_object_name):
+    data_xml = f'''<{query_object_name}QueryRq requestID="2">
                     <IncludeRetElement>ListID</IncludeRetElement>
                     <IncludeRetElement>Name</IncludeRetElement>
-                  </ItemInventoryQueryRq>'''
+                  </{query_object_name}QueryRq>'''
                   
     # data_xml = '''<ItemSalesTaxQueryRq requestID="2">
     #                 <IncludeRetElement>ListID</IncludeRetElement>

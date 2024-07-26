@@ -37,7 +37,7 @@ const QbwcMatchedCustomersListPage = () => {
 
     if (loading) {
         return (
-            <AlertLoading isSmallScreen={isSmallScreen} />
+            <AlertLoading isSmallScreen={isSmallScreen} message='QBWC Matched Customers List'/>
         );
     }
 

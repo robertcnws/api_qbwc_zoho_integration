@@ -33,7 +33,7 @@ const CustomersListPage = () => {
 
     if (loading) {
         return (
-            <AlertLoading isSmallScreen={isSmallScreen} />
+            <AlertLoading isSmallScreen={isSmallScreen} message='Customers List'/>
         );
     }
 

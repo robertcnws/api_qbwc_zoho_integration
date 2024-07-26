@@ -20,7 +20,10 @@ import {
     TablePagination,
     FormControl,
     FormControlLabel,
-    Checkbox
+    Checkbox,
+    InputLabel,
+    Select,
+    MenuItem
 } from '@mui/material';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
@@ -46,6 +49,7 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
     const [rowsPerPage, setRowsPerPage] = useState(10);
     const [orderBy, setOrderBy] = useState('');
     const [order, setOrder] = useState('asc');
+    const [filter, setFilter] = useState('all');
     const navigate = useNavigate();
     
     const today = dayjs();
@@ -85,11 +89,10 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
     }, [filterDate]);
 
 
-    // useEffect(() => {
-    //     localStorage.setItem('invoicesListPage', page);
-    //     localStorage.setItem('invoicesListRowsPerPage', rowsPerPage);
-    //     localStorage.setItem('invoicesListFilterDate', filterDate ? filterDate.format('YYYY-MM-DD') : '');
-    // }, [page, rowsPerPage, filterDate]);
+    const handleFilterChange = event => {
+        setFilter(event.target.value);
+        setPage(0);
+    };
     
 
     const handleViewInvoice = (invoice) => {
@@ -97,7 +100,8 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
         localStorage.setItem('invoicesListRowsPerPage', rowsPerPage);
         localStorage.setItem('invoicesListFilterDate', filterDate ? filterDate.format('YYYY-MM-DD') : '');
         setFilterDate(filterDate);
-        navigate('/integration/invoice_details', { state: { invoice } });
+        const invoices = data.invoices;
+        navigate('/integration/invoice_details', { state: { invoice, invoices, filteredInvoices, filter } });
     };
 
     const handleChangePage = (event, newPage) => {
@@ -241,7 +245,7 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
         if (invoice.fields.customer_unmatched.length > 0 || invoice.fields.items_unmatched.length > 0) {
             return <Typography sx={{ color: 'error.main'}}><b>ERROR</b></Typography>;
         } else if (!invoice.fields.inserted_in_qb && !invoice.fields.customer_unmatched.length > 0 && !invoice.fields.items_unmatched.length > 0) {
-            return <Typography sx={{ color: 'warning.main'}}><b>Not Synced</b></Typography>;
+            return <Typography sx={{ color: 'warning.main'}}><b>Not Processed</b></Typography>;
         } else {
             return <Typography sx={{ color: 'success.main'}}><b>SUCCESS</b></Typography>;
         }
@@ -282,9 +286,18 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
     };
 
     // Ensure that filteredInvoices and sortedItems are updated correctly
-    const filteredInvoices = data.invoices.filter(invoice =>
-        filterBySearchTerm(invoice) && filterByDate(invoice)
-    );
+    const filteredInvoices = data.invoices.filter(invoice => {
+        const matchesSearchTerm = filterBySearchTerm(invoice) && filterByDate(invoice)
+        const notProcessed = !invoice.fields.inserted_in_qb && !invoice.fields.customer_unmatched.length > 0 && !invoice.fields.items_unmatched.length > 0;
+        const notSynced = invoice.fields.customer_unmatched.length > 0 || invoice.fields.items_unmatched.length > 0
+        const synced = invoice.fields.inserted_in_qb;
+            
+        if (filter === 'all') return matchesSearchTerm;
+        if (filter === 'synced') return matchesSearchTerm && synced;
+        if (filter === 'not_synced') return matchesSearchTerm && notSynced;
+
+        else return matchesSearchTerm && notProcessed;
+    });
 
     const sortedInvoices = stableSort(filteredInvoices, getComparator(order, orderBy));
 
@@ -320,7 +333,22 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
                             color: 'info.main',
                             fontWeight: 'bold',
                         }}
-                    >Invoices List</Typography>
+                    >
+                        Invoices List
+                    </Typography>
+                    <FormControl variant="outlined" size="small">
+                        <InputLabel>Filter</InputLabel>
+                        <Select
+                            value={filter}
+                            onChange={handleFilterChange}
+                            label="Filter"
+                        >
+                            <MenuItem value="all">All Invoices</MenuItem>
+                            <MenuItem value="synced">Synced Invoices</MenuItem>
+                            <MenuItem value="not_synced">Not Synced Invoices</MenuItem>
+                            <MenuItem value="not_processed">Not Processed Invoices</MenuItem>
+                        </Select>
+                    </FormControl>
                 </Grid>
                 <Grid item xs={8} container justifyContent="flex-end" spacing={1}>
                     <Grid item xs={3} sx={{ display: 'flex', flexDirection: 'column' }}>
@@ -388,26 +416,11 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
             </Grid>
 
             <Grid container spacing={2} mb={3}>
-                <Grid item xs={3}>
-                    <Alert severity="info" sx={{ fontSize: 'small' }}>
-                        <b>{data.invoices.length}</b> found
-                    </Alert>
-                </Grid>
-                <Grid item xs={3}>
-                    <Alert severity="warning" sx={{ fontSize: 'small' }}>
-                        <b>{configData.unprocessedNumber}</b> not processed
-                    </Alert>
-                </Grid>
-                <Grid item xs={3}>
-                    <Alert severity="success" sx={{ fontSize: 'small' }}>
-                        <b>{configData.matchedNumber}</b> matched
-                    </Alert>
-                </Grid>
-                <Grid item xs={3}>
-                    <Alert severity="error" sx={{ fontSize: 'small' }}>
-                        <b>{configData.unmatchedNumber}</b> unmatched
-                    </Alert>
-                </Grid>
+            <Grid item xs={12}>
+                <Alert severity={filter === 'all' ? 'info' : (filter === 'not_processed' ? 'warning' : (filter === 'synced' ? 'success' : 'error'))} sx={{ fontSize: 'small' }}>
+                    <b>{filteredInvoices.length}</b> {filter === 'all' ? 'Total' : (filter === 'not_processed' ? 'Not Processed' : (filter === 'synced' ? 'Synced' : 'Not Synced'))} invoices found
+                </Alert>
+            </Grid>
             </Grid>
 
             <TableContainer component={Paper} sx={{ mt: 3 }}>
@@ -441,7 +454,7 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
                                         <TableCell>{invoice.fields.invoice_number}</TableCell>
                                         <TableCell>{invoice.fields.customer_name}</TableCell>
                                         <TableCell>{invoice.fields.date}</TableCell>
-                                        <TableCell>{invoice.fields.total}</TableCell>
+                                        <TableCell>$ {invoice.fields.total}</TableCell>
                                         <TableCell align="center">
                                             {renderSyncStatus(invoice)}
                                         </TableCell>

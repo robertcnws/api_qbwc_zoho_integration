@@ -170,7 +170,7 @@ def view_customer(request, customer_id):
 def  list_customers(request):
     valid_token = api_zoho_views.validateJWTTokenRequest(request)
     if valid_token:
-        customers_list_query = ZohoCustomer.objects.all()
+        customers_list_query = ZohoCustomer.objects.all().order_by('contact_name')
         batch_size = 200  # Ajusta este tamaño según tus necesidades
         customers_list = []
         

@@ -160,7 +160,7 @@ def view_item(request, item_id):
 def list_items(request):
     valid_token = api_zoho_views.validateJWTTokenRequest(request)
     if valid_token:
-        items_list_query = ZohoItem.objects.all()
+        items_list_query = ZohoItem.objects.all().order_by('name')
         batch_size = 200  # Ajusta este tamaño según tus necesidades
         items_list = []
         

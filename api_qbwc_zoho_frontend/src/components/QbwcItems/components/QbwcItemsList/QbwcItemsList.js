@@ -17,7 +17,10 @@ import {
   TableSortLabel,
   FormControl,
   FormControlLabel,
-  Checkbox
+  Checkbox,
+  InputLabel,
+  Select,
+  MenuItem
 } from '@mui/material';
 import Swal from 'sweetalert2';
 import { Link } from 'react-router-dom';
@@ -34,6 +37,12 @@ const QbwcItemsList = ({ items, onSyncComplete }) => {
   const [selectedItems, setSelectedItems] = useState([]);
   const [orderBy, setOrderBy] = useState('');
   const [order, setOrder] = useState('asc');
+  const [filter, setFilter] = useState('all');
+
+  const handleFilterChange = event => {
+      setFilter(event.target.value);
+      setPage(0);
+  };
 
   const handleSortChange = (columnId) => {
       const isAsc = orderBy === columnId && order === 'asc';
@@ -70,6 +79,7 @@ const QbwcItemsList = ({ items, onSyncComplete }) => {
   };
 
   const renderForceSyncCheckbox = (item, isSelected) => {
+    if (filter !== 'matched'){
         return (
             <FormControl sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <FormControlLabel sx={{ color: 'warning.main' }}
@@ -83,6 +93,14 @@ const QbwcItemsList = ({ items, onSyncComplete }) => {
                 />
             </FormControl>
         );
+    }
+    else {
+        return (
+            <Alert severity="success" sx={{ mb: 2 }}>
+                Matched
+            </Alert>
+        )
+    }
   };
 
   const handleNeverMatchItems = () => {
@@ -141,10 +159,14 @@ const QbwcItemsList = ({ items, onSyncComplete }) => {
 };
 
 
-  const filteredItems = items.filter(item =>
-      item.fields.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.fields.list_id.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredItems = items.filter(item => {
+      const search = item.fields.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                     item.fields.list_id.toLowerCase().includes(searchTerm.toLowerCase())
+      if (filter === 'all') return search;
+      if (filter === 'matched') return search && item.fields.matched; 
+      if (filter === 'not_matched') return search && !item.fields.matched; 
+      return false;  
+    });
 
   const sortedItems = stableSort(filteredItems, getComparator(order, orderBy));
 
@@ -179,6 +201,19 @@ const QbwcItemsList = ({ items, onSyncComplete }) => {
                 >
                     QB Items List
                 </Typography>
+                <FormControl variant="outlined" size="small">
+                        <InputLabel>Filter</InputLabel>
+                        <Select
+                            value={filter}
+                            onChange={handleFilterChange}
+                            label="Filter"
+                        >
+                            <MenuItem value="all">All Items</MenuItem>
+                            <MenuItem value="matched">Matched Items</MenuItem>
+                            <MenuItem value="not_matched">Not Matched Items</MenuItem>
+
+                        </Select>
+                    </FormControl>
             </Grid>
             <Grid item xs={6} container justifyContent="flex-end" spacing={1}>
                 <Grid item>
@@ -186,11 +221,13 @@ const QbwcItemsList = ({ items, onSyncComplete }) => {
                         Back to QBWC
                     </Button>
                 </Grid>
-                <Grid item>
-                    <Button variant="contained" color="primary" size="small" onClick={handleNeverMatchItems} disabled={filteredItems.length === 0}>
-                        Never match selected
-                    </Button>
-                </Grid>
+                {filter !== 'matched' && (
+                    <Grid item>
+                        <Button variant="contained" color="primary" size="small" onClick={handleNeverMatchItems} disabled={filteredItems.length === 0}>
+                            Never match selected
+                        </Button>
+                    </Grid>
+                )}
             </Grid>
             <Grid item xs={12} container justifyContent="flex-end" spacing={1}>
                 <Grid item xs={8}>

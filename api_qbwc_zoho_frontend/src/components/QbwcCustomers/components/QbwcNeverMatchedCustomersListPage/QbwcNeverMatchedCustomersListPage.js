@@ -37,7 +37,7 @@ const QbwcNeverMatchedCustomersListPage = () => {
 
     if (loading) {
         return (
-            <AlertLoading isSmallScreen={isSmallScreen} />
+            <AlertLoading isSmallScreen={isSmallScreen} message='QBWC Never Matched Customers List'/>
         );
     }
 

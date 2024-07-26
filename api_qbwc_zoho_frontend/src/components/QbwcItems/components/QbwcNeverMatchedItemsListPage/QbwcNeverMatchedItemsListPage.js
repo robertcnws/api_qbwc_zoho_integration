@@ -34,7 +34,7 @@ const QbwcNeverMatchedItemsListPage = () => {
 
     if (loading) {
         return (
-            <AlertLoading isSmallScreen={isSmallScreen} />
+            <AlertLoading isSmallScreen={isSmallScreen} message='QBWC Never Matched Items List'/>
         );
     }
 

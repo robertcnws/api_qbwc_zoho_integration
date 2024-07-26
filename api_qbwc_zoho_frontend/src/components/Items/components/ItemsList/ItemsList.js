@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Grid, Typography, Alert, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, TablePagination, TextField, TableSortLabel } from '@mui/material';
+import { Container, Grid, Typography, Alert, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, TablePagination, TextField, TableSortLabel, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 import { Link, useNavigate } from 'react-router-dom';
 import { stableSort, getComparator } from '../../../../utils';
 import { EmptyRecordsCell } from '../../../Utils/components/EmptyRecordsCell/EmptyRecordsCell';
@@ -10,6 +10,7 @@ const ItemsList = ({ items }) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [orderBy, setOrderBy] = useState('');
     const [order, setOrder] = useState('asc');
+    const [filter, setFilter] = useState('all');
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -51,14 +52,26 @@ const ItemsList = ({ items }) => {
     const handleViewItem = (item) => {
         localStorage.setItem('itemListPage', page);
         localStorage.setItem('itemListRowsPerPage', rowsPerPage);
-        navigate('/integration/item_details', { state: { item } });
+        navigate('/integration/item_details', { state: { item, items, filteredItems, filter } });
         
     };
 
-    const filteredItems = items.filter(item =>
-        item.fields.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.fields.sku.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const handleFilterChange = event => {
+        setFilter(event.target.value);
+        setPage(0);
+    };
+
+    const filteredItems = items.filter(item => {
+
+        const matchesSearchTerm = item.fields.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                                  item.fields.sku.toLowerCase().includes(searchTerm.toLowerCase());
+        
+        if (filter === 'all') return matchesSearchTerm;
+        if (filter === 'matched') return matchesSearchTerm && item.fields.qb_list_id && item.fields.qb_list_id !== "";
+        if (filter === 'unmatched') return matchesSearchTerm && (!item.fields.qb_list_id || item.fields.qb_list_id === "");
+        
+        return matchesSearchTerm;
+    });
 
     const sortedItems = stableSort(filteredItems, getComparator(order, orderBy));
 
@@ -96,16 +109,23 @@ const ItemsList = ({ items }) => {
                     >
                         Items List
                     </Typography>
+                    <FormControl variant="outlined" size="small">
+                        <InputLabel>Filter</InputLabel>
+                        <Select
+                            value={filter}
+                            onChange={handleFilterChange}
+                            label="Filter"
+                        >
+                            <MenuItem value="all">All Items</MenuItem>
+                            <MenuItem value="matched">Matched Items</MenuItem>
+                            <MenuItem value="unmatched">Unmatched Items</MenuItem>
+                        </Select>
+                    </FormControl>
                 </Grid>
                 <Grid item xs={6} container justifyContent="flex-end" spacing={1}>
                     <Grid item>
-                        <Button variant="contained" color="primary" size="small" component={Link} to='/integration/qbwc/items/similar'>
-                            Similar Items
-                        </Button>
-                    </Grid>
-                    <Grid item>
-                        <Button variant="contained" color="success" size="small" component={Link} to='/integration/qbwc/items/matched'>
-                            Matched Items
+                        <Button variant="contained" color="success" size="small" component={Link} to='/integration'>
+                            Back to Integration
                         </Button>
                     </Grid>
                 </Grid>

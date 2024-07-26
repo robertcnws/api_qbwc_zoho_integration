@@ -37,7 +37,7 @@ def view_invoice(request, invoice_id):
 
 @login_required(login_url='login')
 def list_invoices(request):
-    invoice_list_query = ZohoFullInvoice.objects.all()
+    invoice_list_query = ZohoFullInvoice.objects.all().order_by('-invoice_number')
     batch_size = 200  # Ajusta este tamaño según tus necesidades
     invoice_list = []
     

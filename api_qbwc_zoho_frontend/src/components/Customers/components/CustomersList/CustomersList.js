@@ -80,7 +80,7 @@ const CustomersList = ({ customers }) => {
     const handleViewCustomer = (customer) => {
         localStorage.setItem('customerListPage', page);
         localStorage.setItem('customerListRowsPerPage', rowsPerPage);
-        navigate('/integration/customer_details', { state: { customer, filteredCustomers, filter } })
+        navigate('/integration/customer_details', { state: { customer, customers, filteredCustomers, filter } })
     }
 
     const handleSortChange = (columnId) => {
@@ -143,32 +143,13 @@ const CustomersList = ({ customers }) => {
                     </Select>
                 </FormControl>
                 </Grid>
-                {/* <Grid item xs={6} container justifyContent="flex-end" spacing={1}>
-                        <FormControl fullWidth size="small" sx={{ mb: 2 }}>
-                            <InputLabel>Filter</InputLabel>
-                            <Select
-                                value={filter}
-                                onChange={handleFilterChange}
-                                label="Filter"
-                            >
-                                <MenuItem value="all">All Customers</MenuItem>
-                                <MenuItem value="matched">Matched Customers</MenuItem>
-                                <MenuItem value="unmatched">Unmatched Customers</MenuItem>
-                            </Select>
-                        </FormControl>
-                </Grid> */}
-                {/* <Grid item xs={6} container justifyContent="flex-end" spacing={1}>
+                <Grid item xs={6} container justifyContent="flex-end" spacing={1}>
                     <Grid item>
-                        <Button variant="contained" color="primary" size="small" component={Link}  to="/integration/qbwc/customers/similar">
-                            Similar Customers
+                        <Button variant="contained" color="success" size="small" component={Link}  to="/integration">
+                            Back to Integration
                         </Button>
                     </Grid>
-                    <Grid item>
-                        <Button variant="contained" color="success" size="small" component={Link}  to="/integration/qbwc/customers/matched">
-                            Matched Customers
-                        </Button>
-                    </Grid>
-                </Grid> */}
+                </Grid>
                 <Grid item xs={12} container justifyContent="flex-end" spacing={1}>
                     <Grid item xs={8}>
                         <Alert severity="info" sx={{ mb: 2 }}>

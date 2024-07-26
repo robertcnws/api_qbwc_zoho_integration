@@ -18,8 +18,8 @@ const QbwcGetting = () => {
   const handleListItems = () => gettingData('list', 'items', setLoadingItems);
   const handleSimilarCustomers = () => gettingData('similar', 'customers', setLoadingCustomers);
   const handleSimilarItems = () => gettingData('similar', 'items', setLoadingItems);
-  const handleMatchedCustomers = () => gettingData('matched', 'customers', setLoadingCustomers);
-  const handleMatchedItems = () => gettingData('matched', 'items', setLoadingItems);
+//   const handleMatchedCustomers = () => gettingData('matched', 'customers', setLoadingCustomers);
+//   const handleMatchedItems = () => gettingData('matched', 'items', setLoadingItems);
   const handleNeverMatchCustomers = () => gettingData('never_match', 'customers', setLoadingCustomers);
   const handleNeverMatchItems = () => gettingData('never_match', 'items', setLoadingItems);
 
@@ -92,7 +92,7 @@ const QbwcGetting = () => {
                     </Button>
                 </Grid>
             </Grid>
-            <Grid container spacing={2} alignItems="center" justifyContent="center" mb={3}>
+            {/* <Grid container spacing={2} alignItems="center" justifyContent="center" mb={3}>
                 <Grid item xs={6} sx={{ textAlign: 'center' }}>
                     <Button
                         onClick={handleMatchedCustomers}
@@ -117,7 +117,7 @@ const QbwcGetting = () => {
                         {loadingItems ? 'Loading Items...' : 'Matched Items'}
                     </Button>
                 </Grid>
-            </Grid>
+            </Grid> */}
 
             <Grid container spacing={2} alignItems="center" justifyContent="center" mb={3}>
                 <Grid item xs={6} sx={{ textAlign: 'center' }}>

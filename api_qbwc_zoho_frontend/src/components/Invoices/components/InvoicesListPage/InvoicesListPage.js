@@ -45,7 +45,7 @@ const InvoicesListPage = () => {
         fetchInvoices();
     }, [fetchInvoices]); 
 
-    if (loading) return <AlertLoading isSmallScreen={isSmallScreen} />;
+    if (loading) return <AlertLoading isSmallScreen={isSmallScreen} message='Invoices List'/>;
     if (error) return <AlertError isSmallScreen={isSmallScreen} error={error} />;
 
     return (
