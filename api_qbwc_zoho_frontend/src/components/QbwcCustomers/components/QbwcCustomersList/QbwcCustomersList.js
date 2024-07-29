@@ -162,7 +162,9 @@ const QbwcCustomersList = ({ customers, onSyncComplete }) => {
 
   const filteredCustomers = customers.filter(customer => {
       const search = customer.fields.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                     customer.fields.sku.toLowerCase().includes(searchTerm.toLowerCase())
+                     customer.fields.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                     customer.fields.phone.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                     customer.fields.list_id.toLowerCase().includes(searchTerm.toLowerCase())
       if (filter === 'all') return search;
       if (filter === 'matched') return search && customer.fields.matched; 
       if (filter === 'not_matched') return search && !customer.fields.matched; 

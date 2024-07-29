@@ -4,6 +4,7 @@ from api_zoho_invoices.models import ZohoFullInvoice
 from api_zoho_customers.models import ZohoCustomer
 from api_zoho_items.models import ZohoItem
 from datetime import date
+from django.conf import settings
 import logging
 import uuid
 import re
@@ -419,31 +420,27 @@ def generate_invoice_add_response():
             if zoho_customer.qb_list_id:
                 invoices[i].customer_unmatched = []
 
-                street = invoices[i].billing_address['street'] if invoices[i].billing_address['street'] != '' else 'NO STREET'
-                address = invoices[i].billing_address['address'] if invoices[i].billing_address['address'] != '' else 'NO ADDRESS'
-                city = invoices[i].billing_address['city'] if invoices[i].billing_address['city'] != '' else 'NO CITY'
-                state = invoices[i].billing_address['state'] if invoices[i].billing_address['state'] != '' else 'NO STATE'
-                zip_code = invoices[i].billing_address['zip'] if invoices[i].billing_address['zip'] != '' else '00000'
-                terms = invoices[i].terms if invoices[i].terms else 'Net 30'
+                street = invoices[i].billing_address['street'] if invoices[i].billing_address['street'] != '' else ''
+                address = invoices[i].billing_address['address'] if invoices[i].billing_address['address'] != '' else ''
+                city = invoices[i].billing_address['city'] if invoices[i].billing_address['city'] != '' else ''
+                state = invoices[i].billing_address['state'] if invoices[i].billing_address['state'] != '' else ''
+                zip_code = invoices[i].billing_address['zip'] if invoices[i].billing_address['zip'] != '' else ''
+                # terms = invoices[i].terms if invoices[i].terms else 'Net 30'
+                terms = settings.TERMS
 
                 if counter_items_with_list_id == len(invoices[i].line_items):
                     if items_xml != '':
-                        sales_tax_list_id = os.environ.get('SALES_TAX_LIST_ID')
+                        sales_tax_list_id = settings.SALES_TAX_LIST_ID
                         data_xml += f'''<InvoiceAddRq requestID="{i + 2}">
-                                        <InvoiceAdd>
+                                        <InvoiceAdd defMacro="TxnID:NewInvoice">
                                             <CustomerRef>
                                                 <ListID>{zoho_customer.qb_list_id}</ListID>
                                             </CustomerRef>
+                                            <TemplateRef>
+                                                <FullName>{settings.TEMPLATE_INVOICE_NAME}</FullName>
+                                            </TemplateRef>
                                             <TxnDate>{invoices[i].date}</TxnDate>
-                                            <RefNumber>{invoices[i].invoice_number}</RefNumber>
-                                            <BillAddress>
-                                                <Addr1>{street}</Addr1>
-                                                <Addr2>{address}</Addr2>
-                                                <City>{city}</City>
-                                                <State>{state}</State>
-                                                <PostalCode>{zip_code}</PostalCode>
-                                            </BillAddress>
-                                            <PONumber>{invoices[i].invoice_number}</PONumber>
+                                            <PONumber>{invoices[i].reference_number}</PONumber>
                                             <TermsRef>
                                                 <FullName>{terms}</FullName>
                                             </TermsRef>

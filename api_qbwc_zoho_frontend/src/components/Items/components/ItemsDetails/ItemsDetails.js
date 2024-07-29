@@ -20,15 +20,32 @@ import {
     Select,
     MenuItem,
     TablePagination,
-    Box
+    Box,
+    CircularProgress,
+    TextField,
+    styled,
+    InputAdornment,
+    IconButton
 } from '@mui/material';
+import { List, AutoSizer } from 'react-virtualized';
 import { grey } from '@mui/material/colors';
+import ClearIcon from '@mui/icons-material/Clear';
 import Swal from 'sweetalert2';
 import { fetchWithToken } from '../../../../utils';
 import { AlertLoading } from '../../../Utils/components/AlertLoading/AlertLoading';
 import { AlertError } from '../../../Utils/components/AlertError/AlertError';
 
-const apiUrl = process.env.REACT_APP_ENVIRONMENT === 'DEV' ? process.env.REACT_APP_BACKEND_URL_DEV : process.env.REACT_APP_BACKEND_URL_PROD;;
+const apiUrl = process.env.REACT_APP_ENVIRONMENT === 'DEV' ? process.env.REACT_APP_BACKEND_URL_DEV : process.env.REACT_APP_BACKEND_URL_PROD;
+
+const StyledMenuItem = styled(MenuItem)({
+    // Estilos personalizados
+    backgroundColor: '#f0f0f0',
+    '&:hover': {
+      backgroundColor: '#d0d0d0',
+    },
+    padding: '10px 20px',
+    borderBottom: '1px solid #e0e0e0',
+  });
 
 const ItemsDetails = () => {
   const navigate = useNavigate();
@@ -41,6 +58,11 @@ const ItemsDetails = () => {
   const [error, setError] = useState(null);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [qbItems, setQbItems] = useState([]);
+  const [qbSelectedItem, setQbSelectedItem] = useState(null); 
+  const [filteredQbItems, setFilteredQbItems] = useState([]);
+  const [searchTermQbItems, setSearchTermQbItems] = useState('');
+  const [showListQbItems, setShowListQbItems] = useState(true);
   const theme = useTheme();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
 
@@ -81,8 +103,60 @@ const ItemsDetails = () => {
       }
   }, [location.state, navigate]);
 
-    const handleMatchItem = (item_id, qb_item_list_id) => {
-        const action = qb_item_list_id !== 'UNMATCH' ? 'match' : 'unmatch';
+  useEffect(() => {
+    const qbFetchItems = async () => {
+        try {
+            const isNeverMatch = 'not_matched';
+            const url = `${apiUrl}/api_quickbook_soap/qbwc_items/${isNeverMatch}`;
+            const response = await fetchWithToken(url, 'GET', null, {}, apiUrl);
+            const jsonData = JSON.parse(response.data); 
+            setQbItems(jsonData);  
+        } catch (error) {
+            console.error('Error fetching qb items:', error);
+            setError(`Failed to fetch qn items: ${error}`);
+        } finally {
+            setLoading(false);
+        }
+    };
+    qbFetchItems();
+  }, []);
+
+  useEffect(() => {
+    const filtered = qbItems.filter(qbItem => qbItem.fields.name.toLowerCase().includes(searchTermQbItems.toLowerCase()));
+    setFilteredQbItems(filtered);
+    if (filtered.length === 0) {
+        setShowListQbItems(false);
+    }
+    else {
+        setShowListQbItems(true);
+    }
+  }, [searchTermQbItems, qbItems]);
+
+  const handleSelectQbItem = (qbItem) => {
+    setSearchTermQbItems(`${qbItem.fields.name} (ID: ${qbItem.fields.list_id})`);
+    setQbSelectedItem(qbItem);
+  };
+
+  const handleSearchQbItem = (e) => {
+    setQbSelectedItem(null);
+    setSearchTermQbItems(e.target.value);
+  };
+
+  const handleClearSearch = () => {
+    setQbSelectedItem(null);
+    setSearchTermQbItems("");
+};
+
+  const rowRenderer = ({ key, index, style }) => {
+    const item = filteredQbItems[index];
+    return (
+      <StyledMenuItem key={key} style={style} value={item.fields.list_id} onClick={() => handleSelectQbItem(item)}>
+        {item.fields.name}
+      </StyledMenuItem>
+    );
+  };
+
+    const handleMatchItem = (item_id, qb_item_list_id, action) => {
         Swal.fire({
             title: 'Are you sure?',
             text: `Do you want to ${action} this item?`,
@@ -209,7 +283,7 @@ const ItemsDetails = () => {
                   </Grid>
                   <Grid item xs={6} container>
                       <Button variant="contained" color="success" size="small" onClick={() => navigate(-1)}>
-                          Back to list
+                          Back to List
                       </Button>
                   </Grid>
               </Grid>
@@ -286,12 +360,17 @@ const ItemsDetails = () => {
                             Item Details
                         </Typography>
                     </Grid>
-                    <Grid item xs={6}>
-                        <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-                            <Button variant="contained" color="success" size="small" onClick={() => navigate(-1)}>
-                                Back to list
-                            </Button>
-                        </Box>
+                    <Grid item xs={6} container justifyContent="flex-end" spacing={1}>
+                            <Grid item>
+                                    <Button variant="contained" color="primary" size="small" onClick={() => navigate(-1)}>
+                                        Back
+                                    </Button>
+                            </Grid>
+                            <Grid item>
+                                    <Button variant="contained" color="success" size="small" onClick={() => navigate("/integration/list_items")}>
+                                        Return to list
+                                    </Button>
+                            </Grid>
                     </Grid>
                     <Grid item container xs={12} spacing={1} sx={{ minHeight: 700, maxHeight: 700 }}>
                         <TableContainer component={Paper} sx={{ minHeight: 700, maxHeight: 700 }}>
@@ -344,7 +423,7 @@ const ItemsDetails = () => {
                                                                             variant="contained" 
                                                                             color="info" 
                                                                             size="small"
-                                                                            onClick={() => handleMatchItem(item.item_id, coincidence.qb_item_list_id)}>
+                                                                            onClick={() => handleMatchItem(item.item_id, coincidence.qb_item_list_id, 'match')}>
                                                                             Match
                                                                         </Button>
                                                                     </TableCell>
@@ -368,7 +447,7 @@ const ItemsDetails = () => {
                                                         variant="contained" 
                                                         color="error" 
                                                         size="small"
-                                                        onClick={() => handleMatchItem(item.item_id, 'UNMATCH')}>
+                                                        onClick={() => handleMatchItem(item.item_id, item.qb_list_id, 'unmatch')}>
                                                         UnMatch
                                                     </Button>
                                                 </Grid>
@@ -384,6 +463,73 @@ const ItemsDetails = () => {
                                             )}
                                         </TableCell>
                                     </TableRow>
+                                    {!item.matched ? (
+                                    <TableRow>
+                                        <TableCell 
+                                        component="th" 
+                                        scope="row" 
+                                        sx={{ width: '150px', maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis' }}
+                                        >
+                                            Item Matching
+                                        </TableCell>
+
+                                        <TableCell>
+                                            <FormControl variant="outlined" size="small" style={{ width: '100%' }}>
+                                                <TextField
+                                                    label={"Search QB Items (" + filteredQbItems.length + ")"}
+                                                    variant="outlined"
+                                                    fullWidth
+                                                    value={searchTermQbItems}
+                                                    onChange={handleSearchQbItem}
+                                                    InputProps={{
+                                                        endAdornment: (
+                                                            <>
+                                                                {loading && <CircularProgress size={20} />}
+                                                                <InputAdornment position="end">
+                                                                    <IconButton
+                                                                        onClick={handleClearSearch}
+                                                                        edge="end"
+                                                                    >
+                                                                        <ClearIcon />
+                                                                    </IconButton>
+                                                                </InputAdornment>
+                                                            </>
+                                                        ),
+                                                        placeholder: undefined
+                                                    }}
+                                                    placeholder=''
+                                                />
+                                                {showListQbItems && (
+                                                    <div style={{ height: 100, width: '100%' }}>
+                                                        <AutoSizer>
+                                                        {({ height, width }) => (
+                                                            <List
+                                                            width={width}
+                                                            height={height}
+                                                            rowCount={filteredQbItems.length}
+                                                            rowHeight={50}
+                                                            rowRenderer={rowRenderer}
+                                                            />
+                                                        )}
+                                                        </AutoSizer>
+                                                    </div>
+                                                )}
+                                                <Grid item>
+                                                    <br/>
+                                                    <Button 
+                                                        variant="contained" 
+                                                        color="info" 
+                                                        size="small"
+                                                        onClick={() => handleMatchItem(item.item_id, qbSelectedItem ? qbSelectedItem.fields.list_id : '', 'match')}
+                                                        disabled={qbSelectedItem === null}
+                                                    >
+                                                        Match
+                                                    </Button>
+                                                </Grid>
+                                            </FormControl>
+                                        </TableCell>
+                                    </TableRow>
+                                ) : null}
                                 </TableBody>
                             </Table>
                         </TableContainer>

@@ -144,8 +144,10 @@ const QbwcNeverMatchedCustomersList = ({ customers, onSyncComplete }) => {
 
 
   const filteredCustomers = customers.filter(customer =>
-      customer.fields.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      customer.fields.sku.toLowerCase().includes(searchTerm.toLowerCase())
+        customer.fields.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        customer.fields.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        customer.fields.phone.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        customer.fields.list_id.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const sortedCustomers = stableSort(filteredCustomers, getComparator(order, orderBy));

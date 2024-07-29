@@ -88,8 +88,9 @@ def qbwc_items(request, is_never_match):
     
     valid_token = api_zoho_views.validateJWTTokenRequest(request)
     if valid_token:
-        never_match = True if is_never_match == 'true' else False
-        soap_items_query = QbItem.objects.filter(never_match=never_match).order_by('name')
+        never_match = True if is_never_match == 'true' else False if is_never_match == 'false' else None
+        soap_items_query = QbItem.objects.filter(never_match=never_match).order_by('name') \
+                          if never_match is not None else QbItem.objects.filter(never_match=False,matched=False).order_by('name')
         batch_size = 200  
         soap_items = []
         
@@ -109,8 +110,9 @@ def qbwc_customers(request, is_never_match):
     
     valid_token = api_zoho_views.validateJWTTokenRequest(request)
     if valid_token:
-        never_match = True if is_never_match == 'true' else False
-        soap_customers_query = QbCustomer.objects.filter(never_match=never_match).order_by('name')
+        never_match = True if is_never_match == 'true' else False if is_never_match == 'false' else None
+        soap_customers_query = QbCustomer.objects.filter(never_match=never_match).order_by('name') \
+                               if never_match is not None else QbCustomer.objects.filter(never_match=False,matched=False).order_by('name')
         batch_size = 200  
         soap_customers = []
         
@@ -227,7 +229,7 @@ def matching_items(request):
         pattern = r'^[A-Za-z0-9]{8}-[A-Za-z0-9]{10}$'
 
         # Usar consultas eficientes con `values` y `annotate`
-        qb_items = QbItem.objects.filter(matched=False, never_match=False).values_list('list_id', 'name')
+        qb_items = QbItem.objects.filter(matched=False, never_match=False).values_list('list_id', 'name').order_by('name')
         zoho_items = ZohoItem.objects.filter(
             Q(qb_list_id__isnull=True) | Q(qb_list_id='') | ~Q(qb_list_id__regex=pattern)
         ).values_list('item_id', 'name', 'sku', 'qb_list_id')
@@ -281,19 +283,20 @@ def matching_customers(request):
         pattern = r'^[A-Za-z0-9]{8}-[A-Za-z0-9]{10}$'
 
         # Obtener datos de clientes
-        qb_customers = QbCustomer.objects.filter(matched=False, never_match=False).values_list('list_id', 'name', 'email', 'phone')
+        qb_customers = QbCustomer.objects.filter(matched=False, never_match=False).values_list('list_id', 'name', 'email', 'phone').order_by('name')
         zoho_customers = ZohoCustomer.objects.filter(
             Q(qb_list_id__isnull=True) | Q(qb_list_id='') | ~Q(qb_list_id__regex=pattern)
-        ).values_list('contact_id', 'customer_name', 'email', 'phone')
+        ).values_list('contact_id', 'customer_name', 'email', 'phone', 'company_name')
+        logger.info(f"Length Zoho customers: {len(zoho_customers)}")
 
         # Convertir a DataFrames de Pandas
         qb_df = pd.DataFrame(list(qb_customers), columns=['list_id', 'name', 'email', 'phone'])
-        zoho_df = pd.DataFrame(list(zoho_customers), columns=['contact_id', 'customer_name', 'email', 'phone'])
+        zoho_df = pd.DataFrame(list(zoho_customers), columns=['contact_id', 'customer_name', 'email', 'phone', 'company_name'])
 
         # Preparar arrays para comparación
         qb_emails = qb_df['email'].to_numpy()
         qb_phones = qb_df['phone'].to_numpy()
-        zoho_customers_data = zoho_df[['contact_id', 'customer_name', 'email', 'phone']].to_dict(orient='records')
+        zoho_customers_data = zoho_df[['contact_id', 'customer_name', 'email', 'phone', 'company_name']].to_dict(orient='records')
 
         # Tamaño de lote para procesamiento
         batch_size = 1000
@@ -327,6 +330,7 @@ def matching_customers(request):
                                 dependences_list.append({
                                     'zoho_customer_id': zoho_customer_data['contact_id'],
                                     'zoho_customer': zoho_customer_data['customer_name'],
+                                    'zoho_company_name': zoho_customer_data['company_name'],
                                     'email': zoho_customer_data['email'],
                                     'seem_email': seem_email,
                                     'coincidence_email': f'{round(seem_email * 100, 2)} %',
@@ -551,17 +555,15 @@ def match_one_item_ajax(request):
 @permission_classes([IsAuthenticated])
 def match_one_customer_ajax(request):
     valid_token = api_zoho_views.validateJWTTokenRequest(request)
+    logger.info(f"Request: {request}")
     if valid_token:
         action = request.POST['action']
-        print(f"Action: {action}")
+        logger.info(f"Action: {action}")
         try:
             qb_list_id = request.POST['qb_customer_list_id']
             zoho_customer_id = request.POST['zoho_customer_id']
+            qb_customer = get_object_or_404(QbCustomer,list_id=qb_list_id)
             zoho_customer = get_object_or_404(ZohoCustomer, contact_id=zoho_customer_id)
-            if qb_list_id != 'UNMATCH':
-                qb_customer = get_object_or_404(QbCustomer, list_id=qb_list_id)
-            elif action != 'match':
-                qb_customer = get_object_or_404(QbCustomer,list_id=zoho_customer.qb_list_id)
             zoho_customer.qb_list_id = qb_list_id if action == 'match' else ''
             zoho_customer.save()
             qb_customer.matched = True if action == 'match' else False

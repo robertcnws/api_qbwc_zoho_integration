@@ -20,16 +20,33 @@ import {
     Box,
     useMediaQuery, 
     useTheme, 
-    TablePagination
+    TablePagination,
+    CircularProgress,
+    TextField,
+    styled,
+    InputAdornment,
+    IconButton
 } from '@mui/material';
 import { grey } from '@mui/material/colors';
+import ClearIcon from '@mui/icons-material/Clear';
 import Swal from 'sweetalert2';
+import { List, AutoSizer } from 'react-virtualized';
 import { fetchWithToken } from '../../../../utils';
 import { AlertLoading } from '../../../Utils/components/AlertLoading/AlertLoading';
 import { AlertError } from '../../../Utils/components/AlertError/AlertError';
 import '../CustomersDetails/css/customScrollbar.css';
 
-const apiUrl = process.env.REACT_APP_ENVIRONMENT === 'DEV' ? process.env.REACT_APP_BACKEND_URL_DEV : process.env.REACT_APP_BACKEND_URL_PROD;;
+const apiUrl = process.env.REACT_APP_ENVIRONMENT === 'DEV' ? process.env.REACT_APP_BACKEND_URL_DEV : process.env.REACT_APP_BACKEND_URL_PROD;
+
+const StyledMenuItem = styled(MenuItem)({
+    // Estilos personalizados
+    backgroundColor: '#f0f0f0',
+    '&:hover': {
+      backgroundColor: '#d0d0d0',
+    },
+    padding: '10px 20px',
+    borderBottom: '1px solid #e0e0e0',
+  });
 
 const CustomersDetails = () => {
   const navigate = useNavigate();
@@ -42,6 +59,11 @@ const CustomersDetails = () => {
   const [error, setError] = useState(null);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [qbCustomers, setQbCustomers] = useState([]);
+  const [qbSelectedCustomer, setQbSelectedCustomer] = useState(null); 
+  const [filteredQbCustomers, setFilteredQbCustomers] = useState([]);
+  const [searchTermQbCustomers, setSearchTermQbCustomers] = useState('');
+  const [showListQbCustomers, setShowListQbCustomers] = useState(true);
   const theme = useTheme();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
 
@@ -82,8 +104,62 @@ const CustomersDetails = () => {
       }
   }, [location.state, navigate]);
 
-    const handleMatchCustomer = (contact_id, qb_customer_list_id) => {
-        const action = qb_customer_list_id !== 'UNMATCH' ? 'match' : 'unmatch';
+
+  useEffect(() => {
+    const qbFetchCustomers = async () => {
+        try {
+            const isNeverMatch = 'not_matched';
+            const url = `${apiUrl}/api_quickbook_soap/qbwc_customers/${isNeverMatch}`;
+            const response = await fetchWithToken(url, 'GET', null, {}, apiUrl);
+            const jsonData = JSON.parse(response.data); 
+            setQbCustomers(jsonData);  
+        } catch (error) {
+            console.error('Error fetching qb customers:', error);
+            setError(`Failed to fetch qn customers: ${error}`);
+        } finally {
+            setLoading(false);
+        }
+    };
+    qbFetchCustomers();
+  }, []);
+
+
+  useEffect(() => {
+    const filtered = qbCustomers.filter(qbCustomer => qbCustomer.fields.name.toLowerCase().includes(searchTermQbCustomers.toLowerCase()));
+    setFilteredQbCustomers(filtered);
+    if (filtered.length === 0) {
+        setShowListQbCustomers(false);
+    }
+    else {
+        setShowListQbCustomers(true);
+    }
+  }, [searchTermQbCustomers, qbCustomers]);
+
+  const handleSelectQbCustomer = (qbCustomer) => {
+    setSearchTermQbCustomers(`${qbCustomer.fields.name} (ID: ${qbCustomer.fields.list_id})`);
+    setQbSelectedCustomer(qbCustomer);
+  };
+
+  const handleSearchQbCustomer = (e) => {
+    setQbSelectedCustomer(null);
+    setSearchTermQbCustomers(e.target.value);
+  };
+
+  const handleClearSearch = () => {
+    setQbSelectedCustomer(null);
+    setSearchTermQbCustomers("");
+};
+
+  const rowRenderer = ({ key, index, style }) => {
+    const customer = filteredQbCustomers[index];
+    return (
+      <StyledMenuItem key={key} style={style} value={customer.fields.list_id} onClick={() => handleSelectQbCustomer(customer)}>
+        {customer.fields.name}
+      </StyledMenuItem>
+    );
+  };
+
+    const handleMatchCustomer = (contact_id, qb_customer_list_id, action) => {
         Swal.fire({
             title: 'Are you sure?',
             text: `Do you want to ${action} this customer?`,
@@ -284,12 +360,17 @@ const CustomersDetails = () => {
                             Customer Details
                         </Typography>
                     </Grid>
-                    <Grid item xs={6}>
-                        <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-                            <Button variant="contained" color="success" size="small" onClick={() => navigate(-1)}>
-                                Back to list
+                    <Grid item xs={6} container justifyContent="flex-end" spacing={1}>
+                        <Grid item>
+                            <Button variant="contained" color="primary" size="small" onClick={() => navigate(-1)}>
+                                Back
                             </Button>
-                        </Box>
+                        </Grid>
+                        <Grid item>
+                            <Button variant="contained" color="success" size="small" onClick={() => navigate("/integration/list_customers")}>
+                                Return to list
+                            </Button>
+                        </Grid>
                     </Grid>
                   </Grid>
                   <Grid item container xs={12} spacing={1} sx={{ minHeight: 700, maxHeight: 700 }}>
@@ -413,7 +494,7 @@ const CustomersDetails = () => {
                                                                     variant="contained" 
                                                                     color="info" 
                                                                     size="small"
-                                                                    onClick={() => handleMatchCustomer(customer.contact_id, coincidence.qb_customer_list_id)}>
+                                                                    onClick={() => handleMatchCustomer(customer.contact_id, coincidence.qb_customer_list_id, 'match')}>
                                                                     Match
                                                                 </Button>
                                                             </TableCell>
@@ -423,7 +504,7 @@ const CustomersDetails = () => {
                                             </Table>
                                         </TableContainer>
                                     ) : customer.matched ? (
-                                        <Grid item xs={12}>
+                                        <Grid item>
                                             <Alert severity="success"
                                                 style={{ 
                                                     fontSize: '0.80rem',  
@@ -437,7 +518,7 @@ const CustomersDetails = () => {
                                                 variant="contained" 
                                                 color="error" 
                                                 size="small"
-                                                onClick={() => handleMatchCustomer(customer.contact_id, 'UNMATCH')}>
+                                                onClick={() => handleMatchCustomer(customer.contact_id, customer.qb_list_id, 'unmatch')}>
                                                 UnMatch
                                             </Button>
                                         </Grid>
@@ -453,6 +534,73 @@ const CustomersDetails = () => {
                                     )}
                                       </TableCell>
                                   </TableRow>
+                                  {!customer.matched ? (
+                                    <TableRow>
+                                        <TableCell 
+                                        component="th" 
+                                        scope="row" 
+                                        sx={{ width: '150px', maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis' }}
+                                        >
+                                            Custom Matching
+                                        </TableCell>
+
+                                        <TableCell>
+                                            <FormControl variant="outlined" size="small" style={{ width: '100%' }}>
+                                                <TextField
+                                                    label={"Search QB Customers (" + filteredQbCustomers.length + ")"}
+                                                    variant="outlined"
+                                                    fullWidth
+                                                    value={searchTermQbCustomers}
+                                                    onChange={handleSearchQbCustomer}
+                                                    InputProps={{
+                                                        endAdornment: (
+                                                            <>
+                                                                {loading && <CircularProgress size={20} />}
+                                                                <InputAdornment position="end">
+                                                                    <IconButton
+                                                                        onClick={handleClearSearch}
+                                                                        edge="end"
+                                                                    >
+                                                                        <ClearIcon />
+                                                                    </IconButton>
+                                                                </InputAdornment>
+                                                            </>
+                                                        ),
+                                                        placeholder: undefined
+                                                    }}
+                                                    placeholder=''
+                                                />
+                                                {showListQbCustomers && (
+                                                    <div style={{ height: 100, width: '100%' }}>
+                                                        <AutoSizer>
+                                                        {({ height, width }) => (
+                                                            <List
+                                                            width={width}
+                                                            height={height}
+                                                            rowCount={filteredQbCustomers.length}
+                                                            rowHeight={50}
+                                                            rowRenderer={rowRenderer}
+                                                            />
+                                                        )}
+                                                        </AutoSizer>
+                                                    </div>
+                                                )}
+                                                <Grid item>
+                                                    <br/>
+                                                    <Button 
+                                                        variant="contained" 
+                                                        color="info" 
+                                                        size="small"
+                                                        onClick={() => handleMatchCustomer(customer.contact_id, qbSelectedCustomer ? qbSelectedCustomer.fields.list_id : '', 'match')}
+                                                        disabled={qbSelectedCustomer === null}
+                                                    >
+                                                        Match
+                                                    </Button>
+                                                </Grid>
+                                            </FormControl>
+                                        </TableCell>
+                                    </TableRow>
+                                ) : null}
                               </TableBody>
                           </Table>
                       </TableContainer>

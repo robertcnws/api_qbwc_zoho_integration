@@ -264,12 +264,17 @@ if (error) {
                                 Invoice Details
                             </Typography>
                         </Grid>
-                        <Grid item xs={6}>
-                            <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-                                <Button variant="contained" color="success" size="small" onClick={() => navigate(-1)}>
-                                    Back to list
+                        <Grid item xs={6} container justifyContent="flex-end" spacing={1}>
+                            <Grid item>
+                                <Button variant="contained" color="primary" size="small" onClick={() => navigate(-1)}>
+                                    Back
                                 </Button>
-                            </Box>
+                            </Grid>
+                            <Grid item>
+                                <Button variant="contained" color="success" size="small" onClick={() => navigate("/integration/list_invoices")}>
+                                    Return to list
+                                </Button>
+                            </Grid>
                         </Grid>
                     </Grid>
                     <Grid item container xs={12} spacing={1} sx={{ minHeight: 700, maxHeight: 700 }}>
@@ -324,7 +329,8 @@ if (error) {
                                                     <Table aria-label="coincidences table" size="small">
                                                         <TableHead sx={{ backgroundColor: '#e0e0e0' }}>
                                                             <TableRow>
-                                                                <TableCell>Item Desc</TableCell>
+                                                                <TableCell>Item Name</TableCell>
+                                                                <TableCell>Item SKU</TableCell>
                                                                 <TableCell>Amount</TableCell>
                                                                 <TableCell>Actions</TableCell>
                                                             </TableRow>
@@ -332,7 +338,8 @@ if (error) {
                                                         <TableBody>
                                                             {invoice.line_items.map((item, index) => (
                                                                 <TableRow key={index}>
-                                                                    <TableCell sx={{ width: '70%', maxWidth: '70%', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.description}</TableCell>
+                                                                    <TableCell sx={{ width: '40%', maxWidth: '70%', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.name ? item.name : '---'}</TableCell>
+                                                                    <TableCell sx={{ width: '30%', maxWidth: '70%', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.sku ? item.sku : '---'}</TableCell>
                                                                     <TableCell sx={{ width: '20%', maxWidth: '20%', overflow: 'hidden', textOverflow: 'ellipsis' }}>$ {item.item_total}</TableCell>
                                                                     <TableCell>
                                                                         <Button 

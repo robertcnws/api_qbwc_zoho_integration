@@ -234,7 +234,7 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
     const getBackgroundColor = (invoice) => {
         if (invoice.fields.customer_unmatched.length > 0 || invoice.fields.items_unmatched.length > 0) {
             return 'rgba(255, 0, 0, 0.1)';
-        } else if (invoice.inserted_in_qb) {
+        } else if (invoice.fields.inserted_in_qb) {
             return 'rgba(0, 255, 0, 0.1)';
         } else {
             return 'rgba(255, 255, 0, 0.1)';

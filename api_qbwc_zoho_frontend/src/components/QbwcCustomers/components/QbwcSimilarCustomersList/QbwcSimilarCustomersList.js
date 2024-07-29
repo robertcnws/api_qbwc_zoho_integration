@@ -124,7 +124,9 @@ const QbwcSimilarCustomersList = ({ similarCustomers, onSyncComplete }) => {
                 {customer.qb_customer_phone}
             </TableCell>
           <TableCell style={{ backgroundColor: subIndex === 0 ? '#f8d7da' : '' }}>
-            {coincidence.zoho_customer} <br /> (ID: {coincidence.zoho_customer_id})
+            Name: <b>{coincidence.zoho_customer}</b><br /> 
+            Company Name: <b>{coincidence.zoho_company_name ? `${coincidence.zoho_company_name}` : '---'}</b><br />
+            (ID: <b>{coincidence.zoho_customer_id}</b>)
           </TableCell>
           <TableCell style={{ backgroundColor: subIndex === 0 ? '#f8d7da' : '' }}>
             {coincidence.email ? (
