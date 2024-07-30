@@ -241,7 +241,7 @@ if (error) {
                                 <ListSubheader>
                                     <Box>
                                         <TextField
-                                            label="Search Item"
+                                            label="Search Invoice"
                                             variant="outlined"
                                             size="small"
                                             value={searchSelectTerm}

@@ -335,7 +335,7 @@ const CustomersDetails = () => {
                                 <ListSubheader>
                                     <Box>
                                         <TextField
-                                            label="Search Item"
+                                            label="Search Customer"
                                             variant="outlined"
                                             size="small"
                                             value={searchSelectTerm}
