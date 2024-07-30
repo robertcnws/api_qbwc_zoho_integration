@@ -21,7 +21,7 @@ import {
     MenuItem
 } from '@mui/material';
 import { Link, useNavigate } from 'react-router-dom'; 
-import { stableSort, getComparator, getComparatorUndefined } from '../../../../utils';
+import { stableSort, getComparatorUndefined } from '../../../../utils';
 import { EmptyRecordsCell } from '../../../Utils/components/EmptyRecordsCell/EmptyRecordsCell';
 
 const CustomersList = ({ customers }) => {

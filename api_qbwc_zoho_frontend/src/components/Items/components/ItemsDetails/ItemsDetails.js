@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation, json } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { 
     Container, 
     Grid, 
@@ -20,12 +20,13 @@ import {
     Select,
     MenuItem,
     TablePagination,
-    Box,
     CircularProgress,
     TextField,
     styled,
     InputAdornment,
-    IconButton
+    IconButton,
+    ListSubheader,
+    Box,
 } from '@mui/material';
 import { List, AutoSizer } from 'react-virtualized';
 import { grey } from '@mui/material/colors';
@@ -48,37 +49,66 @@ const StyledMenuItem = styled(MenuItem)({
   });
 
 const ItemsDetails = () => {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const [coincidences, setCoincidences] = useState([]);
-  const [item, setItem] = useState(null); 
-  const [filteredItems, setFilteredItems] = useState(null); 
-  const [filter, setFilter] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
-  const [qbItems, setQbItems] = useState([]);
-  const [qbSelectedItem, setQbSelectedItem] = useState(null); 
-  const [filteredQbItems, setFilteredQbItems] = useState([]);
-  const [searchTermQbItems, setSearchTermQbItems] = useState('');
-  const [showListQbItems, setShowListQbItems] = useState(true);
-  const theme = useTheme();
-  const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
+    const navigate = useNavigate();
+    const location = useLocation();
+    const [coincidences, setCoincidences] = useState([]);
+    const [item, setItem] = useState(null); 
+    const [filteredItems, setFilteredItems] = useState(null); 
+    const [filter, setFilter] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [page, setPage] = useState(0);
+    const [rowsPerPage, setRowsPerPage] = useState(10);
+    const [qbItems, setQbItems] = useState([]);
+    const [qbSelectedItem, setQbSelectedItem] = useState(null); 
+    const [filteredQbItems, setFilteredQbItems] = useState([]);
+    const [searchTermQbItems, setSearchTermQbItems] = useState('');
+    const [showListQbItems, setShowListQbItems] = useState(true);
+    const [searchSelectTerm, setSearchSelectTerm] = useState('');
+    const theme = useTheme();
+    const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
 
-  const handleFilterChange = (event) => {
-    const selectedFilter = event.target.value;
-    setFilter(selectedFilter);
-    const filteredList = location.state.items.filter(item => {
-        if (selectedFilter === 'all') return item;
-        if (selectedFilter === 'matched') return item.fields.qb_list_id !== null && item.fields.qb_list_id !== '';
-        if (selectedFilter === 'unmatched') return !item.fields.qb_list_id || item.fields.qb_list_id === '';
-        return false;
-    });
-    setFilteredItems(filteredList);
-  }
+    const filterItems = (filter, searchTerm) => {
+        const allItems = location.state.items;
+        return allItems.filter(item => {
+            const matchesFilter = filter === 'all' 
+                ? true 
+                : filter === 'matched' 
+                ? item.fields.qb_list_id !== null && item.fields.qb_list_id !== '' 
+                : !item.fields.qb_list_id || item.fields.qb_list_id === '';
+            
+            const matchesSearchTerm = searchTerm === '' 
+                ? true 
+                : (item.fields.item_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    item.fields.sku.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    item.fields.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    item.fields.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                    item.fields.rate.toLowerCase().includes(searchTerm.toLowerCase()));
+            
+            return matchesFilter && matchesSearchTerm;
+        });
+    };
 
-  useEffect(() => {
+    const handleFilterChange = (e) => {
+        const newFilter = e.target.value;
+        setFilter(newFilter);
+        const filteredList = filterItems(newFilter, searchSelectTerm);
+        setFilteredItems(filteredList);
+    }
+
+    const handleSearchSelectChange = (e) => {
+        const newSearchTerm = e.target.value;
+        setSearchSelectTerm(newSearchTerm);
+        const filteredList = filterItems(filter, newSearchTerm);
+        setFilteredItems(filteredList);
+    };
+
+    useEffect(() => {
+        const filteredList = filterItems(filter, searchSelectTerm);
+        setFilteredItems(filteredList);
+    }, [filter, searchSelectTerm]);
+
+    useEffect(() => {
       setFilteredItems(location.state.filteredItems ? location.state.filteredItems : null);
       setFilter(location.state.filter ? location.state.filter : 'all');
       if (location.state.item) {
@@ -101,36 +131,36 @@ const ItemsDetails = () => {
           console.error('Invalid item data in location state:', location.state);
           navigate('/integration/api_qbwc_zoho/list_items'); 
       }
-  }, [location.state, navigate]);
+    }, [location.state, navigate]);
 
-  useEffect(() => {
-    const qbFetchItems = async () => {
-        try {
-            const isNeverMatch = 'not_matched';
-            const url = `${apiUrl}/api_quickbook_soap/qbwc_items/${isNeverMatch}`;
-            const response = await fetchWithToken(url, 'GET', null, {}, apiUrl);
-            const jsonData = JSON.parse(response.data); 
-            setQbItems(jsonData);  
-        } catch (error) {
-            console.error('Error fetching qb items:', error);
-            setError(`Failed to fetch qn items: ${error}`);
-        } finally {
-            setLoading(false);
+    useEffect(() => {
+        const qbFetchItems = async () => {
+            try {
+                const isNeverMatch = 'not_matched';
+                const url = `${apiUrl}/api_quickbook_soap/qbwc_items/${isNeverMatch}`;
+                const response = await fetchWithToken(url, 'GET', null, {}, apiUrl);
+                const jsonData = JSON.parse(response.data); 
+                setQbItems(jsonData);  
+            } catch (error) {
+                console.error('Error fetching qb items:', error);
+                setError(`Failed to fetch qn items: ${error}`);
+            } finally {
+                setLoading(false);
+            }
+        };
+        qbFetchItems();
+    }, []);
+
+    useEffect(() => {
+        const filtered = qbItems.filter(qbItem => qbItem.fields.name.toLowerCase().includes(searchTermQbItems.toLowerCase()));
+        setFilteredQbItems(filtered);
+        if (filtered.length === 0) {
+            setShowListQbItems(false);
         }
-    };
-    qbFetchItems();
-  }, []);
-
-  useEffect(() => {
-    const filtered = qbItems.filter(qbItem => qbItem.fields.name.toLowerCase().includes(searchTermQbItems.toLowerCase()));
-    setFilteredQbItems(filtered);
-    if (filtered.length === 0) {
-        setShowListQbItems(false);
-    }
-    else {
-        setShowListQbItems(true);
-    }
-  }, [searchTermQbItems, qbItems]);
+        else {
+            setShowListQbItems(true);
+        }
+    }, [searchTermQbItems, qbItems]);
 
   const handleSelectQbItem = (qbItem) => {
     setSearchTermQbItems(`${qbItem.fields.name} (ID: ${qbItem.fields.list_id})`);
@@ -303,6 +333,19 @@ const ItemsDetails = () => {
                                 <MenuItem value="all">All Items</MenuItem>
                                 <MenuItem value="matched">Matched Items</MenuItem>
                                 <MenuItem value="unmatched">Unmatched Items</MenuItem>
+                                <ListSubheader>
+                                    <Box>
+                                        <TextField
+                                            label="Search Item"
+                                            variant="outlined"
+                                            size="small"
+                                            value={searchSelectTerm}
+                                            onChange={handleSearchSelectChange}
+                                            onFocus={(e) => {e.target.select();}}
+                                            sx={{ width: '100%' }}
+                                        />
+                                    </Box>
+                                </ListSubheader>
                             </Select>
                         </FormControl>
                         <TableContainer component={Paper} sx={{ maxHeight: 640, minHeight: 640 }}>

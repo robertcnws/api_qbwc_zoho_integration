@@ -74,7 +74,7 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
         } else {
             setFilterDate(today);
         }
-    }, [setFilterDate]);
+    }, [setFilterDate, today]);
 
 
     useEffect(() => {

@@ -161,7 +161,8 @@ const QbwcItemsList = ({ items, onSyncComplete }) => {
 
   const filteredItems = items.filter(item => {
       const search = item.fields.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                     item.fields.list_id.toLowerCase().includes(searchTerm.toLowerCase())
+                     item.fields.list_id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                     item.fields.item_type.toLowerCase().includes(searchTerm.toLowerCase());
       if (filter === 'all') return search;
       if (filter === 'matched') return search && item.fields.matched; 
       if (filter === 'not_matched') return search && !item.fields.matched; 
@@ -173,6 +174,7 @@ const QbwcItemsList = ({ items, onSyncComplete }) => {
   const columns = [
       { id: 'qb_item', label: 'QB Item' },
       { id: 'qb_list_id', label: 'QB List ID' },
+      { id: 'qb_item_type', label: 'QB Item Type' },
       { id: 'actions', label: 'Actions' }
   ];
 
@@ -275,6 +277,13 @@ const QbwcItemsList = ({ items, onSyncComplete }) => {
                                             <TableRow key={index} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
                                                 <TableCell>{item.fields.name}</TableCell>
                                                 <TableCell>{item.fields.list_id}</TableCell>
+                                                <TableCell>
+                                                {
+                                                    item.fields.item_type && typeof item.fields.item_type === 'string' 
+                                                    ? item.fields.item_type.substring(4) 
+                                                    : ''
+                                                }
+                                                </TableCell>
                                                 <TableCell align="center">
                                                     {renderForceSyncCheckbox(item, isSelected(item.fields.list_id))}
                                                 </TableCell>

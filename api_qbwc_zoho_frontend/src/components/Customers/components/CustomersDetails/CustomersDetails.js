@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation, Link } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { 
     Container, 
     Grid, 
@@ -25,7 +25,8 @@ import {
     TextField,
     styled,
     InputAdornment,
-    IconButton
+    IconButton,
+    ListSubheader
 } from '@mui/material';
 import { grey } from '@mui/material/colors';
 import ClearIcon from '@mui/icons-material/Clear';
@@ -64,20 +65,47 @@ const CustomersDetails = () => {
   const [filteredQbCustomers, setFilteredQbCustomers] = useState([]);
   const [searchTermQbCustomers, setSearchTermQbCustomers] = useState('');
   const [showListQbCustomers, setShowListQbCustomers] = useState(true);
+  const [searchSelectTerm, setSearchSelectTerm] = useState('');
   const theme = useTheme();
   const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
 
-  const handleFilterChange = (event) => {
-    const selectedFilter = event.target.value;
-    setFilter(selectedFilter);
-    const filteredList = location.state.customers.filter(customer => {
-        if (selectedFilter === 'all') return customer;
-        if (selectedFilter === 'matched') return customer.fields.qb_list_id !== null && customer.fields.qb_list_id !== '';
-        if (selectedFilter === 'unmatched') return !customer.fields.qb_list_id || customer.fields.qb_list_id === '';
-        return false;
+  const filterCustomers = (filter, searchTerm) => {
+    const allCustomers = location.state.customers;
+    return allCustomers.filter(c => {
+        const matchesFilter = filter === 'all' 
+            ? true 
+            : filter === 'matched' 
+            ? c.fields.qb_list_id !== null && c.fields.qb_list_id !== '' 
+            : !c.fields.qb_list_id || c.fields.qb_list_id === '';
+        
+        const matchesSearchTerm = searchTerm === '' 
+            ? true 
+            : (c.fields.customer_name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+               c.fields.company_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+               c.fields.contact_name.toLowerCase().includes(searchTerm.toLowerCase()));
+        
+        return matchesFilter && matchesSearchTerm;
     });
+};
+
+  const handleFilterChange = (e) => {
+    const newFilter = e.target.value;
+    setFilter(newFilter);
+    const filteredList = filterCustomers(newFilter, searchSelectTerm);
     setFilteredCustomers(filteredList);
   }
+
+    const handleSearchSelectChange = (e) => {
+        const newSearchTerm = e.target.value;
+        setSearchSelectTerm(newSearchTerm);
+        const filteredList = filterCustomers(filter, newSearchTerm);
+        setFilteredCustomers(filteredList);
+    };
+
+    useEffect(() => {
+        const filteredList = filterCustomers(filter, searchSelectTerm);
+        setFilteredCustomers(filteredList);
+    }, [filter, searchSelectTerm]);
 
   useEffect(() => {
       setFilteredCustomers(location.state.filteredCustomers ? location.state.filteredCustomers : null);
@@ -304,6 +332,19 @@ const CustomersDetails = () => {
                                 <MenuItem value="all">All Customers</MenuItem>
                                 <MenuItem value="matched">Matched Customers</MenuItem>
                                 <MenuItem value="unmatched">Unmatched Customers</MenuItem>
+                                <ListSubheader>
+                                    <Box>
+                                        <TextField
+                                            label="Search Item"
+                                            variant="outlined"
+                                            size="small"
+                                            value={searchSelectTerm}
+                                            onChange={handleSearchSelectChange}
+                                            onFocus={(e) => {e.target.select();}}
+                                            sx={{ width: '100%' }}
+                                        />
+                                    </Box>
+                                </ListSubheader>
                             </Select>
                         </FormControl>
                         <TableContainer component={Paper} sx={{ maxHeight: 640, minHeight: 640 }} className='custom-scrollbar'>

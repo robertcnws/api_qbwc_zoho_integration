@@ -20,7 +20,9 @@ import {
     Select,
     MenuItem,
     TablePagination,
-    Box, 
+    Box,
+    ListSubheader,
+    TextField, 
 } from '@mui/material';
 import { grey } from '@mui/material/colors';
 import { fetchWithToken } from '../../../../utils'
@@ -30,33 +32,62 @@ import { AlertError } from '../../../Utils/components/AlertError/AlertError';
 const apiUrl = process.env.REACT_APP_ENVIRONMENT === 'DEV' ? process.env.REACT_APP_BACKEND_URL_DEV : process.env.REACT_APP_BACKEND_URL_PROD;;
 
 const InvoicesDetails = () => {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const [invoice, setInvoice] = useState(null); 
-  const [items, setItems] = useState(null); 
-  const [customers, setCustomers] = useState(null); 
-  const [filteredInvoices, setFilteredInvoices] = useState(null); 
-  const [filter, setFilter] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
-  const theme = useTheme();
-  const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
+    const navigate = useNavigate();
+    const location = useLocation();
+    const [invoice, setInvoice] = useState(null); 
+    const [items, setItems] = useState(null); 
+    const [customers, setCustomers] = useState(null); 
+    const [filteredInvoices, setFilteredInvoices] = useState(null); 
+    const [filter, setFilter] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [page, setPage] = useState(0);
+    const [rowsPerPage, setRowsPerPage] = useState(10);
+    const [searchSelectTerm, setSearchSelectTerm] = useState('');
+    const theme = useTheme();
+    const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
+
+    const filterInvoices = (filter, searchTerm) => {
+        const allInvoices = location.state.invoices;
+        return allInvoices.filter(invoice => {
+            const matchesFilter = filter === 'all' 
+                ? true 
+                : filter === 'not_processed' 
+                ? !invoice.fields.inserted_in_qb && !invoice.fields.customer_unmatched.length > 0 && !invoice.fields.items_unmatched.length > 0
+                : filter === 'not_synced' 
+                ? invoice.fields.customer_unmatched.length > 0 || invoice.fields.items_unmatched.length > 0
+                : filter === 'synced'
+                ? invoice.fields.inserted_in_qb
+                : false;
+            
+            const matchesSearchTerm = searchTerm === '' 
+                ? true 
+                : (invoice.fields.invoice_number.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                invoice.fields.date.toLowerCase().includes(searchTerm.toLowerCase()));
+            
+            return matchesFilter && matchesSearchTerm;
+        });
+    };
 
 
-  const handleFilterChange = (event) => {
-    const selectedFilter = event.target.value;
-    setFilter(selectedFilter);
-    const filteredList = location.state.invoices.filter(invoice => {
-        if (selectedFilter === 'all') return invoice;
-        if (selectedFilter === 'not_processed') return !invoice.fields.inserted_in_qb && !invoice.fields.customer_unmatched.length > 0 && !invoice.fields.items_unmatched.length > 0;
-        if (selectedFilter === 'not_synced') return invoice.fields.customer_unmatched.length > 0 || invoice.fields.items_unmatched.length > 0;
-        if (selectedFilter === 'synced') return invoice.fields.inserted_in_qb;
-        return false;
-    });
-    setFilteredInvoices(filteredList);
-  }
+    const handleFilterChange = (e) => {
+        const newFilter = e.target.value;
+        setFilter(newFilter);
+        const filteredList = filterInvoices(newFilter, searchSelectTerm);
+        setFilteredInvoices(filteredList);
+    }
+
+    const handleSearchSelectChange = (e) => {
+        const newSearchTerm = e.target.value;
+        setSearchSelectTerm(newSearchTerm);
+        const filteredList = filterInvoices(filter, newSearchTerm);
+        setFilteredInvoices(filteredList);
+    };
+
+    useEffect(() => {
+        const filteredList = filterInvoices(filter, searchSelectTerm);
+        setFilteredInvoices(filteredList);
+    }, [filter, searchSelectTerm]);
 
   useEffect(() => {
       setFilteredInvoices(location.state.filteredInvoices ? location.state.filteredInvoices : null);
@@ -207,6 +238,19 @@ if (error) {
                                 <MenuItem value="synced">Synced Invoices</MenuItem>
                                 <MenuItem value="not_synced">Not Synced Invoices</MenuItem>
                                 <MenuItem value="not_processed">Not Processed Invoices</MenuItem>
+                                <ListSubheader>
+                                    <Box>
+                                        <TextField
+                                            label="Search Item"
+                                            variant="outlined"
+                                            size="small"
+                                            value={searchSelectTerm}
+                                            onChange={handleSearchSelectChange}
+                                            onFocus={(e) => {e.target.select();}}
+                                            sx={{ width: '100%' }}
+                                        />
+                                    </Box>
+                                </ListSubheader>
                             </Select>
                         </FormControl>
                         <TableContainer component={Paper} sx={{ maxHeight: 640, minHeight: 640 }}>
