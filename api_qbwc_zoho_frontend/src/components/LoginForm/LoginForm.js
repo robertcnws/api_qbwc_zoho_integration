@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { Container, TextField, Button, Typography, Box, Alert, CircularProgress } from '@mui/material';
+import { Container, TextField, Button, Box, Alert, CircularProgress } from '@mui/material';
 import { useAuth } from '../AuthContext/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { getCookie } from '../../utils';
 
-const apiUrl = process.env.REACT_APP_ENVIRONMENT === 'DEV' ? process.env.REACT_APP_BACKEND_URL_DEV : process.env.REACT_APP_BACKEND_URL_PROD;;
+const apiUrl = process.env.REACT_APP_ENVIRONMENT === 'DEV' ? process.env.REACT_APP_BACKEND_URL_DEV : process.env.REACT_APP_BACKEND_URL_PROD;
 
 const LoginForm = () => {
   const [username, setUsername] = useState('');
@@ -21,6 +21,13 @@ const LoginForm = () => {
     setLoading(true);
     setError('');
     setSuccess('');
+
+    // Validación básica del formulario
+    if (!username.trim() || !password.trim()) {
+      setError('Username and password are required');
+      setLoading(false);
+      return;
+    }
 
     try {
       const body_jwt = JSON.stringify({ username, password });
@@ -47,10 +54,11 @@ const LoginForm = () => {
         login();
         navigate('/integration');
       } else {
+        setError(`Invalid credentials: ${loginResponse.message}`);
         throw new Error('Invalid credentials');
       }
     } catch (error) {
-      setError(error.message);
+      setError(`Invalid credentials: ${error}`);
     } finally {
       setLoading(false);
     }
@@ -58,9 +66,11 @@ const LoginForm = () => {
 
   return (
     <Container maxWidth="xs" sx={{ mt: 8 }}>
-      <Typography variant="h4" component="h1" align="center" gutterBottom>
-        Login
-      </Typography>
+      <img
+        src="/logo_qbwc_zoho.png"
+        alt="Login Logo"
+        style={{ maxWidth: '100%', height: 'auto' }} // Ajusta el tamaño según sea necesario
+      />
       <Box
         component="form"
         onSubmit={handleSubmit}
@@ -75,6 +85,8 @@ const LoginForm = () => {
           value={username}
           onChange={(e) => setUsername(e.target.value)}
           required
+          error={!username.trim() && Boolean(error)}
+          helperText={!username.trim() && error ? 'Username is required' : ''}
         />
         <TextField
           label="Password"
@@ -85,6 +97,8 @@ const LoginForm = () => {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
+          error={!password.trim() && Boolean(error)}
+          helperText={!password.trim() && error ? 'Password is required' : ''}
         />
         {success && <Alert severity="success" sx={{ mt: 2 }}>{success}</Alert>}
         {error && <Alert severity="error" sx={{ mt: 2 }}>{error}</Alert>}

@@ -60,7 +60,7 @@ services:
       - "80:80"
       - "443:443"
     extra_hosts:
-      - "integration.nws.com:10.1.10.216"
+      - "api-integration-qbwc-zoho.nws.com:10.1.10.216"
     volumes:
       - ./api_qbwc_zoho_backend/nginx/nginx_react_django.conf:/etc/nginx/nginx.conf:ro
       - ./api_qbwc_zoho_backend/nginx/certificates:/etc/nginx/certificates:ro

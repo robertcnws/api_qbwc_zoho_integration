@@ -16,25 +16,39 @@ const Sidebar = ({ expanded, toggleSubmenu, handleLogout, handleDoBackup }) => {
     if (currentPath.startsWith(`${path}/`)) {
       return (path.includes('qbwc')) ? true : false;  
     }
+    else if (currentPath.includes('item_details')) {
+      if (path.includes('list_items')) return true;
+    }
+    else if (currentPath.includes('invoice_details')) {
+      if (path.includes('list_invoices')) return true;
+    }
+    else if (currentPath.includes('customer_details')) {
+      if (path.includes('list_customers')) return true;
+    }
     return false;
   };
 
   
 
   return (
-    <Container maxWidth="lg" sx={{
+    <Container maxWidth="md" sx={{
       width: 250,
       backgroundColor: '#3a3f51',
       color: '#fff',
       top: 0,
       left: 0,
-      paddingTop: 2,
+      paddingTop: 1,
       minHeight: '100vh',
       display: 'flex',
       flexDirection: 'column',
     }}>
-      <Box sx={{ padding: 1, textAlign: 'center', backgroundColor: '#2c2f3d' }}>
-        <Typography variant="h5">Zoho - QBWC</Typography>
+      <Box sx={{ padding: 0, textAlign: 'center' }}>
+        {/* <Typography variant="h5">Zoho - QBWC</Typography> */}
+        <img
+          src="/logo_qbwc_zoho_mini.png"
+          alt="Login Logo"
+          style={{ maxWidth: '100%', height: 'auto', marginTop: '-5px' }} 
+        />
       </Box>
       <List>
         <ListItemButton component={Link} to="/integration" sx={{ backgroundColor: isActive('/integration') ? '#2c2f3f' : 'inherit' }}>
@@ -79,11 +93,11 @@ const Sidebar = ({ expanded, toggleSubmenu, handleLogout, handleDoBackup }) => {
         )}
         <ListItemButton onClick={handleDoBackup}>
           <ListItemIcon><BackupIcon sx={{ color: '#fff' }} /></ListItemIcon>
-          <ListItemText primary="Backup DB" />
+          <ListItemText primary="Do BackUp" />
         </ListItemButton>
-        <ListItemButton component={Link} to="/integration/download_backup_db">
-          <ListItemIcon><Download sx={{ color: '#fff' }} /></ListItemIcon>
-          <ListItemText primary="Download Backup" />
+        <ListItemButton component={Link} to="/integration/download_backup_db" sx={{ backgroundColor: isActive('/integration/download_backup_db') ? '#2c2f3d' : 'inherit' }}>
+          <ListItemIcon><Download sx={{ color: '#fff' }}/></ListItemIcon>
+          <ListItemText primary="BackUps" />
         </ListItemButton>
       </List>
     </Container>

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     Container,
@@ -33,7 +33,7 @@ import ClearIcon from '@mui/icons-material/Clear';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
-import { stableSort, getComparator, fetchWithToken } from '../../../../utils';
+import { stableSort, fetchWithToken, getComparatorUndefined } from '../../../../utils';
 import { EmptyRecordsCell } from '../../../Utils/components/EmptyRecordsCell/EmptyRecordsCell';
 
 dayjs.extend(utc);
@@ -74,7 +74,7 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
         } else {
             setFilterDate(today);
         }
-    }, [setFilterDate, today]);
+    }, [setFilterDate]);
 
 
     useEffect(() => {
@@ -89,41 +89,41 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
     }, [filterDate]);
 
 
-    const handleFilterChange = event => {
+    const handleFilterChange = useCallback((event) => {
         setFilter(event.target.value);
         setPage(0);
-    };
+    }, []);
     
 
-    const handleViewInvoice = (invoice) => {
+    const handleViewInvoice = useCallback((invoice) => {
         localStorage.setItem('invoicesListPage', page);
         localStorage.setItem('invoicesListRowsPerPage', rowsPerPage);
         localStorage.setItem('invoicesListFilterDate', filterDate ? filterDate.format('YYYY-MM-DD') : '');
         setFilterDate(filterDate);
         const invoices = data.invoices;
         navigate('/integration/invoice_details', { state: { invoice, invoices, filteredInvoices, filter } });
-    };
+    }, [page, rowsPerPage, filterDate, data.invoices, filter, navigate, setFilterDate]);
 
-    const handleChangePage = (event, newPage) => {
+    const handleChangePage = useCallback((event, newPage) => {
         const maxPage = Math.max(0, Math.ceil(data.invoices.length / rowsPerPage) - 1);
         setPage(Math.min(newPage, maxPage));
         localStorage.setItem('invoicesListPage', Math.min(newPage, maxPage));
-    };
+    }, [data.invoices.length, rowsPerPage]);
 
-    const handleChangeRowsPerPage = (event) => {
+    const handleChangeRowsPerPage = useCallback((event) => {
         const rows = parseInt(event.target.value, 10);
         if ([5, 10, 25].includes(rows)) {
             setRowsPerPage(rows);
             setPage(0);
             localStorage.setItem('invoicesListRowsPerPage', rows);
-            localStorage.setItem('invoicesListPage', 0); 
+            localStorage.setItem('invoicesListPage', 0);
         } else {
             setRowsPerPage(10);
             setPage(0);
         }
-    };
+    }, []);
 
-    const handleForceToSync = () => {
+    const handleForceToSync = useCallback(() => {
         if (selectedInvoices.length === 0) {
             Swal.fire({
                 title: 'Error!',
@@ -182,7 +182,7 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
                 fetchData();
             }
         });
-    };
+    }, [selectedInvoices, apiUrl, onSyncComplete]);
 
     const isSelected = (invoiceId) => selectedInvoices.indexOf(invoiceId) !== -1;
 
@@ -271,35 +271,40 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
         }
     };
 
-    const handleChangeDate = (date) => {
-        setFilterDate(date);
+    const handleChangeDate = useCallback((date) => {
+        if (date && date.isValid()) {
+            setFilterDate(date);
+            localStorage.setItem('invoicesListFilterDate', date.format('YYYY-MM-DD'));
+        } else {
+            setFilterDate(null);
+            localStorage.setItem('invoicesListFilterDate', '');
+        }
         setPage(0);
-        localStorage.setItem('invoicesListPage', 0);
-        localStorage.setItem('invoicesListFilterDate', null);
-        localStorage.setItem('invoicesListRowsPerPage', null);
-    };
+    }, [setFilterDate]);
 
-    const handleSortChange = (columnId) => {
+    const handleSortChange = useCallback((columnId) => {
         const isAsc = orderBy === columnId && order === 'asc';
         setOrder(isAsc ? 'desc' : 'asc');
         setOrderBy(columnId);
-    };
+    }, [orderBy, order]);
 
-    // Ensure that filteredInvoices and sortedItems are updated correctly
-    const filteredInvoices = data.invoices.filter(invoice => {
-        const matchesSearchTerm = filterBySearchTerm(invoice) && filterByDate(invoice)
-        const notProcessed = !invoice.fields.inserted_in_qb && !invoice.fields.customer_unmatched.length > 0 && !invoice.fields.items_unmatched.length > 0;
-        const notSynced = invoice.fields.customer_unmatched.length > 0 || invoice.fields.items_unmatched.length > 0
-        const synced = invoice.fields.inserted_in_qb;
-            
-        if (filter === 'all') return matchesSearchTerm;
-        if (filter === 'synced') return matchesSearchTerm && synced;
-        if (filter === 'not_synced') return matchesSearchTerm && notSynced;
+    const filteredInvoices = useMemo(() => {
+        return data.invoices.filter(invoice => {
+            const matchesSearchTerm = filterBySearchTerm(invoice) && filterByDate(invoice);
+            const notProcessed = !invoice.fields.inserted_in_qb && !invoice.fields.customer_unmatched.length > 0 && !invoice.fields.items_unmatched.length > 0;
+            const notSynced = invoice.fields.customer_unmatched.length > 0 || invoice.fields.items_unmatched.length > 0;
+            const synced = invoice.fields.inserted_in_qb;
 
-        else return matchesSearchTerm && notProcessed;
-    });
+            if (filter === 'all') return matchesSearchTerm;
+            if (filter === 'synced') return matchesSearchTerm && synced;
+            if (filter === 'not_synced') return matchesSearchTerm && notSynced;
+            return matchesSearchTerm && notProcessed;
+        });
+    }, [data.invoices, filter, filterBySearchTerm, filterByDate]);
 
-    const sortedInvoices = stableSort(filteredInvoices, getComparator(order, orderBy));
+    const sortedInvoices = useMemo(() => {
+        return stableSort(filteredInvoices, getComparatorUndefined(order, orderBy));
+    }, [filteredInvoices, order, orderBy]);
 
     const columns = [
         { id: 'invoice_number', label: 'Nr.' },

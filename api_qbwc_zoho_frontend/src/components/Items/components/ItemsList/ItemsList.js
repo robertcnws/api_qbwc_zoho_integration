@@ -175,7 +175,7 @@ const ItemsList = ({ items }) => {
                                         <TableRow key={index} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
                                             <TableCell>{item.fields.name}</TableCell>
                                             <TableCell>{item.fields.status}</TableCell>
-                                            <TableCell>{item.fields.rate}</TableCell>
+                                            <TableCell>$ {item.fields.rate}</TableCell>
                                             <TableCell>{item.fields.sku}</TableCell>
                                             <TableCell sx={(theme) => ({
                                                 color: !item.fields.qb_list_id || item.fields.qb_list_id === "" ? theme.palette.error.main : theme.palette.success.main,

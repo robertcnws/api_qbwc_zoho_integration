@@ -35,13 +35,16 @@ const Dashboard = () => {
                 Swal.fire({
                   title: 'Success!',
                   text: 'DB Backup was successful!',
-                  icon: 'success'
+                  icon: 'success',
+                  willClose: () => { navigate('/integration/download_backup_db') }
+
                 })
               } else {
                 Swal.fire({
                   title: 'Error!',
                   text: 'DB Backup failed!',
-                  icon: 'error'
+                  icon: 'error',
+                  willClose: () => { navigate('/integration') }
                 })
               }
           } catch (error) {
@@ -49,7 +52,8 @@ const Dashboard = () => {
               Swal.fire({
                 title: 'Error!',
                 text: `Error doing Backup: ${error}`,
-                icon: 'error'
+                icon: 'error',
+                willClose: () => { navigate('/integration') }
               })
           } 
       };

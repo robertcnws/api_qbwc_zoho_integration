@@ -46,7 +46,8 @@ const DownloadBackupList = () => {
 
   }, []);
 
-  const downloadBackup = (filename) => {
+  const downloadBackup = (item) => {
+    const filename = item.file_name;
     axios({
       url: `${apiUrl}/backup/${filename}`,
       method: 'GET',

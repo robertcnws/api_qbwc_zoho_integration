@@ -41,7 +41,7 @@ environ.Env.read_env()
 # ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['localhost', '10.1.10.216', '127.0.0.1'])
 
 # ALLOWED_HOSTS = []
-ALLOWED_HOSTS = ['localhost', '10.1.10.216', '127.0.0.1', 'host.docker.internal', 'integration.nws.com']
+ALLOWED_HOSTS = ['localhost', '10.1.10.216', '127.0.0.1', 'host.docker.internal', 'integration.nws.com', 'api-integration-qbwc-zoho.nws.com']
 
 # Env Vars
 ENVIRONMENT = env('ENVIRONMENT')
@@ -84,7 +84,8 @@ CSRF_TRUSTED_ORIGINS = [
     'http://127.0.0.1:3000',
     'https://localhost:8000',
     'https://host.docker.internal',
-    'https://integration.nws.com'
+    'https://integration.nws.com',
+    'https://api-integration-qbwc-zoho.nws.com'
 ]
 
 CSRF_COOKIE_SECURE = False  # False para desarrollo, True para producción
@@ -111,7 +112,8 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://127.0.0.1:3000",
     "https://host.docker.internal",
-    "https://integration.nws.com"
+    "https://integration.nws.com",
+    "https://api-integration-qbwc-zoho.nws.com"
 ]
 
 CORS_ALLOW_METHODS = [

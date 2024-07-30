@@ -440,6 +440,10 @@ const ItemsDetails = () => {
                                         <TableCell><b>{item.status}</b></TableCell>
                                     </TableRow>
                                     <TableRow>
+                                        <TableCell component="th" scope="row" sx={{ width: '150px', maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis' }}>Zoho Item Description</TableCell>
+                                        <TableCell><b>{item.description ? item.description : '--'}</b></TableCell>
+                                    </TableRow>
+                                    <TableRow>
                                         <TableCell component="th" scope="row" sx={{ width: '150px', maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis' }}>Zoho QB List ID</TableCell>
                                         <TableCell><b>{item.qb_list_id ? item.qb_list_id : '--'}</b></TableCell>
                                     </TableRow>
