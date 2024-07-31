@@ -60,6 +60,7 @@ const ItemsDetails = () => {
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
     const [qbItems, setQbItems] = useState([]);
+    const [loadingQbItems, setLoadingQbItems] = useState(true);
     const [qbSelectedItem, setQbSelectedItem] = useState(null); 
     const [filteredQbItems, setFilteredQbItems] = useState([]);
     const [searchTermQbItems, setSearchTermQbItems] = useState('');
@@ -145,7 +146,7 @@ const ItemsDetails = () => {
                 console.error('Error fetching qb items:', error);
                 setError(`Failed to fetch qn items: ${error}`);
             } finally {
-                setLoading(false);
+                setLoadingQbItems(false);
             }
         };
         qbFetchItems();
@@ -219,12 +220,20 @@ const ItemsDetails = () => {
                                             const url = `${apiUrl}/api_zoho_items/list_items/`
                                             const response = await fetchWithToken(url, 'GET', null, {}, apiUrl);
                                             const jsonData = JSON.parse(response.data); 
+                                            let filteredList = jsonData; 
+                                            if (filter === 'matched') {
+                                                filteredList = jsonData.filter(i => i.fields.qb_list_id !== null && i.fields.qb_list_id !== '');
+                                            } 
+                                            else if (filter === 'unmatched') {
+                                                filteredList = jsonData.filter(i => !i.fields.qb_list_id || i.fields.qb_list_id === '');
+                                            }
                                             const state = {
                                                 item: values,
                                                 items: jsonData,
-                                                filteredItems: jsonData,
+                                                filteredItems: filteredList,
                                                 filter: filter
                                             }
+                                            setFilteredItems(filteredList);
                                             navigate('/integration/item_details', { state: state });
                                         } catch (error) {
                                             console.error('Error fetching items:', error);
@@ -389,7 +398,7 @@ const ItemsDetails = () => {
                     </Grid>
                 </Grid>
                 <Grid item container xs={9}>
-                  <Grid item container xs={12} spacing={1} style={{ marginBottom: '15px'}}>
+                  <Grid item container xs={12} spacing={1} style={{ marginBottom: '15px', minWidth: '103%'}}>
                     <Grid item xs={6}>
                         <Typography
                             variant="h6"
@@ -416,7 +425,7 @@ const ItemsDetails = () => {
                             </Grid>
                     </Grid>
                     <Grid item container xs={12} spacing={1} sx={{ minHeight: 700, maxHeight: 700 }}>
-                        <TableContainer component={Paper} sx={{ minHeight: 700, maxHeight: 700 }}>
+                        <TableContainer component={Paper} sx={{ minHeight: 700, maxHeight: 700, minWidth:'101%', maxWidth: '101%' }}>
                             <Table aria-label="item details table">
                                 <TableBody>
                                     <TableRow>
@@ -511,13 +520,14 @@ const ItemsDetails = () => {
                                         </TableCell>
                                     </TableRow>
                                     {!item.matched ? (
+                                        !loadingQbItems ? (
                                     <TableRow>
                                         <TableCell 
                                         component="th" 
                                         scope="row" 
                                         sx={{ width: '150px', maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis' }}
                                         >
-                                            Item Matching
+                                            Force Matching
                                         </TableCell>
 
                                         <TableCell>
@@ -576,6 +586,25 @@ const ItemsDetails = () => {
                                             </FormControl>
                                         </TableCell>
                                     </TableRow>
+                                   ) : (
+                                        <TableRow>
+                                            <TableCell 
+                                                component="th" 
+                                                scope="row" 
+                                                sx={{ width: '150px', maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis' }}
+                                            ></TableCell>
+                                            <TableCell>
+                                                <Alert severity="info"
+                                                    style={{ 
+                                                        fontSize: '0.80rem',  
+                                                        padding: '4px 8px', 
+                                                        borderRadius: '4px',
+                                                    }}>
+                                                    <b>Loading QB Items...</b>
+                                                </Alert>
+                                            </TableCell>
+                                        </TableRow>
+                                    )
                                 ) : null}
                                 </TableBody>
                             </Table>

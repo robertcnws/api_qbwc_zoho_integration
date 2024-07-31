@@ -3,6 +3,7 @@ import { Container, Grid, Typography, Alert, Button, Table, TableBody, TableCell
 import { Link, useNavigate } from 'react-router-dom';
 import { stableSort, getComparator } from '../../../../utils';
 import { EmptyRecordsCell } from '../../../Utils/components/EmptyRecordsCell/EmptyRecordsCell';
+import SmallAlert from '../../../Utils/components/SmallAlert/SmallAlert';
 
 const ItemsList = ({ items }) => {
     const [page, setPage] = useState(0);
@@ -180,9 +181,14 @@ const ItemsList = ({ items }) => {
                                             <TableCell sx={(theme) => ({
                                                 color: !item.fields.qb_list_id || item.fields.qb_list_id === "" ? theme.palette.error.main : theme.palette.success.main,
                                                 fontWeight: 'bold',
-                                                borderBottom: '1px solid #ccc'
+                                                borderBottom: '1px solid #ccc',
+                                                width: '50px', 
+                                                maxWidth: '50px'
                                             })}>
-                                                <b>{!item.fields.qb_list_id || item.fields.qb_list_id === "" ? "NO" : "YES"}</b>
+                                                {/* <b>{!item.fields.qb_list_id || item.fields.qb_list_id === "" ? "NO" : "YES"}</b> */}
+                                                {!item.fields.qb_list_id || item.fields.qb_list_id === "" ? 
+                                                    <SmallAlert severity='error' message='NO'/> : <SmallAlert severity='success' message='YES'/>
+                                                }
                                             </TableCell>
                                             <TableCell className="text-center align-middle">
                                                 <Button 

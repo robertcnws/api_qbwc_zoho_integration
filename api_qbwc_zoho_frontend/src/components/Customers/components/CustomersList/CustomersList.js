@@ -23,6 +23,7 @@ import {
 import { Link, useNavigate } from 'react-router-dom'; 
 import { stableSort, getComparatorUndefined } from '../../../../utils';
 import { EmptyRecordsCell } from '../../../Utils/components/EmptyRecordsCell/EmptyRecordsCell';
+import SmallAlert from '../../../Utils/components/SmallAlert/SmallAlert';
 
 const CustomersList = ({ customers }) => {
     const [page, setPage] = useState(0);
@@ -201,9 +202,13 @@ const CustomersList = ({ customers }) => {
                                                 <TableCell sx={(theme) => ({
                                                             color: !customer.fields.qb_list_id || customer.fields.qb_list_id === "" ? theme.palette.error.main : theme.palette.success.main,
                                                             fontWeight: 'bold',
-                                                            borderBottom: '1px solid #ccc'
+                                                            borderBottom: '1px solid #ccc',
+                                                            width: '50px', 
+                                                            maxWidth: '50px'
                                                         })}>
-                                                        <b>{!customer.fields.qb_list_id || customer.fields.qb_list_id === "" ? "NO" : "YES"}</b>
+                                                        <b>{!customer.fields.qb_list_id || customer.fields.qb_list_id === "" ? 
+                                                            <SmallAlert severity='error' message='NO'/> : <SmallAlert severity='success' message='YES'/>
+                                                        }</b>
                                                 </TableCell>
                                                 <TableCell className="text-center align-middle">
                                                     <Button 

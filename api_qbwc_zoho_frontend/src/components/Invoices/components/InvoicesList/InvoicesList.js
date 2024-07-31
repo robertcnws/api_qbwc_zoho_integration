@@ -294,10 +294,13 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
             const notProcessed = !invoice.fields.inserted_in_qb && !invoice.fields.customer_unmatched.length > 0 && !invoice.fields.items_unmatched.length > 0;
             const notSynced = invoice.fields.customer_unmatched.length > 0 || invoice.fields.items_unmatched.length > 0;
             const synced = invoice.fields.inserted_in_qb;
+            const forcedSync = invoice.fields.force_to_sync;
 
             if (filter === 'all') return matchesSearchTerm;
             if (filter === 'synced') return matchesSearchTerm && synced;
             if (filter === 'not_synced') return matchesSearchTerm && notSynced;
+            if (filter === 'forced_sync') return matchesSearchTerm && forcedSync;
+            if (filter === 'not_forced_sync') return matchesSearchTerm && !forcedSync;
             return matchesSearchTerm && notProcessed;
         });
     }, [data.invoices, filter, filterBySearchTerm, filterByDate]);
@@ -352,6 +355,8 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
                             <MenuItem value="synced">Synced Invoices</MenuItem>
                             <MenuItem value="not_synced">Not Synced Invoices</MenuItem>
                             <MenuItem value="not_processed">Not Processed Invoices</MenuItem>
+                            <MenuItem value="forced_sync">Forced to Sync Invoices</MenuItem>
+                            <MenuItem value="not_forced_sync">Not Forced to Sync Invoices</MenuItem>
                         </Select>
                     </FormControl>
                 </Grid>
@@ -422,8 +427,19 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
 
             <Grid container spacing={2} mb={3}>
             <Grid item xs={12}>
-                <Alert severity={filter === 'all' ? 'info' : (filter === 'not_processed' ? 'warning' : (filter === 'synced' ? 'success' : 'error'))} sx={{ fontSize: 'small' }}>
-                    <b>{filteredInvoices.length}</b> {filter === 'all' ? 'Total' : (filter === 'not_processed' ? 'Not Processed' : (filter === 'synced' ? 'Synced' : 'Not Synced'))} invoices found
+                <Alert severity={filter === 'all' ? 
+                    'info' : (filter === 'not_processed' ? 
+                    'warning' : (filter === 'synced' ? 
+                    'success' : (filter === 'forced_sync' || filter === 'not_forced_sync' ? 
+                    'info': 'error')))
+                } sx={{ fontSize: 'small' }}>
+                    <b>{filteredInvoices.length}</b> {filter === 'all' ? 
+                    'Total' : (filter === 'not_processed' ? 
+                    'Not Processed' : (filter === 'synced' ? 
+                    'Synced' : (filter === 'forced_sync' ? 
+                    'Forced to Sync' : (filter === 'not_forced_sync' ? 
+                    'Not Forced to Sync' : 'Not Synced'))))
+                } invoices found
                 </Alert>
             </Grid>
             </Grid>

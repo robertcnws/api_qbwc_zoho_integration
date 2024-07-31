@@ -58,6 +58,10 @@ const InvoicesDetails = () => {
                 ? invoice.fields.customer_unmatched.length > 0 || invoice.fields.items_unmatched.length > 0
                 : filter === 'synced'
                 ? invoice.fields.inserted_in_qb
+                : filter === 'forced_sync'
+                ? invoice.fields.force_to_sync
+                : filter === 'not_forced_sync'
+                ? !invoice.fields.force_to_sync
                 : false;
             
             const matchesSearchTerm = searchTerm === '' 
@@ -120,6 +124,9 @@ const InvoicesDetails = () => {
             const response = await fetchWithToken(url, 'GET', null, {}, apiUrl);
             const jsonData = JSON.parse(response.data); 
             setItems(jsonData);
+            if (item.zoho_item_id) {
+                item['item_id'] = item.zoho_item_id;
+            }
             const state = { 
                 item: item, 
                 items: jsonData, 
@@ -146,6 +153,10 @@ const InvoicesDetails = () => {
             const response = await fetchWithToken(url, 'GET', null, {}, apiUrl);
             const jsonData = JSON.parse(response.data); 
             setCustomers(jsonData);
+            if (customer.zoho_customer_id) {
+                customer = customer.zoho_customer_id;
+            }
+            console.log('customer:', customer);
             const state = { 
                 customer: customer, 
                 customers: jsonData, 
@@ -238,6 +249,8 @@ if (error) {
                                 <MenuItem value="synced">Synced Invoices</MenuItem>
                                 <MenuItem value="not_synced">Not Synced Invoices</MenuItem>
                                 <MenuItem value="not_processed">Not Processed Invoices</MenuItem>
+                                <MenuItem value="forced_sync">Forced to Sync Invoices</MenuItem>
+                                <MenuItem value="not_forced_sync">Not Forced to Sync Invoices</MenuItem>
                                 <ListSubheader>
                                     <Box>
                                         <TextField
@@ -294,7 +307,7 @@ if (error) {
                   </Grid>
 
                   <Grid item container xs={9}>
-                    <Grid item container xs={12} spacing={1} style={{ marginBottom: '15px'}}>
+                    <Grid item container xs={12} spacing={1} style={{ marginBottom: '15px', minWidth: '103%'}}>
                         <Grid item xs={6}>
                             <Typography
                                 variant="h6"
@@ -322,7 +335,7 @@ if (error) {
                         </Grid>
                     </Grid>
                     <Grid item container xs={12} spacing={1} sx={{ minHeight: 700, maxHeight: 700 }}>
-                        <TableContainer component={Paper} sx={{ minHeight: 700, maxHeight: 700 }}>
+                        <TableContainer component={Paper} sx={{ minHeight: 700, maxHeight: 700, minWidth:'103%', maxWidth: '103%' }}>
                             <Table aria-label="invoice details table">
                                 <TableBody>
                                     <TableRow>
@@ -382,8 +395,8 @@ if (error) {
                                                         <TableBody>
                                                             {invoice.line_items.map((item, index) => (
                                                                 <TableRow key={index}>
-                                                                    <TableCell sx={{ width: '40%', maxWidth: '70%', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.name ? item.name : '---'}</TableCell>
-                                                                    <TableCell sx={{ width: '30%', maxWidth: '70%', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.sku ? item.sku : '---'}</TableCell>
+                                                                    <TableCell sx={{ width: '40%', maxWidth: '40%', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.name ? item.name : '---'}</TableCell>
+                                                                    <TableCell sx={{ width: '30%', maxWidth: '30%', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.sku ? item.sku : '---'}</TableCell>
                                                                     <TableCell sx={{ width: '20%', maxWidth: '20%', overflow: 'hidden', textOverflow: 'ellipsis' }}>$ {item.item_total}</TableCell>
                                                                     <TableCell>
                                                                         <Button 
@@ -420,8 +433,9 @@ if (error) {
                                                     <Table aria-label="coincidences table" size="small">
                                                         <TableHead sx={{ backgroundColor: '#e0e0e0' }}>
                                                             <TableRow>
-                                                                <TableCell>Item from Zoho</TableCell>
-                                                                <TableCell>Reason</TableCell>
+                                                                <TableCell sx={{ width: '40%', maxWidth: '40%', overflow: 'hidden', textOverflow: 'ellipsis' }}>Item from Zoho</TableCell>
+                                                                <TableCell sx={{ width: '50%', maxWidth: '50%', overflow: 'hidden', textOverflow: 'ellipsis' }}>Reason</TableCell>
+                                                                <TableCell>Action</TableCell>
                                                             </TableRow>
                                                         </TableHead>
                                                         <TableBody>
@@ -438,20 +452,41 @@ if (error) {
                                                                             <b>{item.reason}</b>
                                                                         </Alert>
                                                                     </TableCell>
+                                                                    <TableCell>
+                                                                        <Button 
+                                                                            onClick={() => handleViewItem(item)} 
+                                                                            variant="contained" 
+                                                                            color="info" 
+                                                                            size="small"
+                                                                        >
+                                                                            View
+                                                                        </Button>
+                                                                    </TableCell>
                                                                 </TableRow>
                                                             ))}
                                                         </TableBody>
                                                     </Table>
                                                 </TableContainer>
                                             ) : (
-                                                <Alert severity="warning"
-                                                    style={{ 
-                                                        fontSize: '0.80rem',  
-                                                        padding: '4px 8px', 
-                                                        borderRadius: '4px',
-                                                    }}>
-                                                    <b>No Errors in matched items detected.</b>
-                                                </Alert>
+                                                invoice.inserted_in_qb ? (
+                                                    <Alert severity="success"
+                                                        style={{ 
+                                                            fontSize: '0.80rem',  
+                                                            padding: '4px 8px', 
+                                                            borderRadius: '4px',
+                                                        }}>
+                                                        <b>Processed successfully</b>
+                                                    </Alert>
+                                                ) : (
+                                                    <Alert severity="warning"
+                                                        style={{ 
+                                                            fontSize: '0.80rem',  
+                                                            padding: '4px 8px', 
+                                                            borderRadius: '4px',
+                                                        }}>
+                                                        <b>No Errors in matched items detected (Not Processed).</b>
+                                                    </Alert>
+                                                )
                                             )}
                                         </TableCell>
                                     </TableRow>
@@ -463,14 +498,15 @@ if (error) {
                                                     <Table aria-label="coincidences table" size="small">
                                                         <TableHead sx={{ backgroundColor: '#e0e0e0' }}>
                                                             <TableRow>
-                                                                <TableCell>Customer from Zoho</TableCell>
-                                                                <TableCell>Reason</TableCell>
+                                                                <TableCell sx={{ width: '40%', maxWidth: '40%', overflow: 'hidden', textOverflow: 'ellipsis' }}>Customer from Zoho</TableCell>
+                                                                <TableCell sx={{ width: '50%', maxWidth: '50%', overflow: 'hidden', textOverflow: 'ellipsis' }}>Reason</TableCell>
+                                                                <TableCell>Action</TableCell>
                                                             </TableRow>
                                                         </TableHead>
                                                         <TableBody>
-                                                            {invoice.customer_unmatched.map((item, index) => (
+                                                            {invoice.customer_unmatched.map((customer, index) => (
                                                                 <TableRow key={index}>
-                                                                    <TableCell>{item.zoho_customer_unmatched}</TableCell>
+                                                                    <TableCell>{customer.zoho_customer_unmatched}</TableCell>
                                                                     <TableCell>
                                                                         <Alert severity="error"
                                                                             style={{ 
@@ -478,8 +514,18 @@ if (error) {
                                                                                 padding: '4px 8px', 
                                                                                 borderRadius: '4px',
                                                                             }}>
-                                                                            <b>{item.reason}</b>
+                                                                            <b>{customer.reason}</b>
                                                                         </Alert>
+                                                                    </TableCell>
+                                                                    <TableCell>
+                                                                        <Button 
+                                                                            onClick={() => handleViewCustomer(customer)} 
+                                                                            variant="contained" 
+                                                                            color="info" 
+                                                                            size="small"
+                                                                        >
+                                                                            View
+                                                                        </Button>
                                                                     </TableCell>
                                                                 </TableRow>
                                                             ))}
@@ -487,14 +533,25 @@ if (error) {
                                                     </Table>
                                                 </TableContainer>
                                             ) : (
-                                                <Alert severity="warning"
-                                                    style={{ 
-                                                        fontSize: '0.80rem',  
-                                                        padding: '4px 8px', 
-                                                        borderRadius: '4px',
-                                                    }}>
-                                                    <b>No Errors in matched customer detected.</b>
-                                                </Alert>
+                                                invoice.inserted_in_qb ? (
+                                                    <Alert severity="success"
+                                                        style={{ 
+                                                            fontSize: '0.80rem',  
+                                                            padding: '4px 8px', 
+                                                            borderRadius: '4px',
+                                                        }}>
+                                                        <b>Processed successfully</b>
+                                                    </Alert>
+                                                ) : (
+                                                    <Alert severity="warning"
+                                                        style={{ 
+                                                            fontSize: '0.80rem',  
+                                                            padding: '4px 8px', 
+                                                            borderRadius: '4px',
+                                                        }}>
+                                                        <b>No Errors in matched items detected (Not Processed).</b>
+                                                    </Alert>
+                                                )
                                             )}
                                         </TableCell>
                                     </TableRow>

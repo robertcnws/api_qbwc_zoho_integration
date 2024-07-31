@@ -142,7 +142,7 @@ def view_customer(request, customer_id):
                                 'phone': qb_phone,
                                 'seem_phone': seem_phone,
                                 'coincidence_phone': f'{round(seem_phone * 100, 2)} %',
-                                'company_name': qb_customer_data['name']  # Asegúrate de usar el campo correcto si es necesario
+                                'company_name': qb_customer_data['name'] 
                         })
 
                 if dependences_list:
@@ -152,7 +152,6 @@ def view_customer(request, customer_id):
                     sorted_dependences_list = []
         
         zoho_customer = model_to_dict(zoho_customer)
-        print(zoho_customer)
 
         zoho_customer['coincidences'] = sorted_dependences_list
         if zoho_customer['qb_list_id']:

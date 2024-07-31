@@ -420,24 +420,25 @@ def generate_invoice_add_response():
             if zoho_customer.qb_list_id:
                 invoices[i].customer_unmatched = []
 
-                street = invoices[i].billing_address['street'] if invoices[i].billing_address['street'] != '' else ''
-                address = invoices[i].billing_address['address'] if invoices[i].billing_address['address'] != '' else ''
-                city = invoices[i].billing_address['city'] if invoices[i].billing_address['city'] != '' else ''
-                state = invoices[i].billing_address['state'] if invoices[i].billing_address['state'] != '' else ''
-                zip_code = invoices[i].billing_address['zip'] if invoices[i].billing_address['zip'] != '' else ''
+                # street = invoices[i].billing_address['street'] if invoices[i].billing_address['street'] != '' else ''
+                # address = invoices[i].billing_address['address'] if invoices[i].billing_address['address'] != '' else ''
+                # city = invoices[i].billing_address['city'] if invoices[i].billing_address['city'] != '' else ''
+                # state = invoices[i].billing_address['state'] if invoices[i].billing_address['state'] != '' else ''
+                # zip_code = invoices[i].billing_address['zip'] if invoices[i].billing_address['zip'] != '' else ''
                 # terms = invoices[i].terms if invoices[i].terms else 'Net 30'
                 terms = settings.TERMS
 
                 if counter_items_with_list_id == len(invoices[i].line_items):
                     if items_xml != '':
                         sales_tax_list_id = settings.SALES_TAX_LIST_ID
+                        template = settings.TEMPLATE_INVOICE_NAME
                         data_xml += f'''<InvoiceAddRq requestID="{i + 2}">
                                         <InvoiceAdd defMacro="TxnID:NewInvoice">
                                             <CustomerRef>
                                                 <ListID>{zoho_customer.qb_list_id}</ListID>
                                             </CustomerRef>
                                             <TemplateRef>
-                                                <FullName>{settings.TEMPLATE_INVOICE_NAME}</FullName>
+                                                <FullName>{template}</FullName>
                                             </TemplateRef>
                                             <TxnDate>{invoices[i].date}</TxnDate>
                                             <PONumber>{invoices[i].reference_number}</PONumber>

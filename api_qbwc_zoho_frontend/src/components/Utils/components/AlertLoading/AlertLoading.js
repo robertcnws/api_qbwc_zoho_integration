@@ -9,6 +9,6 @@ export const AlertLoading = ( {isSmallScreen, message} ) => {
               marginLeft: isSmallScreen ? '0' : '3%',
               transition: 'margin-left 0.3s ease', 
           }}>
-              Loading {message ? `(${message})`: ''}...
+              <b>Loading {message ? `(${message})`: ''}...</b>
           </Alert>;
 }
