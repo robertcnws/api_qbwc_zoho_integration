@@ -2,7 +2,7 @@ from django.shortcuts import render
 from django.http import JsonResponse
 from django.utils.timezone import make_aware
 from datetime import datetime as dtime
-from datetime import date
+from datetime import date, timedelta
 import api_zoho.views as api_zoho_views
 from django.conf import settings
 from django.db import transaction
@@ -39,6 +39,7 @@ def view_invoice(request, invoice_id):
         all_customers = ZohoCustomer.objects.filter(Q(qb_list_id__regex=pattern)).values_list('contact_id', 'qb_list_id')
         dfc = pd.DataFrame(list(all_customers), columns=['contact_id', 'qb_list_id'])
         all_customers_data = dfc[['contact_id', 'qb_list_id']].to_dict(orient='records')
+        qb_customer_list_id = ''
         
         for zoho_item in all_items_data: 
             for item in zoho_invoice.line_items:
@@ -50,17 +51,21 @@ def view_invoice(request, invoice_id):
                     item['qb_list_id'] = zoho_item['qb_list_id']
                     
         for zoho_customer in all_customers_data:
+            if zoho_invoice.customer_id == zoho_customer['contact_id']:
+                qb_customer_list_id = zoho_customer['qb_list_id']
             for customer in zoho_invoice.customer_unmatched:
                 if customer.get('zoho_customer_id') == zoho_customer['contact_id']:
                     customer['qb_list_id'] = zoho_customer['qb_list_id']
                     
         cont_items = len(list(filter(lambda x: 'qb_list_id' in x, zoho_invoice.line_items)))
-        cont_customers = len(list(filter(lambda x: 'qb_list_id' in x, zoho_invoice.customer_unmatched)))
                         
         zoho_invoice.all_items_matched = cont_items == len(zoho_invoice.line_items)
-        zoho_invoice.all_customer_matched = cont_customers == len(zoho_invoice.customer_unmatched)
+        zoho_invoice.all_customer_matched = qb_customer_list_id != ''
+        zoho_invoice.qb_customer_list_id = qb_customer_list_id
+        zoho_invoice.save()
         
         zoho_invoice = model_to_dict(zoho_invoice)
+        
         
         context = {
             'invoice': zoho_invoice
@@ -89,6 +94,7 @@ def list_invoices(request):
 def load_invoices(request):
     valid_token = api_zoho_views.validateJWTTokenRequest(request)
     if valid_token:
+        option = request.data.get('option', '')
         app_config = AppConfig.objects.first()
         try:
             headers = api_zoho_views.config_headers(request)  # Asegúrate de que esto esté configurado correctamente
@@ -100,14 +106,16 @@ def load_invoices(request):
             }
             return render(request, 'api_zoho/error.html', context)
         invoices_saved = list(ZohoFullInvoice.objects.all())
-        today = date.today().strftime('%Y-%m-%d')
+        today = date.today()
+        yesterday = today - timedelta(days=1)
+        date_to_query = today.strftime('%Y-%m-%d') if option == 'Today' else yesterday.strftime('%Y-%m-%d')
         # today = '2024-06-28'
         params = {
             'organization_id': app_config.zoho_org_id,  # ID de la organización en Zoho Books
             'page': 1,       # Página inicial
             'per_page': 200,  # Cantidad de resultados por página
-            'date_start': f'{today}',  # Filtrar por fecha actual
-            'date_end': f'{today}'     # Filtrar por fecha actual
+            'date_start': f'{date_to_query}',  # Filtrar por fecha actual
+            'date_end': f'{date_to_query}'     # Filtrar por fecha actual
         }
         
         url = f'{settings.ZOHO_URL_READ_INVOICES}'
@@ -179,6 +187,20 @@ def load_invoices(request):
     
     return JsonResponse({'error': 'Invalid JWT Token'}, status=401)
     
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def delete_invoice(request, invoice_id):
+    valid_token = api_zoho_views.validateJWTTokenRequest(request)
+    if valid_token:
+        try:
+            invoice = ZohoFullInvoice.objects.filter(invoice_id=invoice_id).first()
+            invoice.delete()
+            return JsonResponse({'status':'success', 'message': 'Invoice deleted successfully'}, status=200)
+        except Exception as e:
+            logger.error(f"Error deleting invoice: {e}")
+            return JsonResponse({'error': 'Failed to delete invoice'}, status=500)
+    return JsonResponse({'error': 'Invalid JWT Token'}, status=401)
+
 
 def create_invoice_instance(data):
     try:

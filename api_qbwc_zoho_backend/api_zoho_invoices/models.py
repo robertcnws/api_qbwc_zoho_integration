@@ -71,6 +71,7 @@ class ZohoFullInvoice(models.Model):
     number_of_times_synced = models.IntegerField(default=0, blank=True)
     all_items_matched = models.BooleanField(default=False, blank=True)
     all_customer_matched = models.BooleanField(default=False, blank=True)
+    qb_customer_list_id = models.CharField(max_length=100, blank=True, null=True)
     
 
     def __str__(self):

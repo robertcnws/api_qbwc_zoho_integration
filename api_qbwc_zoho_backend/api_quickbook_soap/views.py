@@ -453,6 +453,46 @@ def matched_invoices(request):
 
         # Agregar filtro de fecha para obtener solo las facturas del día
         invoices = ZohoFullInvoice.objects.filter(date=date_date).order_by('-invoice_number')
+        
+        pattern = r'^[A-Za-z0-9]{8}-[A-Za-z0-9]{10}$'
+        all_items = ZohoItem.objects.filter(Q(qb_list_id__regex=pattern)).values_list('item_id', 'qb_list_id')
+        df = pd.DataFrame(list(all_items), columns=['item_id', 'qb_list_id'])
+        all_items_data = df[['item_id', 'qb_list_id']].to_dict(orient='records')
+        all_customers = ZohoCustomer.objects.filter(Q(qb_list_id__regex=pattern)).values_list('contact_id', 'qb_list_id')
+        dfc = pd.DataFrame(list(all_customers), columns=['contact_id', 'qb_list_id'])
+        all_customers_data = dfc[['contact_id', 'qb_list_id']].to_dict(orient='records')
+        qb_customer_list_id = ''
+        
+        items_dict = {item['item_id']: item for item in all_items_data}
+        customers_dict = {customer['contact_id']: customer for customer in all_customers_data}
+
+        for invoice in invoices:
+            for item in invoice.line_items:
+                item_id = item.get('item_id')
+                if item_id in items_dict:
+                    item['qb_list_id'] = items_dict[item_id]['qb_list_id']
+
+            for item in invoice.items_unmatched:
+                zoho_item_id = item.get('zoho_item_id')
+                if zoho_item_id in items_dict:
+                    item['qb_list_id'] = items_dict[zoho_item_id]['qb_list_id']
+
+            customer_id = invoice.customer_id
+            if customer_id in customers_dict:
+                qb_customer_list_id = customers_dict[customer_id]['qb_list_id']
+
+            for customer in invoice.customer_unmatched:
+                zoho_customer_id = customer.get('zoho_customer_id')
+                if zoho_customer_id in customers_dict:
+                    customer['qb_list_id'] = customers_dict[zoho_customer_id]['qb_list_id']
+            
+            cont_items = len(list(filter(lambda x: 'qb_list_id' in x, invoice.line_items)))
+                        
+            invoice.all_items_matched = cont_items == len(invoice.line_items)
+            invoice.all_customer_matched = qb_customer_list_id != ''
+            invoice.qb_customer_list_id = qb_customer_list_id
+            invoice.save()
+            qb_customer_list_id = ''
 
         # Calcular estadísticas basadas en las facturas del día
         stats = invoices.aggregate(

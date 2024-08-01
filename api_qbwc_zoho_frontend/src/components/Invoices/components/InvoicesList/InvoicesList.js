@@ -26,6 +26,8 @@ import {
     MenuItem
 } from '@mui/material';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import DeleteIcon from '@mui/icons-material/Delete';
 import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import Swal from 'sweetalert2';
@@ -123,6 +125,53 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
             setPage(0);
         }
     }, []);
+
+    const handleDeleteInvoice = useCallback((invoice) => {
+        Swal.fire({
+            title: 'Are you sure?',
+            text: 'Do you want to delete this invoice? This action cannot be undone.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Yes, delete it!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const fetchData = async () => {
+                    try {
+                        const url = `${apiUrl}/api_zoho_invoices/delete_invoice/${invoice.fields.invoice_id}/`
+                        const response = await fetchWithToken(url, 'POST', null, {}, apiUrl);
+                        if (response.data.status === 'success') {
+                            Swal.fire({
+                                title: 'Success!',
+                                text: 'Invoice has been deleted successfully.',
+                                icon: 'success',
+                                confirmButtonText: 'OK'
+                            }).then(() => {
+                                onSyncComplete();
+                            });
+                        } else {
+                            Swal.fire({
+                                title: 'Error!',
+                                text: `An error occurred while deleting invoice: ${response.data.message}`,
+                                icon: 'error',
+                                confirmButtonText: 'OK'
+                            });
+                        }
+                    } catch (error) {
+                        console.error('An error occurred while deleting invoice:', error);
+                        Swal.fire({
+                            title: 'Error!',
+                            text: `An error occurred while deleting invoice: ${error}`,
+                            icon: 'error',
+                            confirmButtonText: 'OK'
+                        });
+                    }
+                };
+                fetchData();
+            }
+        });
+    }, [apiUrl, onSyncComplete]);
 
     const handleForceToSync = useCallback(() => {
         if (selectedInvoices.length === 0) {
@@ -304,12 +353,15 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
             const notSynced = invoice.fields.customer_unmatched.length > 0 || invoice.fields.items_unmatched.length > 0;
             const synced = invoice.fields.inserted_in_qb;
             const forcedSync = invoice.fields.force_to_sync;
+            const matched = invoice.fields.all_items_matched && invoice.fields.all_customer_matched;
 
             if (filter === 'all') return matchesSearchTerm;
             if (filter === 'synced') return matchesSearchTerm && synced;
             if (filter === 'not_synced') return matchesSearchTerm && notSynced;
             if (filter === 'forced_sync') return matchesSearchTerm && forcedSync;
             if (filter === 'not_forced_sync') return matchesSearchTerm && !forcedSync;
+            if (filter === 'matched') return matchesSearchTerm && matched;
+            if (filter === 'not_matched') return matchesSearchTerm && !matched;
             return matchesSearchTerm && notProcessed;
         });
     }, [data.invoices, filter, filterBySearchTerm, filterByDate]);
@@ -443,14 +495,18 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
                     'info' : (filter === 'not_processed' ? 
                     'warning' : (filter === 'synced' ? 
                     'success' : (filter === 'forced_sync' || filter === 'not_forced_sync' ? 
-                    'info': 'error')))
+                    'info':  (filter === 'matched' ? 
+                    'success' : (filter === 'not_matched' ? 
+                    'warning' : 'error')))))
                 } sx={{ fontSize: 'small' }}>
                     <b>{filteredInvoices.length}</b> {filter === 'all' ? 
                     'Total' : (filter === 'not_processed' ? 
                     'Not Processed' : (filter === 'synced' ? 
                     'Synced' : (filter === 'forced_sync' ? 
                     'Forced to Sync' : (filter === 'not_forced_sync' ? 
-                    'Not Forced to Sync' : 'Not Synced'))))
+                    'Not Forced to Sync' : (filter === 'matched' ? 
+                    'Matched': (filter === 'not_matched' ? 
+                    'Not Matched':'Not Synced'))))))
                 } invoices found
                 </Alert>
             </Grid>
@@ -510,9 +566,15 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
                                             }
                                         </TableCell>
                                         <TableCell align="center">
-                                            <Button variant="contained" color="info" size="small" onClick={() => handleViewInvoice(invoice)} >
+                                            {/* <Button variant="contained" color="info" size="small" onClick={() => handleViewInvoice(invoice)} >
                                                 View
-                                            </Button>
+                                            </Button> */}
+                                            <IconButton onClick={() => handleViewInvoice(invoice)} color="info" aria-label="view" size='xx-large'>
+                                                <VisibilityIcon />
+                                            </IconButton>
+                                            <IconButton onClick={() => handleDeleteInvoice(invoice)} color="error" aria-label="view" size='xx-large'>
+                                                <DeleteIcon />
+                                            </IconButton>
                                         </TableCell>
                                     </TableRow>
                                 );

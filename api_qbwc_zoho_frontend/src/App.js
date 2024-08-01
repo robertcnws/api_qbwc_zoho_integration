@@ -1,6 +1,6 @@
-import React from 'react';
-import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
-import { AuthProvider, useAuth } from './components/AuthContext/AuthContext';
+import React, { useEffect, useCallback, useRef } from 'react';
+import { Route, Routes, Navigate, useNavigate } from 'react-router-dom';
+import { useAuth } from './components/AuthContext/AuthContext';
 import ProtectedRoute from './components/ProtectedRoutes/ProtectedRoutes';
 import LoginForm from './components/LoginForm/LoginForm';
 import Dashboard from './components/Dashboard/Dashboard';
@@ -36,11 +36,42 @@ const HomeRedirect = () => {
   return <LoginForm />;
 };
 
+const useIdleTimer = (navigate, timeout = 60000) => {
+  const { logout } = useAuth();
+  const timer = useRef(null);
+
+  const resetTimer = useCallback(() => {
+    clearTimeout(timer.current);
+    timer.current = setTimeout(() => {
+      logout();
+      navigate('/'); // Redirecciona al cerrar sesión
+    }, timeout);
+  }, [logout, navigate, timeout]);
+
+  useEffect(() => {
+    const handleActivity = () => resetTimer();
+
+    window.addEventListener('mousemove', handleActivity);
+    window.addEventListener('keydown', handleActivity);
+
+    resetTimer();
+
+    return () => {
+      clearTimeout(timer.current);
+      window.removeEventListener('mousemove', handleActivity);
+      window.removeEventListener('keydown', handleActivity);
+    };
+  }, [resetTimer]);
+
+  return null;
+};
+
 const App = () => {
+
+  const navigate = useNavigate();
+  useIdleTimer(navigate, 300000);
+
   return (
-    
-    <AuthProvider>
-      <Router>
         <Routes>
           <Route path="/" element={<HomeRedirect />} />
           <Route path="/integration/*" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} >
@@ -65,8 +96,6 @@ const App = () => {
             <Route path="download_backup_db" element={<DownloadBackupList />} />
           </Route>
         </Routes>
-      </Router>
-    </AuthProvider>
   );
 };
 

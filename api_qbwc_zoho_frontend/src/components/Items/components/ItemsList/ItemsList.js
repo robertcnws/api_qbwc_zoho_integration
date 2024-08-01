@@ -1,5 +1,27 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Grid, Typography, Alert, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, TablePagination, TextField, TableSortLabel, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
+import { 
+    Container, 
+    Grid, 
+    Typography, 
+    Alert, 
+    Button, 
+    Table, 
+    TableBody, 
+    TableCell, 
+    TableContainer, 
+    TableHead, 
+    TableRow, 
+    Paper, 
+    TablePagination, 
+    TextField, 
+    TableSortLabel, 
+    FormControl, 
+    InputLabel, 
+    Select, 
+    MenuItem, 
+    IconButton 
+} from '@mui/material';
+import VisibilityIcon from '@mui/icons-material/Visibility';
 import { Link, useNavigate } from 'react-router-dom';
 import { stableSort, getComparator } from '../../../../utils';
 import { EmptyRecordsCell } from '../../../Utils/components/EmptyRecordsCell/EmptyRecordsCell';
@@ -191,14 +213,17 @@ const ItemsList = ({ items }) => {
                                                 }
                                             </TableCell>
                                             <TableCell className="text-center align-middle">
-                                                <Button 
+                                                {/* <Button 
                                                     onClick={() => handleViewItem(item)} 
                                                     variant="contained" 
                                                     color="info" 
                                                     size="small"
                                                 >
                                                     View
-                                                </Button>
+                                                </Button> */}
+                                                <IconButton onClick={() => handleViewItem(item)} color="info" aria-label="view" size='xx-large'>
+                                                    <VisibilityIcon />
+                                                </IconButton>
                                             </TableCell>
                                         </TableRow>
                                     ))

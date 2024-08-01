@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Button, Container, Grid, Typography, Alert, CircularProgress } from '@mui/material';
+import { Button, Container, Grid, Typography, Alert, CircularProgress, MenuItem, Menu, IconButton } from '@mui/material';
 import { Warning } from '@mui/icons-material';
 import { fetchWithToken } from '../../utils';
 import axios from 'axios'
 import moment from 'moment'
+import { ArrowDropDownIcon } from '@mui/x-date-pickers';
 
 const apiUrl = process.env.REACT_APP_ENVIRONMENT === 'DEV' ? process.env.REACT_APP_BACKEND_URL_DEV : process.env.REACT_APP_BACKEND_URL_PROD;
 
@@ -16,6 +17,8 @@ const ZohoLoading = () => {
   const [lastDateLoadedItems, setlastDateLoadedItems] = useState(null);
   const [lastDateLoadedInvoices, setlastDateLoadedInvoices] = useState(null);
   const [error, setError] = useState(null);
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [option, setOption] = useState(null);
   const navigate = useNavigate();
 
   const isAnyLoading = loadingCustomers || loadingItems || loadingInvoices;
@@ -25,7 +28,8 @@ const ZohoLoading = () => {
   const loadData = async (element, module, endpoint, setLoading) => {
     setLoading(true);
     try {
-      const response = await fetchWithToken(`${apiUrl}/${module}/${endpoint}/`, 'POST', null, {}, apiUrl);
+      const data = element === 'invoices' ? { option: option } : null;  
+      const response = await fetchWithToken(`${apiUrl}/${module}/${endpoint}/`, 'POST', data, {}, apiUrl);
       if (response.status !== 200 && response.status !== 202) {
         throw new Error(`Failed to load data: ${module}`);
       }
@@ -57,6 +61,19 @@ const ZohoLoading = () => {
     fetchData();
     
   }, []);
+
+  const handleClick = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleMenuItemClick = (opt) => {
+    setAnchorEl(null);
+    setOption(opt);   
+  };
 
   return (
     <Container component="main" maxWidth="md" sx={{ mt: 5, p: 3, bgcolor: '#FFFFFF', boxShadow: 3, borderRadius: 2 }}>
@@ -101,7 +118,7 @@ const ZohoLoading = () => {
                     </Button>
                 </Grid>
                 <Grid item xs={4} sx={{ textAlign: 'center' }}>
-                    <Button
+                    {/* <Button
                         onClick={handleLoadInvoices}
                         variant="contained"
                         color="info"
@@ -110,7 +127,40 @@ const ZohoLoading = () => {
                         startIcon={loadingInvoices ? <CircularProgress size={24} /> : null}
                     >
                         {loadingInvoices ? 'Loading Invoices...' : 'Load Invoices'}
+                    </Button> */}
+                    <Button
+                        onClick={handleLoadInvoices}
+                        variant="contained"
+                        color="info"
+                        size="small"
+                        disabled={isAnyLoading || !zohoConnectionConfigured || option === null}
+                        startIcon={loadingInvoices ? <CircularProgress size={24} /> : null}
+                        sx={{ flexGrow: 1, textAlign: 'left' }}
+                    >
+                        Load Invoices {option}
                     </Button>
+                    {!loadingInvoices && (
+                        <IconButton
+                            size="small"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                handleClick(e);
+                            }}
+                        >
+                            <ArrowDropDownIcon />
+                        </IconButton>
+                    )}
+                    <Menu
+                        id="simple-menu"
+                        anchorEl={anchorEl}
+                        keepMounted
+                        open={Boolean(anchorEl)}
+                        onClose={handleClose}
+                    >
+                        <MenuItem value="yesterday" onClick={() => handleMenuItemClick('Yesterday')}>Yesterday</MenuItem>
+                        <MenuItem value="today" onClick={() => handleMenuItemClick('Today')}>Today</MenuItem>
+                    </Menu>
+                    
                 </Grid>
             </Grid>
             <Grid container spacing={2} alignItems="center" justifyContent="center" mb={3}>

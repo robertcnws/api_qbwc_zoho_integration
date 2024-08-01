@@ -22,12 +22,15 @@ import {
     TablePagination,
     Box,
     ListSubheader,
-    TextField, 
+    TextField,
+    IconButton, 
 } from '@mui/material';
+import VisibilityIcon from '@mui/icons-material/Visibility';
 import { grey } from '@mui/material/colors';
 import { fetchWithToken } from '../../../../utils'
 import { AlertLoading } from '../../../Utils/components/AlertLoading/AlertLoading';
 import { AlertError } from '../../../Utils/components/AlertError/AlertError';
+import SmallAlert from '../../../Utils/components/SmallAlert/SmallAlert';
 
 const apiUrl = process.env.REACT_APP_ENVIRONMENT === 'DEV' ? process.env.REACT_APP_BACKEND_URL_DEV : process.env.REACT_APP_BACKEND_URL_PROD;;
 
@@ -62,6 +65,10 @@ const InvoicesDetails = () => {
                 ? invoice.fields.force_to_sync
                 : filter === 'not_forced_sync'
                 ? !invoice.fields.force_to_sync
+                : filter === 'matched'
+                ? invoice.fields.all_items_matched && invoice.fields.all_customer_matched
+                : filter === 'not_matched'
+                ? !invoice.fields.all_items_matched || !invoice.fields.all_customer_matched
                 : false;
             
             const matchesSearchTerm = searchTerm === '' 
@@ -252,6 +259,8 @@ if (error) {
                                 <MenuItem value="not_processed">Not Processed Invoices</MenuItem>
                                 <MenuItem value="forced_sync">Forced to Sync Invoices</MenuItem>
                                 <MenuItem value="not_forced_sync">Not Forced to Sync Invoices</MenuItem>
+                                <MenuItem value="matched">Matched Invoices</MenuItem>
+                                <MenuItem value="not_matched">Not Matched Invoices</MenuItem>
                                 <ListSubheader>
                                     <Box>
                                         <TextField
@@ -353,9 +362,16 @@ if (error) {
                                                             <b>{invoice.customer_name}</b>
                                                         </TableCell>
                                                         <TableCell sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-                                                            <Button variant="contained" color="info" size="small" onClick={() => handleViewCustomer(invoice.customer_id)} >
-                                                                View
-                                                            </Button>
+                                                            {!invoice.qb_customer_list_id ? (
+                                                                // <Button variant="contained" color="info" size="small" onClick={() => handleViewCustomer(invoice.customer_id)} >
+                                                                //     View
+                                                                // </Button>
+                                                                <IconButton onClick={() => handleViewCustomer(invoice.customer_id)} color="info" aria-label="view" size='xx-large'>
+                                                                    <VisibilityIcon />
+                                                                </IconButton>
+                                                            ) : (
+                                                                <SmallAlert severity='success' message='MATCHED'/>
+                                                            )}
                                                         </TableCell>
                                                     </TableRow>
                                                 </TableBody>
@@ -400,14 +416,21 @@ if (error) {
                                                                     <TableCell sx={{ width: '30%', maxWidth: '30%', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.sku ? item.sku : '---'}</TableCell>
                                                                     <TableCell sx={{ width: '20%', maxWidth: '20%', overflow: 'hidden', textOverflow: 'ellipsis' }}>$ {item.item_total}</TableCell>
                                                                     <TableCell>
-                                                                        <Button 
-                                                                            onClick={() => handleViewItem(item)} 
-                                                                            variant="contained" 
-                                                                            color="info" 
-                                                                            size="small"
-                                                                        >
-                                                                            View
-                                                                        </Button>
+                                                                        {!item.qb_list_id ? (
+                                                                            // <Button 
+                                                                            //     onClick={() => handleViewItem(item)} 
+                                                                            //     variant="contained" 
+                                                                            //     color="info" 
+                                                                            //     size="small"
+                                                                            // >
+                                                                            //     View
+                                                                            // </Button>
+                                                                            <IconButton onClick={() => handleViewItem(item)} color="info" aria-label="view" size='xx-large'>
+                                                                                <VisibilityIcon />
+                                                                            </IconButton>
+                                                                        ) : (
+                                                                            <SmallAlert severity='success' message='MATCHED'/>
+                                                                        )}
                                                                     </TableCell>
                                                                 </TableRow>
                                                             ))}
@@ -454,14 +477,21 @@ if (error) {
                                                                         </Alert>
                                                                     </TableCell>
                                                                     <TableCell>
-                                                                        <Button 
-                                                                            onClick={() => handleViewItem(item)} 
-                                                                            variant="contained" 
-                                                                            color="info" 
-                                                                            size="small"
-                                                                        >
-                                                                            View
-                                                                        </Button>
+                                                                        {!item.qb_list_id ? (
+                                                                            // <Button 
+                                                                            //     onClick={() => handleViewItem(item)} 
+                                                                            //     variant="contained" 
+                                                                            //     color="info" 
+                                                                            //     size="small"
+                                                                            // >
+                                                                            //     View
+                                                                            // </Button>
+                                                                            <IconButton onClick={() => handleViewItem(item)} color="info" aria-label="view" size='xx-large'>
+                                                                                <VisibilityIcon />
+                                                                            </IconButton>
+                                                                        ) : (
+                                                                            <SmallAlert severity='success' message='MATCHED'/>
+                                                                        )}
                                                                     </TableCell>
                                                                 </TableRow>
                                                             ))}
@@ -519,14 +549,21 @@ if (error) {
                                                                         </Alert>
                                                                     </TableCell>
                                                                     <TableCell>
-                                                                        <Button 
-                                                                            onClick={() => handleViewCustomer(customer)} 
-                                                                            variant="contained" 
-                                                                            color="info" 
-                                                                            size="small"
-                                                                        >
-                                                                            View
-                                                                        </Button>
+                                                                        {!customer.qb_list_id ? (
+                                                                            // <Button 
+                                                                            //     onClick={() => handleViewCustomer(customer)} 
+                                                                            //     variant="contained" 
+                                                                            //     color="info" 
+                                                                            //     size="small"
+                                                                            // >
+                                                                            //     View
+                                                                            // </Button>
+                                                                            <IconButton onClick={() => handleViewCustomer(customer)} color="info" aria-label="view" size='xx-large'>
+                                                                                <VisibilityIcon />
+                                                                            </IconButton>
+                                                                        ) : (
+                                                                            <SmallAlert severity='success' message='MATCHED'/>
+                                                                        )}
                                                                     </TableCell>
                                                                 </TableRow>
                                                             ))}

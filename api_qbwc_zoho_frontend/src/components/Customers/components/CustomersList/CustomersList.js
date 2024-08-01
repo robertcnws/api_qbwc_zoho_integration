@@ -18,8 +18,10 @@ import {
     FormControl,
     InputLabel,
     Select,
-    MenuItem
+    MenuItem,
+    IconButton
 } from '@mui/material';
+import VisibilityIcon from '@mui/icons-material/Visibility';
 import { Link, useNavigate } from 'react-router-dom'; 
 import { stableSort, getComparatorUndefined } from '../../../../utils';
 import { EmptyRecordsCell } from '../../../Utils/components/EmptyRecordsCell/EmptyRecordsCell';
@@ -211,11 +213,14 @@ const CustomersList = ({ customers }) => {
                                                         }</b>
                                                 </TableCell>
                                                 <TableCell className="text-center align-middle">
-                                                    <Button 
+                                                    {/* <Button 
                                                         onClick={() => handleViewCustomer(customer)} 
                                                         variant="contained" 
                                                         color="info" 
-                                                        size="small">View</Button>
+                                                        size="small">View</Button> */}
+                                                        <IconButton onClick={() => handleViewCustomer(customer)} color="info" aria-label="view" size='xx-large'>
+                                                            <VisibilityIcon />
+                                                        </IconButton>
                                                 </TableCell>
                                             </TableRow>
                                         ))

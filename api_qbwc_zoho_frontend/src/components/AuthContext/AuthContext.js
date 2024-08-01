@@ -9,8 +9,7 @@ export const AuthProvider = ({ children }) => {
     // Verifica el token al montar el componente
     const token = localStorage.getItem('authToken');
     if (token) {
-      // Puedes hacer una solicitud para validar el token aquí
-      setIsAuthenticated(true);  // Si el token es válido
+      setIsAuthenticated(true); 
     }
   }, []);
 
@@ -33,6 +32,4 @@ export const AuthProvider = ({ children }) => {
   );
 };
 
-export const useAuth = () => {
-  return useContext(AuthContext);
-};
+export const useAuth = () => useContext(AuthContext);
