@@ -9,14 +9,18 @@ from django.db import transaction
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
 from django.forms.models import model_to_dict
+from django.db.models import Q
 from api_zoho.models import AppConfig, ZohoLoading   
 from api_zoho_invoices.models import ZohoFullInvoice
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
+from api_zoho_items.models import ZohoItem
+from api_zoho_customers.models import ZohoCustomer  
 import requests
 import json
 import logging
 import datetime as dt
+import pandas as pd
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -27,9 +31,39 @@ logger = logging.getLogger(__name__)
 def view_invoice(request, invoice_id):
     valid_token = api_zoho_views.validateJWTTokenRequest(request)
     if valid_token:
+        pattern = r'^[A-Za-z0-9]{8}-[A-Za-z0-9]{10}$'
         zoho_invoice = ZohoFullInvoice.objects.get(invoice_id=invoice_id)
+        all_items = ZohoItem.objects.filter(Q(qb_list_id__regex=pattern)).values_list('item_id', 'qb_list_id')
+        df = pd.DataFrame(list(all_items), columns=['item_id', 'qb_list_id'])
+        all_items_data = df[['item_id', 'qb_list_id']].to_dict(orient='records')
+        all_customers = ZohoCustomer.objects.filter(Q(qb_list_id__regex=pattern)).values_list('contact_id', 'qb_list_id')
+        dfc = pd.DataFrame(list(all_customers), columns=['contact_id', 'qb_list_id'])
+        all_customers_data = dfc[['contact_id', 'qb_list_id']].to_dict(orient='records')
+        
+        for zoho_item in all_items_data: 
+            for item in zoho_invoice.line_items:
+                if item.get('item_id') == zoho_item['item_id']:
+                    item['qb_list_id'] = zoho_item['qb_list_id']
+                    
+            for item in zoho_invoice.items_unmatched:
+                if item.get('zoho_item_id') == zoho_item['item_id']:
+                    item['qb_list_id'] = zoho_item['qb_list_id']
+                    
+        for zoho_customer in all_customers_data:
+            for customer in zoho_invoice.customer_unmatched:
+                if customer.get('zoho_customer_id') == zoho_customer['contact_id']:
+                    customer['qb_list_id'] = zoho_customer['qb_list_id']
+                    
+        cont_items = len(list(filter(lambda x: 'qb_list_id' in x, zoho_invoice.line_items)))
+        cont_customers = len(list(filter(lambda x: 'qb_list_id' in x, zoho_invoice.customer_unmatched)))
+                        
+        zoho_invoice.all_items_matched = cont_items == len(zoho_invoice.line_items)
+        zoho_invoice.all_customer_matched = cont_customers == len(zoho_invoice.customer_unmatched)
+        
+        zoho_invoice = model_to_dict(zoho_invoice)
+        
         context = {
-            'invoice': model_to_dict(zoho_invoice)
+            'invoice': zoho_invoice
         }
         return JsonResponse(context, status=200)
     return JsonResponse({'error': 'Invalid JWT Token'}, status=401)

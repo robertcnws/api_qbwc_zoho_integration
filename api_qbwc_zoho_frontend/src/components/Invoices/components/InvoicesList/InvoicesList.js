@@ -35,6 +35,7 @@ import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
 import { stableSort, fetchWithToken, getComparatorUndefined } from '../../../../utils';
 import { EmptyRecordsCell } from '../../../Utils/components/EmptyRecordsCell/EmptyRecordsCell';
+import SmallAlert from '../../../Utils/components/SmallAlert/SmallAlert';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -251,6 +252,14 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
         }
     };
 
+    const renderMatchStatus = (invoice) => {
+        if (invoice.fields.all_items_matched && invoice.fields.all_customer_matched) {
+            return <SmallAlert severity='success' message='YES'/>
+        } else {
+            return <SmallAlert severity='error' message='NO'/>
+        }
+    };
+
     const renderForceSyncCheckbox = (invoice, isSelected) => {
         if (!(invoice.fields.inserted_in_qb && !invoice.fields.customer_unmatched.length > 0 && !invoice.fields.items_unmatched.length > 0)) {
             return (
@@ -315,6 +324,7 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
         { id: 'date', label: 'Date' },
         { id: 'total', label: 'Amount' },
         { id: 'sync_status', label: 'Sync?' },
+        { id: 'matched', label: 'Matched' },
         { id: 'force_sync', label: 'Force Sync?' },
         { id: 'actions', label: 'Actions' }
     ];
@@ -357,6 +367,8 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
                             <MenuItem value="not_processed">Not Processed Invoices</MenuItem>
                             <MenuItem value="forced_sync">Forced to Sync Invoices</MenuItem>
                             <MenuItem value="not_forced_sync">Not Forced to Sync Invoices</MenuItem>
+                            <MenuItem value="matched">Matched Invoices</MenuItem>
+                            <MenuItem value="not_matched">Not Matched Invoices</MenuItem>
                         </Select>
                     </FormControl>
                 </Grid>
@@ -478,6 +490,14 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
                                         <TableCell>$ {invoice.fields.total}</TableCell>
                                         <TableCell align="center">
                                             {renderSyncStatus(invoice)}
+                                        </TableCell>
+                                        <TableCell align="center" sx={() => ({
+                                                fontWeight: 'bold',
+                                                borderBottom: '1px solid #ccc',
+                                                width: '50px', 
+                                                maxWidth: '50px'
+                                            })}>
+                                            {renderMatchStatus(invoice)}
                                         </TableCell>
                                         <TableCell align="center">
                                             {

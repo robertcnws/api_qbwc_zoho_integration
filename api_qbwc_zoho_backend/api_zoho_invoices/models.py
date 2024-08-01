@@ -69,6 +69,8 @@ class ZohoFullInvoice(models.Model):
     force_to_sync = models.BooleanField(default=False, blank=True)
     last_sync_date = models.DateField(default=timezone.now, blank=True, null=True)
     number_of_times_synced = models.IntegerField(default=0, blank=True)
+    all_items_matched = models.BooleanField(default=False, blank=True)
+    all_customer_matched = models.BooleanField(default=False, blank=True)
     
 
     def __str__(self):

@@ -102,6 +102,7 @@ const InvoicesDetails = () => {
               try {
                   const url = `${apiUrl}/api_zoho_invoices/view_invoice/${invoiceId}/`
                   const response = await fetchWithToken(url, 'GET', null, {}, apiUrl);
+                  console.log('response:', response.data.invoice);
                   setInvoice(response.data.invoice);
               } catch (error) {
                   console.error('Error fetching invoice details:', error);

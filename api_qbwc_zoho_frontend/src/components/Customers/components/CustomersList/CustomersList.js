@@ -81,7 +81,7 @@ const CustomersList = ({ customers }) => {
     const handleViewCustomer = (customer) => {
         localStorage.setItem('customerListPage', page);
         localStorage.setItem('customerListRowsPerPage', rowsPerPage);
-        navigate('/integration/customer_details', { state: { customer, customers, filteredCustomers, filter } })
+        navigate('/integration/customer_details', { state: { customer, customers, filteredCustomers, filter, page } })
     }
 
     const handleSortChange = (columnId) => {

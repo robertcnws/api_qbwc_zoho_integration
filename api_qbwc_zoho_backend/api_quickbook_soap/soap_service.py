@@ -446,11 +446,6 @@ def generate_invoice_add_response():
                                                 <FullName>{terms}</FullName>
                                             </TermsRef>
                                             {items_xml}
-                                            <InvoiceLineAdd>
-                                                <ItemRef>
-                                                    <ListID>{sales_tax_list_id}</ListID>
-                                                </ItemRef>
-                                            </InvoiceLineAdd>
                                         </InvoiceAdd>
                                     </InvoiceAddRq>'''
 

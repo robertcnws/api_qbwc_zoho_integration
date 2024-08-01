@@ -111,6 +111,7 @@ const CustomersDetails = () => {
   useEffect(() => {
       setFilteredCustomers(location.state.filteredCustomers ? location.state.filteredCustomers : null);
       setFilter(location.state.filter ? location.state.filter : 'all');
+      setPage(location.state.page ? location.state.page : 0);   
       if (location.state.customer) {
         const customerId = location.state.customer.fields ? location.state.customer.fields.contact_id : location.state.customer;
         const fetchCustomerDetails = async () => {
@@ -228,11 +229,15 @@ const CustomersDetails = () => {
                                             else if (filter === 'unmatched') {
                                                 filteredList = jsonData.filter(c => !c.fields.qb_list_id || c.fields.qb_list_id === '');
                                             }
+                                            if (filteredList.length <= page * rowsPerPage - rowsPerPage) {
+                                                setPage(0);
+                                            }
                                             const state = {
                                                 customer: values,
                                                 customers: jsonData,
                                                 filteredCustomers: filteredList,
-                                                filter: filter
+                                                filter: filter,
+                                                page: page
                                             }
                                             setFilteredCustomers(filteredList);
                                             navigate('/integration/customer_details', { state: state });
