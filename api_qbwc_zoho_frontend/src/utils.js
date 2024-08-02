@@ -143,3 +143,22 @@ export const fetchWithToken = async (url, method = 'GET', data = null, headers =
       throw error;
   }
 };
+
+export const formatDate = (isoString) => {
+  const date = new Date(isoString);
+
+  const pad = (num) => String(num).padStart(2, '0');
+
+  const day = pad(date.getDate());
+  const month = pad(date.getMonth() + 1);
+  const year = date.getFullYear();
+  const hours = pad(date.getHours());
+  const minutes = pad(date.getMinutes());
+  const seconds = pad(date.getSeconds());
+
+  // Obtén el desplazamiento de la zona horaria en minutos y conviértelo a horas
+  const timezoneOffset = -date.getTimezoneOffset() / 60;
+  const timezoneString = `UTC${timezoneOffset >= 0 ? '+' : ''}${timezoneOffset}`;
+
+  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds} ${timezoneString}`;
+};

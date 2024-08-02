@@ -12,6 +12,9 @@ urlpatterns = [
     
     path("login/", views.login_view, name="login"),
     path("logout/", views.logout_view, name="logout"),
+    path("list_users/", views.list_users, name="list_users"),
+    path("manage_user/", views.manage_user, name="manage_user"),
+    path("view_user/", views.view_user, name="view_user"),
     path("zoho_api_settings/", views.zoho_api_settings, name="zoho_api_settings"),
     path("application_settings/", views.application_settings, name="application_settings"),
     path("generate_auth_url/", views.generate_auth_url, name="generate_auth_url"),

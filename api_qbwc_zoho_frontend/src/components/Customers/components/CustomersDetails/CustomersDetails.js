@@ -304,6 +304,27 @@ const CustomersDetails = () => {
         setPage(0);
     };
 
+    const handleBackNavigation = () => {
+        if (localStorage.getItem('backNavigation') === 'invoice_details') {
+            const invoice = JSON.parse(localStorage.getItem('invoice'));
+            if (invoice) {
+                if (!('fields' in invoice)) {
+                    invoice['fields'] = invoice;
+                }
+            }
+            const state = {
+                invoice: invoice,
+                invoices: JSON.parse(localStorage.getItem('invoices')),
+                filteredInvoices: JSON.parse(localStorage.getItem('filteredInvoices')),
+                filter: JSON.parse(localStorage.getItem('filterInvoices'))
+            }
+            navigate(`/integration/${localStorage.getItem('backNavigation')}`, { state: state });
+        }
+        else {
+            navigate(-1);
+        }
+    };
+
     if (loading) {
         return (
             <AlertLoading isSmallScreen={isSmallScreen} message='Customer Details'/>
@@ -325,7 +346,7 @@ const CustomersDetails = () => {
                       <Alert severity="warning">No customer found.</Alert>
                   </Grid>
                   <Grid item xs={6}>
-                      <Button variant="contained" color="success" size="small" onClick={() => navigate(-1)}>
+                      <Button variant="contained" color="success" size="small" onClick={() => handleBackNavigation()}>
                           Back to list
                       </Button>
                   </Grid>
@@ -416,11 +437,13 @@ const CustomersDetails = () => {
                         </Typography>
                     </Grid>
                     <Grid item xs={6} container justifyContent="flex-end" spacing={1}>
-                        <Grid item>
-                            <Button variant="contained" color="primary" size="small" onClick={() => navigate(-1)}>
-                                Back
-                            </Button>
-                        </Grid>
+                        {localStorage.getItem('backNavigation') === 'invoice_details' && (  
+                            <Grid item>
+                                <Button variant="contained" color="primary" size="small" onClick={() => handleBackNavigation()}>
+                                    Back
+                                </Button>
+                            </Grid>
+                        )}
                         <Grid item>
                             <Button variant="contained" color="success" size="small" onClick={() => navigate("/integration/list_customers")}>
                                 Return to list

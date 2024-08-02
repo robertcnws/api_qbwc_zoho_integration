@@ -99,11 +99,16 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
     
 
     const handleViewInvoice = useCallback((invoice) => {
+        const invoices = data.invoices;
         localStorage.setItem('invoicesListPage', page);
         localStorage.setItem('invoicesListRowsPerPage', rowsPerPage);
         localStorage.setItem('invoicesListFilterDate', filterDate ? filterDate.format('YYYY-MM-DD') : '');
+        localStorage.setItem('invoice', JSON.stringify(invoice));
+        localStorage.setItem('invoices', JSON.stringify(invoices));
+        localStorage.setItem('filteredInvoices', JSON.stringify(filteredInvoices));
+        localStorage.setItem('filterInvoices', JSON.stringify(filter));
+        localStorage.setItem('backNavigation', 'invoice_details')
         setFilterDate(filterDate);
-        const invoices = data.invoices;
         navigate('/integration/invoice_details', { state: { invoice, invoices, filteredInvoices, filter } });
     }, [page, rowsPerPage, filterDate, data.invoices, filter, navigate, setFilterDate]);
 

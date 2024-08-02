@@ -187,6 +187,27 @@ const ItemsDetails = () => {
     );
   };
 
+  const handleBackNavigation = () => {
+    if (localStorage.getItem('backNavigation') === 'invoice_details') {
+        const invoice = JSON.parse(localStorage.getItem('invoice'));
+        if (invoice) {
+            if (!('fields' in invoice)) {
+                invoice['fields'] = invoice;
+            }
+        }
+        const state = {
+            invoice: invoice,
+            invoices: JSON.parse(localStorage.getItem('invoices')),
+            filteredInvoices: JSON.parse(localStorage.getItem('filteredInvoices')),
+            filter: JSON.parse(localStorage.getItem('filterInvoices'))
+        }
+        navigate(`/integration/${localStorage.getItem('backNavigation')}`, { state: state });
+    }
+    else {
+        navigate(-1);
+    }
+};
+
     const handleMatchItem = (item_id, qb_item_list_id, action) => {
         Swal.fire({
             title: 'Are you sure?',
@@ -413,11 +434,13 @@ const ItemsDetails = () => {
                         </Typography>
                     </Grid>
                     <Grid item xs={6} container justifyContent="flex-end" spacing={1}>
+                        {localStorage.getItem('backNavigation') === 'invoice_details' && (  
                             <Grid item>
-                                    <Button variant="contained" color="primary" size="small" onClick={() => navigate(-1)}>
+                                    <Button variant="contained" color="primary" size="small" onClick={() => handleBackNavigation()}>
                                         Back
                                     </Button>
                             </Grid>
+                        )}
                             <Grid item>
                                     <Button variant="contained" color="success" size="small" onClick={() => navigate("/integration/list_items")}>
                                         Return to list

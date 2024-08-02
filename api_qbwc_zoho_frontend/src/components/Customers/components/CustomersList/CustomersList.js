@@ -83,6 +83,7 @@ const CustomersList = ({ customers }) => {
     const handleViewCustomer = (customer) => {
         localStorage.setItem('customerListPage', page);
         localStorage.setItem('customerListRowsPerPage', rowsPerPage);
+        localStorage.setItem('backNavigation', 'list_customers')
         navigate('/integration/customer_details', { state: { customer, customers, filteredCustomers, filter, page } })
     }
 

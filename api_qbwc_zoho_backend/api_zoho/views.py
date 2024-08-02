@@ -18,7 +18,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import ensure_csrf_cookie
 from datetime import datetime, timezone, timedelta
-from .models import AppConfig, ZohoLoading
+from .models import AppConfig, ZohoLoading, LoginUser
 from .forms import AppConfigForm
 from .backup_db import create_backup
 from rest_framework_simplejwt.authentication import JWTAuthentication
@@ -58,8 +58,8 @@ def login_view(request):
             user = authenticate(request, username=username, password=password)
             if user is not None:
                 login(request, user)
-                logger.info('User logged in')
-                return JsonResponse({'status': 'success', 'is_staff': user.is_staff, 'username': user.username}, status=200)
+                logger.info(f'User {username} logged in')
+                return JsonResponse({'status': 'success', 'is_staff': 'admin' if user.is_staff else 'user', 'username': user.username}, status=200)
             return JsonResponse({'error': 'Invalid credentials'}, status=400)
         except json.JSONDecodeError:
             return JsonResponse({'error': 'Invalid JSON'}, status=400)
@@ -77,6 +77,85 @@ def logout_view(request):
         logout(request) 
         return JsonResponse({'status': 'success'}, status=200)
     return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+
+#############################################
+# Users Fetch
+#############################################
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def list_users(request):
+    valid_token = validateJWTTokenRequest(request)
+    if valid_token:
+        users = LoginUser.objects.filter(is_active=True).order_by('username')
+        users_json = serializers.serialize('json', list(users)) 
+        users_data = json.loads(users_json)
+        
+        for user in users_data:
+            del user['fields']['password']
+            user['fields']['role'] = 'Admin' if user['fields']['is_staff'] else 'User'
+        
+        return JsonResponse([user['fields'] for user in users_data], safe=False, status=200)
+    
+    return JsonResponse({'error': 'Invalid JWT Token'}, status=401)
+
+#############################################
+# Get User
+#############################################
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def view_user(request, username):
+    valid_token = validateJWTTokenRequest(request)
+    if valid_token:
+        user = LoginUser.objects.filter(username=username).first()
+        if not user:
+            return JsonResponse({'error': 'User not found'}, status=404)
+        user = model_to_dict(user)
+        del user['password']
+        user['role'] = 'Admin' if user['is_staff'] else 'User'
+        return JsonResponse(user, status=200)
+    return JsonResponse({'error': 'Invalid JWT Token'}, status=401)
+
+#############################################
+# Manage User
+#############################################
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def manage_user(request):
+    valid_token = validateJWTTokenRequest(request)
+    if valid_token:
+        try:
+            data = json.loads(request.body) 
+            username = data.get('username')
+            password = data.get('password')
+            role = data.get('role')
+            first_name = data.get('first_name')
+            last_name = data.get('last_name')
+            email = data.get('email')
+            is_new = data.get('is_new')
+            is_staff = True if role == 'admin' else False
+            user = LoginUser.objects.filter(username=username).first()
+            if not user:
+                user = LoginUser.objects.create_user(username=username, email=email, password=password, is_staff=is_staff)
+            else:
+                if not is_new:
+                    user.first_name = first_name
+                    user.last_name = last_name
+                    user.email = email
+                    user.is_staff = is_staff
+                    user.set_password(password)
+                    user.save()
+                else:
+                    return JsonResponse({'error': 'User already exists'}, status=400)
+        except LoginUser.DoesNotExist:
+            return JsonResponse({'error': 'User not found or could not be created'}, status=404)
+        user = model_to_dict(user)
+        logger.info(f'User {user["username"]} has been created/updated')
+        return JsonResponse(user, status=200)
+    return JsonResponse({'error': 'Invalid JWT Token'}, status=401)
 
 
 #############################################

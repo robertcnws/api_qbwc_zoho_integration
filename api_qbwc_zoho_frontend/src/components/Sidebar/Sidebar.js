@@ -100,12 +100,12 @@ const Sidebar = ({ expanded, toggleSubmenu, handleLogout, handleDoBackup }) => {
           <ListItemIcon><Download sx={{ color: '#fff' }}/></ListItemIcon>
           <ListItemText primary="BackUps" />
         </ListItemButton>
-        {localStorage.getItem('isStaff') && (
-          <ListItemButton component={Link} to="/integration/download_backup_db" sx={{ backgroundColor: isActive('/integration/download_backup_db') ? '#2c2f3d' : 'inherit' }}>
+        {localStorage.getItem('isStaff') === 'admin' &&
+          <ListItemButton component={Link} to="/integration/list_users" sx={{ backgroundColor: isActive('/integration/list_users') ? '#2c2f3d' : 'inherit' }}>
             <ListItemIcon><AccountCircle sx={{ color: '#fff' }}/></ListItemIcon>
             <ListItemText primary="Users" />
           </ListItemButton>
-        )}
+        }
       </List>
     </Container>
   );

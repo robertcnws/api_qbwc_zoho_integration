@@ -441,10 +441,14 @@ def generate_invoice_add_response():
                                                 <FullName>{template}</FullName>
                                             </TemplateRef>
                                             <TxnDate>{invoices[i].date}</TxnDate>
-                                            <PONumber>{invoices[i].reference_number}</PONumber>
                                             <TermsRef>
                                                 <FullName>{terms}</FullName>
                                             </TermsRef>
+                                            <DataExt>
+                                                <OwnerID>0</OwnerID>
+                                                <DataExtName>S.O. No.</DataExtName>
+                                                <DataExtValue>{invoices[i].reference_number}</DataExtValue>
+                                            </DataExt>
                                             {items_xml}
                                         </InvoiceAdd>
                                     </InvoiceAddRq>

@@ -50,6 +50,7 @@ const InvoicesDetails = () => {
     const theme = useTheme();
     const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
 
+
     const filterInvoices = (filter, searchTerm) => {
         const allInvoices = location.state.invoices;
         return allInvoices.filter(invoice => {
@@ -109,7 +110,6 @@ const InvoicesDetails = () => {
               try {
                   const url = `${apiUrl}/api_zoho_invoices/view_invoice/${invoiceId}/`
                   const response = await fetchWithToken(url, 'GET', null, {}, apiUrl);
-                  console.log('response:', response.data.invoice);
                   setInvoice(response.data.invoice);
               } catch (error) {
                   console.error('Error fetching invoice details:', error);
@@ -141,6 +141,7 @@ const InvoicesDetails = () => {
                 filteredItems: jsonData,
                 filter: 'all' 
             };
+            localStorage.setItem('backNavigation', 'invoice_details')
             navigate('/integration/item_details', { state: state });
         } catch (error) {
             console.error('Error fetching items:', error);
@@ -164,13 +165,13 @@ const InvoicesDetails = () => {
             if (customer.zoho_customer_id) {
                 customer = customer.zoho_customer_id;
             }
-            console.log('customer:', customer);
             const state = { 
                 customer: customer, 
                 customers: jsonData, 
                 filteredCustomers: jsonData,
-                filter: 'all' 
+                filter: 'all'
             };
+            localStorage.setItem('backNavigation', 'invoice_details')
             navigate('/integration/customer_details', { state: state});
         } catch (error) {
             console.error('Error fetching customers:', error);
@@ -206,6 +207,11 @@ const handleViewInvoice = (invoice_id) => {
             const url = `${apiUrl}/api_zoho_invoices/view_invoice/${invoice_id}/`
             const response = await fetchWithToken(url, 'GET', null, {}, apiUrl);
             setInvoice(response.data.invoice);
+            localStorage.setItem('invoice', JSON.stringify(response.data.invoice));
+            localStorage.setItem('invoices', JSON.stringify(location.state.invoices));
+            localStorage.setItem('filteredInvoices', JSON.stringify(filteredInvoices));
+            localStorage.setItem('filterInvoices', JSON.stringify(filter));
+            localStorage.setItem('backNavigation', 'invoice_details')
         } catch (error) {
             console.error('Error fetching invoice details:', error);
             setError(`Error fetching invoice details: ${error}`);
@@ -332,11 +338,11 @@ if (error) {
                             </Typography>
                         </Grid>
                         <Grid item xs={6} container justifyContent="flex-end" spacing={1}>
-                            <Grid item>
+                            {/* <Grid item>
                                 <Button variant="contained" color="primary" size="small" onClick={() => navigate(-1)}>
                                     Back
                                 </Button>
-                            </Grid>
+                            </Grid> */}
                             <Grid item>
                                 <Button variant="contained" color="success" size="small" onClick={() => navigate("/integration/list_invoices")}>
                                     Return to list

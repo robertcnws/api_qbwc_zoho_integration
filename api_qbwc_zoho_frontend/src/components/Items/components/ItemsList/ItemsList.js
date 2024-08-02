@@ -75,6 +75,7 @@ const ItemsList = ({ items }) => {
     const handleViewItem = (item) => {
         localStorage.setItem('itemListPage', page);
         localStorage.setItem('itemListRowsPerPage', rowsPerPage);
+        localStorage.setItem('backNavigation', 'list_items')
         navigate('/integration/item_details', { state: { item, items, filteredItems, filter } });
         
     };
