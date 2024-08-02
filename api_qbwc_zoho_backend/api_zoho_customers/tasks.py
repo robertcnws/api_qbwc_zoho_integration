@@ -50,11 +50,11 @@ def load_customers_task(headers, params):
     
     customers_saved = list(ZohoCustomer.objects.all())
     existing_customers = {customer.contact_id: customer for customer in customers_saved}
-    existing_emails = {customer.email: customer for customer in customers_saved}
+    # existing_emails = {customer.email: customer for customer in customers_saved}
 
     for data in customers_to_get:
         new_customer = create_customer_instance(data)
-        if new_customer.contact_id not in existing_customers and new_customer.email not in existing_emails and new_customer.status == 'active':
+        if new_customer.contact_id not in existing_customers and new_customer.status == 'active':
             customers_to_save.append(new_customer)
 
     def save_customers_in_batches(customers, batch_size=100):

@@ -5,6 +5,7 @@ import BackupIcon from '@mui/icons-material/Backup';
 import InventoryIcon from '@mui/icons-material/Inventory';
 import AppsIcon from '@mui/icons-material/Apps';
 import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
+import AccountCircle from '@mui/icons-material/AccountCircle';
 import { Link, useLocation } from 'react-router-dom';
 
 const Sidebar = ({ expanded, toggleSubmenu, handleLogout, handleDoBackup }) => {
@@ -99,6 +100,12 @@ const Sidebar = ({ expanded, toggleSubmenu, handleLogout, handleDoBackup }) => {
           <ListItemIcon><Download sx={{ color: '#fff' }}/></ListItemIcon>
           <ListItemText primary="BackUps" />
         </ListItemButton>
+        {localStorage.getItem('isStaff') && (
+          <ListItemButton component={Link} to="/integration/download_backup_db" sx={{ backgroundColor: isActive('/integration/download_backup_db') ? '#2c2f3d' : 'inherit' }}>
+            <ListItemIcon><AccountCircle sx={{ color: '#fff' }}/></ListItemIcon>
+            <ListItemText primary="Users" />
+          </ListItemButton>
+        )}
       </List>
     </Container>
   );

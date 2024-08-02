@@ -56,11 +56,10 @@ def login_view(request):
             if not username or not password:
                 return JsonResponse({'error': 'Username and password required'}, status=400)
             user = authenticate(request, username=username, password=password)
-            logger.info(user)   
             if user is not None:
                 login(request, user)
                 logger.info('User logged in')
-                return JsonResponse({'status': 'success'}, status=200)
+                return JsonResponse({'status': 'success', 'is_staff': user.is_staff, 'username': user.username}, status=200)
             return JsonResponse({'error': 'Invalid credentials'}, status=400)
         except json.JSONDecodeError:
             return JsonResponse({'error': 'Invalid JSON'}, status=400)

@@ -51,6 +51,8 @@ const LoginForm = () => {
 
       if (loginResponse.status === 200) {
         setSuccess('Login successful');
+        localStorage.setItem('isStaff', loginResponse.data.is_staff);
+        localStorage.setItem('username', loginResponse.data.username);
         login();
         navigate('/integration');
       } else {

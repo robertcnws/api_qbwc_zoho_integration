@@ -28,7 +28,7 @@ def create_loginuser():
 
     if not LoginUser.objects.filter(username=username).exists():
         print("Creating LoginUser...")
-        LoginUser.objects.create_user(username=username, email=email, password=password)
+        LoginUser.objects.create_user(username=username, email=email, password=password, is_staff=True)
         print("LoginUser created!")
 
 if __name__ == "__main__":

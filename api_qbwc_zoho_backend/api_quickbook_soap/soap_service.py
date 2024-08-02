@@ -433,7 +433,7 @@ def generate_invoice_add_response():
                         sales_tax_list_id = settings.SALES_TAX_LIST_ID
                         template = settings.TEMPLATE_INVOICE_NAME
                         data_xml += f'''<InvoiceAddRq requestID="{i + 2}">
-                                        <InvoiceAdd defMacro="TxnID:NewInvoice">
+                                        <InvoiceAdd>
                                             <CustomerRef>
                                                 <ListID>{zoho_customer.qb_list_id}</ListID>
                                             </CustomerRef>
@@ -447,7 +447,8 @@ def generate_invoice_add_response():
                                             </TermsRef>
                                             {items_xml}
                                         </InvoiceAdd>
-                                    </InvoiceAddRq>'''
+                                    </InvoiceAddRq>
+                                    '''
 
                     logger.debug(f'Data XML: {data_xml}')
                     invoices[i].inserted_in_qb = True
@@ -478,7 +479,7 @@ def generate_invoice_add_response():
     if data_xml != '':
         request_xml = f'''<?qbxml version="8.0"?>
                                 <QBXML>
-                                    <QBXMLMsgsRq onError="stopOnError">
+                                    <QBXMLMsgsRq onError="continueOnError">
                                         {data_xml}
                                     </QBXMLMsgsRq>
                                 </QBXML>'''
