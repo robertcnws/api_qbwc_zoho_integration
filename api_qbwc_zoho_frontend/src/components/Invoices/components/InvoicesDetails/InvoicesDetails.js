@@ -411,6 +411,8 @@ if (error) {
                                                             <TableRow>
                                                                 <TableCell>Item Name</TableCell>
                                                                 <TableCell>Item SKU</TableCell>
+                                                                <TableCell>Quantity</TableCell>
+                                                                <TableCell>Rate</TableCell>
                                                                 <TableCell>Amount</TableCell>
                                                                 <TableCell>Actions</TableCell>
                                                             </TableRow>
@@ -419,8 +421,10 @@ if (error) {
                                                             {invoice.line_items.map((item, index) => (
                                                                 <TableRow key={index}>
                                                                     <TableCell sx={{ width: '40%', maxWidth: '40%', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.name ? item.name : '---'}</TableCell>
-                                                                    <TableCell sx={{ width: '30%', maxWidth: '30%', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.sku ? item.sku : '---'}</TableCell>
-                                                                    <TableCell sx={{ width: '20%', maxWidth: '20%', overflow: 'hidden', textOverflow: 'ellipsis' }}>$ {item.item_total}</TableCell>
+                                                                    <TableCell sx={{ width: '20%', maxWidth: '20%', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.sku ? item.sku : '---'}</TableCell>
+                                                                    <TableCell sx={{ width: '10%', maxWidth: '10%', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.quantity ? item.quantity : '---'}</TableCell>
+                                                                    <TableCell sx={{ width: '10%', maxWidth: '10%', overflow: 'hidden', textOverflow: 'ellipsis' }}>$ {item.rate ? item.rate : '---'}</TableCell>
+                                                                    <TableCell sx={{ width: '10%', maxWidth: '10%', overflow: 'hidden', textOverflow: 'ellipsis' }}><b>$ {item.item_total}</b></TableCell>
                                                                     <TableCell>
                                                                         {!item.qb_list_id ? (
                                                                             // <Button 

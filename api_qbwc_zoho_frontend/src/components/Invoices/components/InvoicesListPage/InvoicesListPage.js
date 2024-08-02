@@ -43,6 +43,8 @@ const InvoicesListPage = () => {
 
     useEffect(() => {
         fetchInvoices();
+        const intervalId = setInterval(fetchInvoices, 5000);
+        return () => clearInterval(intervalId);
     }, [fetchInvoices]); 
 
     if (loading) return <AlertLoading isSmallScreen={isSmallScreen} message='Invoices List'/>;

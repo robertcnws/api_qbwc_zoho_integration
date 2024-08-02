@@ -155,7 +155,12 @@ const CustomersDetails = () => {
 
 
   useEffect(() => {
-    const filtered = qbCustomers.filter(qbCustomer => qbCustomer.fields.name.toLowerCase().includes(searchTermQbCustomers.toLowerCase()));
+    const filtered = qbCustomers.filter(
+        qbCustomer => qbCustomer.fields.name.toLowerCase().includes(searchTermQbCustomers.toLowerCase()) ||
+                      qbCustomer.fields.list_id.toLowerCase().includes(searchTermQbCustomers.toLowerCase()) ||
+                      qbCustomer.fields.email.toLowerCase().includes(searchTermQbCustomers.toLowerCase()) ||
+                      qbCustomer.fields.phone.toLowerCase().includes(searchTermQbCustomers.toLowerCase())
+    );
     setFilteredQbCustomers(filtered);
     if (filtered.length === 0) {
         setShowListQbCustomers(false);
@@ -650,7 +655,7 @@ const CustomersDetails = () => {
                                                         placeholder=''
                                                     />
                                                     {showListQbCustomers && (
-                                                        <div style={{ height: 100, width: '100%' }}>
+                                                        <div style={{ height: 200, width: '100%' }}>
                                                             <AutoSizer>
                                                             {({ height, width }) => (
                                                                 <List
