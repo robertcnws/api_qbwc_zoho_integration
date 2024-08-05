@@ -68,7 +68,8 @@ const QbwcMatchedCustomersList = ({ matchedCustomers, onSyncComplete }) => {
                     const data = {
                         contact_id: customer.zoho_customer_id,
                         qb_customer_list_id: customer.qb_customer_list_id,
-                        action: 'unmatch'
+                        action: 'unmatch',
+                        username: localStorage.getItem('username'),
                     }
                     const response = await fetchWithToken(url, 'POST', data, {}, apiUrl);
                     if (response.data.status === 'success') {

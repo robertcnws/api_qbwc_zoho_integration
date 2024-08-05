@@ -103,8 +103,9 @@ const Dashboard = () => {
       sx={{ 
         display: 'flex', 
         minHeight: '100vh', 
+        maxHeight: '100vh',
         minWidth: '100vw',
-        backgroundColor: '#f4f4f4'
+        backgroundColor: 'white'
       }}
     >
       <Sidebar 

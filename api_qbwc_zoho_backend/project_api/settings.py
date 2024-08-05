@@ -149,7 +149,6 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'django_cron',
     'corsheaders',
     'rest_framework',
     'rest_framework_simplejwt',
@@ -158,10 +157,6 @@ INSTALLED_APPS = [
     'api_zoho_items',
     'api_zoho_invoices',
     'api_quickbook_soap',
-]
-
-CRON_CLASSES = [
-    'api_zoho_invoices.cron.MyCronJob',
 ]
 
 REST_FRAMEWORK = {

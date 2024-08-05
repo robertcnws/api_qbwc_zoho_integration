@@ -127,6 +127,7 @@ const QbwcItemsList = ({ items, onSyncComplete }) => {
                 const url = `${apiUrl}/api_quickbook_soap/never_match_items_ajax/`
                 const body = {
                     items: selectedItems,
+                    username: localStorage.getItem('username')
                 };
                 const response = await fetchWithToken(url, 'POST', body, {}, apiUrl);
                 if (response.data.message === 'error') {

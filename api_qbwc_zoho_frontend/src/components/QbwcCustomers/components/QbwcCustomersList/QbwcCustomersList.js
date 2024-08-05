@@ -128,6 +128,7 @@ const QbwcCustomersList = ({ customers, onSyncComplete }) => {
                     const url = `${apiUrl}/api_quickbook_soap/never_match_customers_ajax/`
                     const body = {
                         customers: selectedCustomers,
+                        username: localStorage.getItem('username')
                     };
                     const response = await fetchWithToken(url, 'POST', body, {}, apiUrl);
                     if (response.data.message === 'error') {

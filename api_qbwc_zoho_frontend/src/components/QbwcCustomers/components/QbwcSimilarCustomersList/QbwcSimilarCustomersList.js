@@ -69,7 +69,8 @@ const QbwcSimilarCustomersList = ({ similarCustomers, onSyncComplete }) => {
             const body = {
               qb_customer_list_id: qb_customer_list_id,
               contact_id: zoho_customer_id,
-              action: 'match'
+              action: 'match',
+              username: localStorage.getItem('username')
             }
             const response = await fetchWithToken(url, 'POST', body, {}, apiUrl);
             if (response.status === 200) {

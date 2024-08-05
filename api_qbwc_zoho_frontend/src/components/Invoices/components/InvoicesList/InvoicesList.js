@@ -203,7 +203,8 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
                     try {
                         const url = `${apiUrl}/api_quickbook_soap/force_to_sync_invoices_ajax/`
                         const params = {
-                            invoices: selectedInvoices
+                            invoices: selectedInvoices,
+                            username: localStorage.getItem('username'),
                         }
                         const response = await fetchWithToken(url, 'POST', params, {}, apiUrl);
                         if (response.data.status === 'success') {

@@ -100,7 +100,7 @@ const MainContent = () => {
       sx={{ 
         mt: 0, 
         p: 0, 
-        bgcolor: '#f4f4f4', 
+        bgcolor: 'white', 
         minWidth:'100%', 
         minHeight: '95%' 
       }}

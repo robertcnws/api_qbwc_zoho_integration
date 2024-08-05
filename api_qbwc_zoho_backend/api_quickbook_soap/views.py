@@ -14,6 +14,7 @@ from datetime import date as date
 from api_zoho_customers.models import ZohoCustomer
 from api_zoho_items.models import ZohoItem
 from api_zoho_invoices.models import ZohoFullInvoice
+from api_zoho.models import AppConfig
 from .models import QbItem, QbCustomer, QbLoading
 from .tasks import start_qbwc_query_request_task, authenticate_qbwc_request_task
 from rest_framework.decorators import api_view, permission_classes
@@ -140,9 +141,12 @@ def force_to_sync_one_invoice_ajax(request):
             data = json.loads(request.body)
             invoice_id = data.get('invoice', '')
             force_to_sync = data.get('force_to_sync', False)
+            username = data.get('username', '')
             invoice_model = get_object_or_404(ZohoFullInvoice, invoice_id=invoice_id)
             invoice_model.force_to_sync = force_to_sync
             invoice_model.save()
+            api_zoho_views.manage_api_tracking_log(username, 'force_to_sync_one_invoice', request.META.get('REMOTE_ADDR'), 'Forced to sync one invoice')
+            
             return JsonResponse({'status': 'success'}, status=200)
         except Exception as e:
             logger.error(f"An error occurred: {e}")
@@ -158,11 +162,13 @@ def force_to_sync_invoices_ajax(request):
         try:
             data = json.loads(request.body)
             list_id = data.get('invoices', [])
+            username = data.get('username', '')
             print(f"List ID: {list_id}")
             for invoice in list_id:
                 invoice_model = get_object_or_404(ZohoFullInvoice, invoice_id=invoice)
                 invoice_model.force_to_sync = True
                 invoice_model.save()
+                api_zoho_views.manage_api_tracking_log(username, 'force_to_sync_invoices', request.META.get('REMOTE_ADDR'), 'Forced to sync invoices')
             return JsonResponse({'status': 'success'}, status=200)
         except Exception as e:
             logger.error(f"An error occurred: {e}")
@@ -184,11 +190,12 @@ def never_match_items_ajax(request):
             data = json.loads(request.body)
             list_id = data.get('items', [])
             to_match = data.get('to_match', False)
-            print(f"List ID: {list_id}")
+            username = data.get('username', '')
             for item in list_id:
                 qb_item = get_object_or_404(QbItem, list_id=item)
                 qb_item.never_match = not to_match
                 qb_item.save()
+                api_zoho_views.manage_api_tracking_log(username, 'never_match_items', request.META.get('REMOTE_ADDR'), 'Never match items')
             return JsonResponse({'message': 'success', 'status': 200})
         except Exception as e:
             logger.error(f"An error occurred: {e}")
@@ -205,11 +212,12 @@ def never_match_customers_ajax(request):
             data = json.loads(request.body)
             list_id = data.get('customers', [])
             to_match = data.get('to_match', False)
-            print(f"List ID: {list_id}")
+            username = data.get('username', '')
             for customer in list_id:
                 qb_customer = get_object_or_404(QbCustomer, list_id=customer)
                 qb_customer.never_match = not to_match
                 qb_customer.save()
+                api_zoho_views.manage_api_tracking_log(username, 'never_match_customers', request.META.get('REMOTE_ADDR'), 'Never match customers')
             return JsonResponse({'message': 'success'}, status=200)
         except Exception as e:
             logger.error(f"An error occurred: {e}")
@@ -578,6 +586,7 @@ def match_one_item_ajax(request):
         try:
             qb_list_id = request.POST['qb_item_list_id']
             zoho_item_id = request.POST['zoho_item_id']
+            username = request.POST['username']
             qb_item = get_object_or_404(QbItem, list_id=qb_list_id)
             zoho_item = get_object_or_404(ZohoItem, item_id=zoho_item_id)
             zoho_item.qb_list_id = qb_list_id if action == 'match' else ''
@@ -585,6 +594,7 @@ def match_one_item_ajax(request):
             qb_item.matched = True if action == 'match' else False
             qb_item.save()
             message = 'Item matched successfully' if action == 'match' else 'Item unmatched successfully'
+            api_zoho_views.manage_api_tracking_log(username, 'match_item', request.META.get('REMOTE_ADDR'), 'Match item')
             return JsonResponse({'status': 'success', 'message': message})
         except Exception as e:
             return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
@@ -602,6 +612,7 @@ def match_one_customer_ajax(request):
         try:
             qb_list_id = request.POST['qb_customer_list_id']
             zoho_customer_id = request.POST['zoho_customer_id']
+            username = request.POST['username']
             qb_customer = get_object_or_404(QbCustomer,list_id=qb_list_id)
             zoho_customer = get_object_or_404(ZohoCustomer, contact_id=zoho_customer_id)
             zoho_customer.qb_list_id = qb_list_id if action == 'match' else ''
@@ -609,6 +620,7 @@ def match_one_customer_ajax(request):
             qb_customer.matched = True if action == 'match' else False
             qb_customer.save()
             message = 'Customer matched successfully' if action == 'match' else 'Customer unmatched successfully'
+            api_zoho_views.manage_api_tracking_log(username, 'match_customer', request.META.get('REMOTE_ADDR'), 'Match customer')
             return JsonResponse({'status': 'success', 'message': message})
         except Exception as e:
             return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
@@ -624,11 +636,14 @@ def start_qbwc_invoice_add_request(request):
         xml_data = request.body.decode('utf-8')
         response_xml = process_qbwc_invoice_add_request(xml_data)
         qb_loading = QbLoading.objects.filter(qb_module='invoices', qb_record_created=datetime.now(timezone.utc)).first()
+        app_config = AppConfig.objects.first()
+        api_zoho_views.manage_api_tracking_log(app_config.qb_username, 'sync_invoices_to_qb', request.META.get('REMOTE_ADDR'), 'Sync invoices to QuickBooks')
         if not qb_loading:
             qb_loading = create_qb_loading_instance('invoices')
         else:
             qb_loading.qb_record_updated = datetime.now(timezone.utc)
         qb_loading.save()
+        
         return HttpResponse(response_xml, content_type='text/xml')
     else:
         return HttpResponse(status=405)
@@ -682,6 +697,8 @@ def start_qbwc_query_request(request, query_object_name, list_of_objects):
             else:
                 qb_loading.qb_record_updated = datetime.now(timezone.utc)
             qb_loading.save()
+            app_config = AppConfig.objects.first()
+            api_zoho_views.manage_api_tracking_log(app_config.qb_username, f'load_{module}_from_qb', request.META.get('REMOTE_ADDR'), f'Load {module} from QuickBooks')
             logger.info(f"QB Loading instance created/updated for module {module}")
             logger.info(f"Task done: {qb_loading}")
 

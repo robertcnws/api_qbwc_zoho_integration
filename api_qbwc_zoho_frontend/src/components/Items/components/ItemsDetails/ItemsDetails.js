@@ -225,7 +225,8 @@ const ItemsDetails = () => {
                         const data = {
                             item_id: item_id,
                             qb_item_list_id: qb_item_list_id,
-                            action: action
+                            action: action,
+                            username: localStorage.getItem('username')
                         }
                         const response = await fetchWithToken(url, 'POST', data, {}, apiUrl);
                         if (response.data.status === 'success') {
