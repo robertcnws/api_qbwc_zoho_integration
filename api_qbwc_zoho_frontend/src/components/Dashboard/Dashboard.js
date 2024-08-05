@@ -6,6 +6,7 @@ import Sidebar from '../Sidebar/Sidebar';
 import Topbar from '../Topbar/Topbar';
 import { useAuth } from '../AuthContext/AuthContext'
 import { fetchWithToken } from '../../utils'
+import Footer from '../Footer/Footer';
 
 const apiUrl = process.env.REACT_APP_ENVIRONMENT === 'DEV' ? process.env.REACT_APP_BACKEND_URL_DEV : process.env.REACT_APP_BACKEND_URL_PROD;
 
@@ -76,7 +77,10 @@ const Dashboard = () => {
       if (result.isConfirmed) {
         const fetchData = async () => {
           try {
-              await fetchWithToken(`${apiUrl}/logout/`, 'GET', null, {}, apiUrl);
+              const data = {
+                username: localStorage.getItem('username')
+              }
+              await fetchWithToken(`${apiUrl}/logout/`, 'GET', data, {}, apiUrl);
               logout()
               navigate('/integration') 
           } catch (error) {
@@ -100,7 +104,7 @@ const Dashboard = () => {
         display: 'flex', 
         minHeight: '100vh', 
         minWidth: '100vw',
-        backgroundColor: '#f4f4f4' 
+        backgroundColor: '#f4f4f4'
       }}
     >
       <Sidebar 
@@ -129,6 +133,7 @@ const Dashboard = () => {
         >
           <Outlet />
         </Box>
+        <Footer />
       </Box>
     </Container>
   );

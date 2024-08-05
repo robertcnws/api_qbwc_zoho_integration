@@ -101,13 +101,22 @@ const DownloadBackupList = () => {
     <Container
             maxWidth="xl"
             sx={{
-                marginLeft: '1%',
-                marginTop: '0%',
+                marginLeft: -5,
+                marginTop: -3,
                 transition: 'margin-left 0.3s ease',
                 minHeight: '100vh',
-                minWidth: '82vw',
+                minWidth: '87vw',
                 padding: 1,
             }}
+            // sx={{
+            //     marginLeft: '-10%',
+            //     marginTop: '-6%',
+            //     transition: 'margin-left 0.3s ease',
+            //     minHeight: '100vh',
+            //     minWidth: '88vw',
+            //     padding: 1,
+            // }}
+            
         >
         <Grid container spacing={2} alignItems="center" justifyContent="space-between" mb={3}>
             <Grid item xs={6}>

@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 
 @shared_task
-def load_customers_task(headers, params):
+def load_customers_task(headers, params, username, pc_ip):
     # app_config = AppConfig.objects.get(id=app_config_id)
     
     url = f'{settings.ZOHO_URL_READ_CUSTOMERS}'
@@ -73,6 +73,7 @@ def load_customers_task(headers, params):
         else:
             zoho_loading.zoho_record_updated = current_time_utc
         zoho_loading.save()
+        api_zoho_views.manage_api_tracking_log(username, 'load_items', pc_ip, 'Loaded customers from Zoho Books (Date: %s)' % datetime.datetime.now().strftime('%Y-%m-%d'))
     
     return {'message': 'Customers loaded successfully', 'status': 200}
 

@@ -94,7 +94,17 @@ const MainContent = () => {
   }
 
   return (
-    <Container component="main" maxWidth="md" sx={{ mt: 5, p: 2, bgcolor: 'background.paper', boxShadow: 3, borderRadius: 2, minWidth:'100%', minHeight: '100%' }}>
+    <Container 
+      component="main" 
+      maxWidth="md" 
+      sx={{ 
+        mt: 0, 
+        p: 0, 
+        bgcolor: '#f4f4f4', 
+        minWidth:'100%', 
+        minHeight: '95%' 
+      }}
+    >
       <Grid container spacing={2}>
           <Grid item xs={12}>
               <Typography

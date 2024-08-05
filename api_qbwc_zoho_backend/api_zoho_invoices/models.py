@@ -78,11 +78,10 @@ class ZohoFullInvoice(models.Model):
         return f"{self.invoice_number} - {self.customer_name}"
     
     def save(self, *args, **kwargs):
-        if self.pk:  # Si el objeto ya existe (tiene una clave primaria)
-            # Permitir la actualización sin restricciones adicionales
+        # super(ZohoFullInvoice, self).save(*args, **kwargs)
+        if self.pk:  
             super(ZohoFullInvoice, self).save(*args, **kwargs)
         else:
-            # if not (ZohoInvoice.objects.filter(invoice_id=self.invoice_id).exists() or ZohoInvoice.objects.filter(invoice_number=self.invoice_number).exists()) and self.status == 'active':
             if not (
                 ZohoFullInvoice.objects.filter(invoice_id=self.invoice_id).exists() or ZohoFullInvoice.objects.filter(invoice_number=self.invoice_number).exists()
                 ):

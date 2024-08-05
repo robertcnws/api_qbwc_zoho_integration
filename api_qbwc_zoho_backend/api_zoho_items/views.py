@@ -147,6 +147,7 @@ def view_item(request, item_id):
         
         if zoho_item['qb_list_id']:
             zoho_item['matched'] = True if re.match(pattern, zoho_item['qb_list_id']) else False
+            zoho_item['qb_item'] = model_to_dict(QbItem.objects.filter(list_id=zoho_item['qb_list_id']).first())
         else:
             zoho_item['matched'] = False
         
@@ -188,6 +189,7 @@ def list_items(request):
 def load_items(request):
     valid_token = api_zoho_views.validateJWTTokenRequest(request)
     if valid_token:
+        username = request.data.get('username', '')
         app_config = AppConfig.objects.first()
         logger.debug(app_config)
         try:
@@ -256,6 +258,7 @@ def load_items(request):
             )
             if created:
                 zoho_loading.save()
+            api_zoho_views.manage_api_tracking_log(username, 'load_items', request.META.get('REMOTE_ADDR'), 'Loaded items from Zoho Books (Date: %s)' % datetime.datetime.now().strftime('%Y-%m-%d'))
                 
         return JsonResponse({'message': 'Items loaded successfully'}, status=200)
     

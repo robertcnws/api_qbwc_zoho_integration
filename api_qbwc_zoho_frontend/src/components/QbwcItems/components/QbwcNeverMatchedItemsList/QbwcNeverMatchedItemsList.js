@@ -159,11 +159,11 @@ const QbwcNeverMatchedItemsList = ({ neverMatchedItems, onSyncComplete }) => {
     <Container
             maxWidth="xl"
             sx={{
-                marginLeft: '-3%',
-                marginTop: '-5%',
+                marginLeft: '-10%',
+                marginTop: '-6%',
                 transition: 'margin-left 0.3s ease',
                 minHeight: '100vh',
-                minWidth: '82vw',
+                minWidth: '88vw',
                 padding: 1,
             }}
         >

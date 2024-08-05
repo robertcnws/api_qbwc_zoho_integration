@@ -18,7 +18,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import ensure_csrf_cookie
 from datetime import datetime, timezone, timedelta
-from .models import AppConfig, ZohoLoading, LoginUser
+from .models import AppConfig, ZohoLoading, LoginUser, ApiTrackingLogs
 from .forms import AppConfigForm
 from .backup_db import create_backup
 from rest_framework_simplejwt.authentication import JWTAuthentication
@@ -59,6 +59,7 @@ def login_view(request):
             if user is not None:
                 login(request, user)
                 logger.info(f'User {username} logged in')
+                manage_api_tracking_log(username, 'login', request.META.get('REMOTE_ADDR'), 'User logged in')
                 return JsonResponse({'status': 'success', 'is_staff': 'admin' if user.is_staff else 'user', 'username': user.username}, status=200)
             return JsonResponse({'error': 'Invalid credentials'}, status=400)
         except json.JSONDecodeError:
@@ -74,7 +75,9 @@ def login_view(request):
 @csrf_exempt
 def logout_view(request):
     if request.method == 'GET':
+        username = request.GET.get('username')
         logout(request) 
+        manage_api_tracking_log(username, 'logout', request.META.get('REMOTE_ADDR'), 'User logged out')
         return JsonResponse({'status': 'success'}, status=200)
     return JsonResponse({'error': 'Method not allowed'}, status=405)
 
@@ -512,6 +515,23 @@ def data_invoice_daily_statistics(request):
         return JsonResponse(response_data, safe=False, status=200)
     
     return JsonResponse({'error': 'Invalid JWT Token'}, status=401)
+
+
+#############################################
+# API Tracking Logs
+#############################################
+
+def manage_api_tracking_log(user, action, pc_ip, message):
+    log = ApiTrackingLogs.objects.filter(log_user=user, log_action=action, log_pc_ip=pc_ip, log_message=message).first()
+    if not log:
+        log = ApiTrackingLogs()
+        log.log_user = user
+        log.log_action = action
+        log.log_pc_ip = pc_ip
+        log.log_created = datetime.now(timezone.utc)
+        log.log_message = message
+    log.log_modified = datetime.now(timezone.utc)
+    log.save()
 
 
 #############################################

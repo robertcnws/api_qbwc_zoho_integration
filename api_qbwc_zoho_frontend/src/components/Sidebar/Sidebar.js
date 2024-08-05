@@ -34,7 +34,7 @@ const Sidebar = ({ expanded, toggleSubmenu, handleLogout, handleDoBackup }) => {
   return (
     <Container maxWidth="md" sx={{
       width: 250,
-      backgroundColor: '#3a3f51',
+      backgroundColor: '#21263c',
       color: '#fff',
       top: 0,
       left: 0,
@@ -48,27 +48,33 @@ const Sidebar = ({ expanded, toggleSubmenu, handleLogout, handleDoBackup }) => {
         <img
           src="/logo_qbwc_zoho_mini.png"
           alt="Login Logo"
-          style={{ maxWidth: '100%', height: 'auto', marginTop: '-5px' }} 
+          style={{ maxWidth: '100%', height: 'auto', marginTop: '-5px', borderRadius: '3px', }} 
         />
       </Box>
       <List>
-        <ListItemButton component={Link} to="/integration" sx={{ backgroundColor: isActive('/integration') ? '#2c2f3f' : 'inherit' }}>
+        <ListItemButton component={Link} to="/integration" 
+        sx={{ backgroundColor: isActive('/integration') ? '#00796b' : 'inherit', borderRadius: isActive('/integration') ? 3 : 0 }}>
           <ListItemIcon><Dashboard sx={{ color: '#fff' }} /></ListItemIcon>
           <ListItemText primary="Dashboard" />
         </ListItemButton>
-        <ListItemButton component={Link} to="/integration/list_customers" sx={{ backgroundColor: isActive('/integration/list_customers') ? '#2c2f3d' : 'inherit' }}>
+        <ListItemButton component={Link} to="/integration/list_customers" 
+        sx={{ backgroundColor: isActive('/integration/list_customers') ? '#00796b' : 'inherit', borderRadius: isActive('/integration/list_customers') ? 3 : 0 }}>
           <ListItemIcon><People sx={{ color: '#fff' }} /></ListItemIcon>
           <ListItemText primary="Customers" />
         </ListItemButton>
-        <ListItemButton component={Link} to="/integration/list_items" sx={{ backgroundColor: isActive('/integration/list_items') ? '#2c2f3d' : 'inherit' }}>
+        <ListItemButton component={Link} to="/integration/list_items" 
+        sx={{ backgroundColor: isActive('/integration/list_items') ? '#00796b' : 'inherit', borderRadius: isActive('/integration/list_items') ? 3 : 0 }}>
           <ListItemIcon><InventoryIcon sx={{ color: '#fff' }} /></ListItemIcon>
           <ListItemText primary="Items" />
         </ListItemButton>
-        <ListItemButton component={Link} to="/integration/list_invoices" sx={{ backgroundColor: isActive('/integration/list_invoices') ? '#2c2f3d' : 'inherit' }}>
+        <ListItemButton component={Link} to="/integration/list_invoices" 
+        sx={{ backgroundColor: isActive('/integration/list_invoices') ? '#00796b' : 'inherit', borderRadius: isActive('/integration/list_invoices') ? 3 : 0 }}>
           <ListItemIcon><Receipt sx={{ color: '#fff' }} /></ListItemIcon>
           <ListItemText primary="Invoices" />
         </ListItemButton>
-        <ListItemButton onClick={toggleSubmenu} sx={{ backgroundColor: isActive('/integration/zoho') || isActive('/integration/qbwc') || isActive('/integration/application_settings') ? '#2c2f3d' : 'inherit' }}>
+        <ListItemButton onClick={toggleSubmenu} 
+        sx={{ backgroundColor: isActive('/integration/zoho') || isActive('/integration/qbwc') || isActive('/integration/application_settings') ? '#00796b' : 'inherit', 
+              borderRadius: isActive('/integration/zoho') || isActive('/integration/qbwc') || isActive('/integration/application_settings') ? 3 : 0 }}>
           <ListItemIcon><RocketLaunch sx={{ color: '#fff' }} /></ListItemIcon>
           <ListItemText primary="Integration" />
           {expanded ? <ExpandLess sx={{ color: '#fff' }} /> : <ExpandMore sx={{ color: '#fff' }} />}
@@ -77,15 +83,18 @@ const Sidebar = ({ expanded, toggleSubmenu, handleLogout, handleDoBackup }) => {
           <>
             <Divider />
             <List sx={{ pl: 4 }}>
-              <ListItemButton component={Link} to="/integration/zoho" sx={{ backgroundColor: isActive('/integration/zoho') ? '#2c2f3d' : 'inherit' }}>
+              <ListItemButton component={Link} to="/integration/zoho" 
+              sx={{ backgroundColor: isActive('/integration/zoho') ? '#00796b' : 'inherit', borderRadius: isActive('/integration/zoho') ? 3 : 0 }}>
                 <ListItemIcon><AppsIcon sx={{ color: '#fff' }} /></ListItemIcon>
                 <ListItemText primary="Zoho" />
               </ListItemButton>
-              <ListItemButton component={Link} to="/integration/qbwc" sx={{ backgroundColor: isActive('/integration/qbwc') ? '#2c2f3d' : 'inherit' }}>
+              <ListItemButton component={Link} to="/integration/qbwc" 
+              sx={{ backgroundColor: isActive('/integration/qbwc') ? '#00796b' : 'inherit', borderRadius: isActive('/integration/qbwc') ? 3 : 0 }}>
                 <ListItemIcon><AccountBalanceWalletIcon sx={{ color: '#fff' }} /></ListItemIcon>
                 <ListItemText primary="Quickbooks" />
               </ListItemButton>
-              <ListItemButton component={Link} to="/integration/application_settings" sx={{ backgroundColor: isActive('/integration/application_settings') ? '#2c2f3d' : 'inherit' }}>
+              <ListItemButton component={Link} to="/integration/application_settings" 
+              sx={{ backgroundColor: isActive('/integration/application_settings') ? '#00796b' : 'inherit', borderRadius: isActive('/integration/application_settings') ? 3 : 0 }}>
                 <ListItemIcon><Settings sx={{ color: '#fff' }} /></ListItemIcon>
                 <ListItemText primary="Settings" />
               </ListItemButton>
@@ -96,12 +105,14 @@ const Sidebar = ({ expanded, toggleSubmenu, handleLogout, handleDoBackup }) => {
           <ListItemIcon><BackupIcon sx={{ color: '#fff' }} /></ListItemIcon>
           <ListItemText primary="Do BackUp" />
         </ListItemButton>
-        <ListItemButton component={Link} to="/integration/download_backup_db" sx={{ backgroundColor: isActive('/integration/download_backup_db') ? '#2c2f3d' : 'inherit' }}>
+        <ListItemButton component={Link} to="/integration/download_backup_db" 
+        sx={{ backgroundColor: isActive('/integration/download_backup_db') ? '#00796b' : 'inherit', borderRadius: isActive('/integration/download_backup_db') ? 3 : 0 }}>
           <ListItemIcon><Download sx={{ color: '#fff' }}/></ListItemIcon>
           <ListItemText primary="BackUps" />
         </ListItemButton>
         {localStorage.getItem('isStaff') === 'admin' &&
-          <ListItemButton component={Link} to="/integration/list_users" sx={{ backgroundColor: isActive('/integration/list_users') ? '#2c2f3d' : 'inherit' }}>
+          <ListItemButton component={Link} to="/integration/list_users" 
+          sx={{ backgroundColor: isActive('/integration/list_users') ? '#00796b' : 'inherit', borderRadius: isActive('/integration/list_users') ? 3 : 0  }}>
             <ListItemIcon><AccountCircle sx={{ color: '#fff' }}/></ListItemIcon>
             <ListItemText primary="Users" />
           </ListItemButton>

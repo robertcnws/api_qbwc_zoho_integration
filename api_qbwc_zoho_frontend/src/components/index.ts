@@ -15,3 +15,4 @@ export {CSRFToken} from './CSRFToken';
 export {ContainerFrame} from './ContainerFrame';
 export {DataCharts} from './DataCharts';
 export {DownloadBackup} from './DownloadBackup';
+export {Footer} from './Footer';

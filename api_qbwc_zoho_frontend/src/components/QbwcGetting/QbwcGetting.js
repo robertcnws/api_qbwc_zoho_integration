@@ -24,7 +24,20 @@ const QbwcGetting = () => {
   const handleNeverMatchItems = () => gettingData('never_match', 'items', setLoadingItems);
 
   return (
-    <Container component="main" maxWidth="md" sx={{ mt: 5, p: 3, bgcolor: '#FFFFFF', boxShadow: 3, borderRadius: 2 }}>
+    <Container 
+        component="main" 
+        maxWidth="md" 
+        sx={{ 
+            mt: 0, 
+            p: 1, 
+            bgcolor: 'background.paper', 
+            boxShadow: 3, 
+            borderRadius: 2, 
+            minWidth:'60%', 
+            minHeight: '40%',
+            ml: 0,
+          }}
+    >
             <Typography
                 variant="h6"
                 align="center"

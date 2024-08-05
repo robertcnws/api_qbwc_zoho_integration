@@ -536,9 +536,12 @@ const CustomersDetails = () => {
                                       scope="row" 
                                       sx={{ width: '150px', maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis' }}
                                       >
-                                        Zoho QB List ID
+                                        QB Customer Info
                                       </TableCell>
-                                      <TableCell><b>{customer.qb_list_id ? customer.qb_list_id : '--'}</b></TableCell>
+                                      <TableCell>
+                                        QB List ID: <b>{customer.qb_list_id ? customer.qb_list_id : '--'}</b><br/>
+                                        Matched QB Customer: <b>{customer.qb_list_id ? customer.qb_customer.name : '--'}</b>
+                                    </TableCell>
                                   </TableRow>
                                   <TableRow>
                                     <TableCell 

@@ -8,12 +8,11 @@ WORKDIR /app
 COPY requirements.txt /app/
 
 RUN pip install --upgrade pip
-# RUN pip freeze > requirements.txt
 RUN pip install gunicorn
 RUN pip install -r requirements.txt
 
-# Instalar herramientas necesarias
-RUN apt-get update && apt-get install -y wget gnupg2 lsb-release
+# Instalar herramientas necesarias incluyendo cron
+RUN apt-get update && apt-get install -y wget gnupg2 lsb-release cron
 
 # Agregar repositorio de PostgreSQL
 RUN wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -
@@ -25,10 +24,16 @@ RUN apt-get update && apt-get install -y postgresql-client-16
 # Copia el contenido del directorio al contenedor
 COPY . /app/
 
+# Copia y configura el crontab
+COPY crontab /etc/cron.d/crontab
+RUN chmod 0644 /etc/cron.d/crontab
+RUN crontab /etc/cron.d/crontab
+
+# Crea el directorio de logs de cron
+RUN touch /var/log/cron.log
+
 # Expose port 8000 for the Django application
 EXPOSE 8000
 
-# Ejecuta el script de inicialización y luego arranca Gunicorn
-CMD ["sh", "-c", "python manage.py makemigrations && python manage.py migrate && python init_script.py && gunicorn --bind 0.0.0.0:8000 project_api.wsgi:application & celery -A project_api worker --loglevel=info "]
-
-# CMD ["/app/project_api/init.sh"]
+# Ejecuta el script de inicialización y luego arranca Gunicorn y cron
+CMD ["sh", "-c", "python manage.py makemigrations && python manage.py migrate && python init_script.py && gunicorn --bind 0.0.0.0:8000 project_api.wsgi:application -f"]

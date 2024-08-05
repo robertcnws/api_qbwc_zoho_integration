@@ -156,6 +156,7 @@ def view_customer(request, customer_id):
         zoho_customer['coincidences'] = sorted_dependences_list
         if zoho_customer['qb_list_id']:
             zoho_customer['matched'] = True if re.match(pattern, zoho_customer['qb_list_id']) else False
+            zoho_customer['qb_customer'] =  model_to_dict(QbCustomer.objects.filter(list_id=zoho_customer['qb_list_id']).first())
         else:
             zoho_customer['matched'] = False
         
@@ -191,6 +192,8 @@ def load_customers(request):
     valid_token = api_zoho_views.validateJWTTokenRequest(request)
     if valid_token:
         app_config = AppConfig.objects.first()
+        username = request.data.get('username', '')
+        pc_ip = request.META.get('REMOTE_ADDR')
         try:
             headers = api_zoho_views.config_headers(request) 
         except Exception as e:
@@ -208,103 +211,11 @@ def load_customers(request):
         } 
         
         # Llama a la tarea asíncrona
-        result = load_customers_task.delay(headers, params)
+        result = load_customers_task.delay(headers, params, username, pc_ip)
 
         return JsonResponse({'message': 'Customer load started', 'task_id': result.id}, status=202)
     
     return JsonResponse({'error': 'Invalid JWT token'}, status=401)
-
-
-
-
-# @api_view(['POST'])
-# @permission_classes([IsAuthenticated])
-# def load_customers(request):
-    # valid_token = api_zoho_views.validateJWTTokenRequest(request)
-    # if valid_token:
-    #     app_config = AppConfig.objects.first()
-    #     try:
-    #         headers = api_zoho_views.config_headers(request)  # Asegúrate de que esto esté configurado correctamente
-    #     except Exception as e:
-    #         logger.error(f"Error connecting to Zoho API: {str(e)}")
-    #         context = {
-    #             'error': f"Error connecting to Zoho API (Load Customers): {str(e)}",
-    #             'status_code': 500
-    #         }
-    #         return render(request, 'api_zoho/error.html', context)
-    #     customers_saved = list(ZohoCustomer.objects.all())
-    #     today = dt.today().strftime('%Y-%m-%d')
-
-    #     params = {
-    #         'page': 1,
-    #         'per_page': 200,  # Asegúrate de que este sea el valor máximo permitido por la API
-    #         'organization_id': app_config.zoho_org_id,
-    #     } if len(customers_saved) == 0 else {
-    #         'page': 1,
-    #         'per_page': 200,  # Asegúrate de que este sea el valor máximo permitido por la API
-    #         'organization_id': app_config.zoho_org_id,
-    #         'created_time_start': f'{today}',
-    #     }  
-
-    #     url = f'{settings.ZOHO_URL_READ_CUSTOMERS}'
-    #     customers_to_save = []
-    #     customers_to_get = [] 
-
-    #     while True:
-    #         try:
-    #             response = requests.get(url, headers=headers, params=params)
-    #             if response.status_code == 401:  # Si el token ha expirado
-    #                 new_zoho_token = api_zoho_views.refresh_zoho_token()
-    #                 headers['Authorization'] = f'Zoho-oauthtoken {new_zoho_token}'
-    #                 response = requests.get(url, headers=headers, params=params)  # Reintenta la solicitud
-    #             elif response.status_code != 200:
-    #                 logger.error(f"Error fetching customers: {response.text}")
-    #                 context = {
-    #                     'error': response.text,
-    #                     'status_code': response.status_code
-    #                 }
-    #                 return render(request, 'api_zoho/error.html', context)
-    #             else:
-    #                 response.raise_for_status()
-    #                 customers = response.json()
-    #                 if customers.get('contacts', []):
-    #                     customers_to_get.extend(customers['contacts'])
-    #                 if 'page_context' in customers and 'has_more_page' in customers['page_context'] and customers['page_context']['has_more_page']:
-    #                     params['page'] += 1  # Avanza a la siguiente página
-    #                 else:
-    #                     break  # Sal del bucle si no hay más páginas
-    #         except requests.exceptions.RequestException as e:
-    #             logger.error(f"Error fetching customers: {e}")
-    #             return JsonResponse({"error": "Failed to fetch customers"}, status=500)
-        
-    #     existing_customers = {customer.contact_id: customer for customer in customers_saved}
-    #     existing_emails = {customer.email: customer for customer in customers_saved}
-
-    #     for data in customers_to_get:
-    #         new_customer = create_customer_instance(data)
-    #         if new_customer.contact_id not in existing_customers and new_customer.email not in existing_emails and new_customer.status == 'active':
-    #             customers_to_save.append(new_customer)
-
-    #     def save_customers_in_batches(customers, batch_size=100):
-    #         for i in range(0, len(customers), batch_size):
-    #             batch = customers[i:i + batch_size]
-    #             with transaction.atomic():
-    #                 ZohoCustomer.objects.bulk_create(batch)
-        
-    #     save_customers_in_batches(customers_to_save, batch_size=100)
-        
-    #     if len(customers_to_get) > 0:
-    #         current_time_utc = datetime.datetime.now(datetime.timezone.utc)
-    #         zoho_loading = ZohoLoading.objects.filter(zoho_module='customers', zoho_record_created=current_time_utc).first()
-    #         if not zoho_loading:
-    #             zoho_loading = api_zoho_views.create_zoho_loading_instance('customers')
-    #         else:
-    #             zoho_loading.zoho_record_updated = current_time_utc
-    #         zoho_loading.save()
-    
-    #     return JsonResponse({'message': 'Customers loaded successfully'}, status=200)
-    
-    # return JsonResponse({'error': 'Invalid JWT token'}, status=401)
 
 
 @login_required(login_url='login')

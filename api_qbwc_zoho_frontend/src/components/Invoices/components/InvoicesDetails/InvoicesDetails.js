@@ -363,7 +363,10 @@ if (error) {
                                         <TableCell>
                                             <Table>
                                                 <TableBody>
-                                                    <TableRow>
+                                                    <TableRow style={{
+                                                                 backgroundColor: invoice.qb_customer_list_id ? 'rgba(102, 187, 106, 0.1)' : 'rgba(255, 167, 38, 0.1'
+                                                              }}
+                                                    >
                                                         <TableCell>
                                                             <b>{invoice.customer_name}</b>
                                                         </TableCell>
@@ -419,22 +422,18 @@ if (error) {
                                                         </TableHead>
                                                         <TableBody>
                                                             {invoice.line_items.map((item, index) => (
-                                                                <TableRow key={index}>
-                                                                    <TableCell sx={{ width: '40%', maxWidth: '40%', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.name ? item.name : '---'}</TableCell>
-                                                                    <TableCell sx={{ width: '20%', maxWidth: '20%', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.sku ? item.sku : '---'}</TableCell>
-                                                                    <TableCell sx={{ width: '10%', maxWidth: '10%', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.quantity ? item.quantity : '---'}</TableCell>
-                                                                    <TableCell sx={{ width: '10%', maxWidth: '10%', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.rate ? '$ ' + item.rate : '---'}</TableCell>
-                                                                    <TableCell sx={{ width: '10%', maxWidth: '10%', overflow: 'hidden', textOverflow: 'ellipsis' }}><b>$ {item.item_total}</b></TableCell>
+                                                                <TableRow key={index} 
+                                                                    style={{
+                                                                        backgroundColor: item.qb_list_id ? 'rgba(102, 187, 106, 0.1)' : 'rgba(255, 167, 38, 0.1)'
+                                                                    }}
+                                                                >
+                                                                    <TableCell sx={{ width: '30%', maxWidth: '40%', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.name ? item.name : '---'}</TableCell>
+                                                                    <TableCell sx={{ width: '30%', maxWidth: '20%', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.sku ? item.sku : '---'}</TableCell>
+                                                                    <TableCell sx={{ width: '5%', maxWidth: '10%', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.quantity ? item.quantity : '---'}</TableCell>
+                                                                    <TableCell sx={{ width: '15%', maxWidth: '10%', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.rate ? '$ ' + item.rate : '---'}</TableCell>
+                                                                    <TableCell sx={{ width: '20%', maxWidth: '10%', overflow: 'hidden', textOverflow: 'ellipsis' }}><b>$ {item.item_total}</b></TableCell>
                                                                     <TableCell>
                                                                         {!item.qb_list_id ? (
-                                                                            // <Button 
-                                                                            //     onClick={() => handleViewItem(item)} 
-                                                                            //     variant="contained" 
-                                                                            //     color="info" 
-                                                                            //     size="small"
-                                                                            // >
-                                                                            //     View
-                                                                            // </Button>
                                                                             <IconButton onClick={() => handleViewItem(item)} color="info" aria-label="view" size='xx-large'>
                                                                                 <VisibilityIcon />
                                                                             </IconButton>

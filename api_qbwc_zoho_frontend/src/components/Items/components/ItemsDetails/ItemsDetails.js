@@ -476,8 +476,11 @@ const ItemsDetails = () => {
                                         <TableCell><b>{item.description ? item.description : '--'}</b></TableCell>
                                     </TableRow>
                                     <TableRow>
-                                        <TableCell component="th" scope="row" sx={{ width: '150px', maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis' }}>Zoho QB List ID</TableCell>
-                                        <TableCell><b>{item.qb_list_id ? item.qb_list_id : '--'}</b></TableCell>
+                                        <TableCell component="th" scope="row" sx={{ width: '150px', maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis' }}>QB Item Info</TableCell>
+                                        <TableCell>
+                                            QB List ID: <b>{item.qb_list_id ? item.qb_list_id : '--'}</b><br/>
+                                            Matched QB Item: <b>{item.qb_list_id ? item.qb_item.name : '--'}</b>
+                                        </TableCell>
                                     </TableRow>
                                     <TableRow>
                                         <TableCell component="th" scope="row" sx={{ width: '150px', maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis' }}>Coincidences by Order</TableCell>
@@ -580,7 +583,7 @@ const ItemsDetails = () => {
                                                     placeholder=''
                                                 />
                                                 {showListQbItems && (
-                                                    <div style={{ height: 100, width: '100%' }}>
+                                                    <div style={{ height: 200, width: '100%' }}>
                                                         <AutoSizer>
                                                         {({ height, width }) => (
                                                             <List
@@ -614,7 +617,7 @@ const ItemsDetails = () => {
                                             <TableCell 
                                                 component="th" 
                                                 scope="row" 
-                                                sx={{ width: '150px', maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis' }}
+                                                sx={{ width: '150px',  maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis' }}
                                             ></TableCell>
                                             <TableCell>
                                                 <Alert severity="info"

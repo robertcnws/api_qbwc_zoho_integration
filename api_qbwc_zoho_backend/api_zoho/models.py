@@ -82,3 +82,26 @@ class ZohoLoading(models.Model):
 
     def __str__(self):
         return f"{self.zoho_module} - {self.zoho_record_updated} - {self.zoho_record_status}"
+    
+
+class ApiTrackingLogs(models.Model):
+    id = models.AutoField(primary_key=True, blank=True)
+    log_user = models.CharField(max_length=255, blank=True)
+    log_action = models.CharField(max_length=255, blank=True)
+    log_pc_ip = models.CharField(max_length=255, blank=True)
+    log_message = models.TextField(blank=True)
+    log_created = models.DateTimeField(blank=True)
+    log_modified = models.DateTimeField(blank=True)
+    
+    def save(self, *args, **kwargs):
+        if self.pk:
+            return super(ApiTrackingLogs, self).save(*args, **kwargs)
+        else:
+            if not ApiTrackingLogs.objects.filter(log_user=self.log_user, log_action=self.log_action, log_pc_ip=self.log_pc_ip, log_message=self.log_message).exists():
+                return super(ApiTrackingLogs, self).save(*args, **kwargs)
+            else:
+                raise Exception("Api Tracking Logs already exists")
+        
+
+    def __str__(self):
+        return f"{self.log_user} - {self.log_action} - {self.log_pc_ip} - {self.log_message} - {self.log_modified}"
