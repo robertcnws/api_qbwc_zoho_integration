@@ -423,7 +423,7 @@ if (error) {
                                                                     <TableCell sx={{ width: '40%', maxWidth: '40%', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.name ? item.name : '---'}</TableCell>
                                                                     <TableCell sx={{ width: '20%', maxWidth: '20%', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.sku ? item.sku : '---'}</TableCell>
                                                                     <TableCell sx={{ width: '10%', maxWidth: '10%', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.quantity ? item.quantity : '---'}</TableCell>
-                                                                    <TableCell sx={{ width: '10%', maxWidth: '10%', overflow: 'hidden', textOverflow: 'ellipsis' }}>$ {item.rate ? item.rate : '---'}</TableCell>
+                                                                    <TableCell sx={{ width: '10%', maxWidth: '10%', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.rate ? '$ ' + item.rate : '---'}</TableCell>
                                                                     <TableCell sx={{ width: '10%', maxWidth: '10%', overflow: 'hidden', textOverflow: 'ellipsis' }}><b>$ {item.item_total}</b></TableCell>
                                                                     <TableCell>
                                                                         {!item.qb_list_id ? (
