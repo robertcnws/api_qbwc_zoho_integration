@@ -146,18 +146,6 @@ const QbwcMatchedCustomersList = ({ matchedCustomers, onSyncComplete }) => {
                 </Typography>
             </Grid>
             <Grid item xs={6} container justifyContent="flex-end" spacing={1}>
-                <Grid item>
-                    <Button variant="contained" color="success" size="small" component={Link} to="/integration/qbwc">
-                        Back to QBWC
-                    </Button>
-                </Grid>
-            </Grid>
-            <Grid item xs={12} container justifyContent="flex-end" spacing={1}>
-                <Grid item xs={8}>
-                    <Alert severity="info" sx={{ mb: 2 }}>
-                        There are {filteredCustomers.length} matched customers found.
-                    </Alert>
-                </Grid>
                 <Grid item xs={4}>
                     <TextField
                         label="Search"
@@ -167,6 +155,18 @@ const QbwcMatchedCustomersList = ({ matchedCustomers, onSyncComplete }) => {
                         onChange={handleSearchChange}
                         sx={{ width: '100%', mb: 2 }}
                     />
+                </Grid>
+                <Grid item>
+                    <Button variant="contained" color="success" size="small" component={Link} to="/integration/qbwc">
+                        Back to QBWC
+                    </Button>
+                </Grid>
+            </Grid>
+            <Grid item xs={12} container justifyContent="flex-end" spacing={1}>
+                <Grid item xs={12}>
+                    <Alert severity="info" sx={{ mb: 2 }}>
+                        There are {filteredCustomers.length} matched customers found.
+                    </Alert>
                 </Grid>
             </Grid>
             <Grid item xs={12}>

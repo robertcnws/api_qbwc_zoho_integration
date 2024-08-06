@@ -170,7 +170,7 @@ const MainContent = () => {
                     }}
                 ></Typography>
               </Grid>
-              <Grid item container>
+              {/* <Grid item container>
                 <Grid item>
                   <Button
                       variant="contained"
@@ -183,7 +183,7 @@ const MainContent = () => {
                       Settings
                   </Button>
                 </Grid>
-              </Grid>
+              </Grid> */}
           </Grid>
         </Grid>
         <Grid container spacing={1} style={{ height: '100%' }}>

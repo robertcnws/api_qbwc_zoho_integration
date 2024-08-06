@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
 from pathlib import Path
+from celery.schedules import crontab
 import environ
 import os
 
@@ -78,6 +79,13 @@ CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
 CELERY_TIMEZONE = 'UTC'
+CELERY_BEAT_SCHEDULE = {
+    'execute-load-invoices-periodic-task': {
+        'task': 'api_zoho_invoices.tasks.load_invoices_periodic_task',
+        # 'schedule': crontab(minute='*/1'), 
+        'schedule': crontab(hour=8, minute=30)
+    },
+}
 
 CSRF_TRUSTED_ORIGINS = [
     'http://localhost:3000',

@@ -344,6 +344,11 @@ if (error) {
                                 </Button>
                             </Grid> */}
                             <Grid item>
+                                <Button variant="contained" color="error" size="small" onClick={() => navigate("/integration/list_invoices")}>
+                                    Delete invoice
+                                </Button>
+                            </Grid>
+                            <Grid item>
                                 <Button variant="contained" color="success" size="small" onClick={() => navigate("/integration/list_invoices")}>
                                     Return to list
                                 </Button>
@@ -458,150 +463,142 @@ if (error) {
                                             )}
                                         </TableCell>
                                     </TableRow>
-                                    <TableRow>
-                                        <TableCell component="th" scope="row" sx={{ width: '150px', maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis' }}>Errors sync Items</TableCell>
-                                        <TableCell>
-                                            {invoice.items_unmatched.length > 0 ? (
-                                                <TableContainer component={Paper} elevation={0}>
-                                                    <Table aria-label="coincidences table" size="small">
-                                                        <TableHead sx={{ backgroundColor: '#e0e0e0' }}>
-                                                            <TableRow>
-                                                                <TableCell sx={{ width: '40%', maxWidth: '40%', overflow: 'hidden', textOverflow: 'ellipsis' }}>Item from Zoho</TableCell>
-                                                                <TableCell sx={{ width: '50%', maxWidth: '50%', overflow: 'hidden', textOverflow: 'ellipsis' }}>Reason</TableCell>
-                                                                <TableCell>Action</TableCell>
-                                                            </TableRow>
-                                                        </TableHead>
-                                                        <TableBody>
-                                                            {invoice.items_unmatched.map((item, index) => (
-                                                                <TableRow key={index}>
-                                                                    <TableCell>{item.zoho_item_unmatched}</TableCell>
-                                                                    <TableCell>
-                                                                        <Alert severity="error"
-                                                                            style={{ 
-                                                                                fontSize: '0.80rem',  
-                                                                                padding: '4px 8px', 
-                                                                                borderRadius: '4px',
-                                                                            }}>
-                                                                            <b>{item.reason}</b>
-                                                                        </Alert>
-                                                                    </TableCell>
-                                                                    <TableCell>
-                                                                        {!item.qb_list_id ? (
-                                                                            // <Button 
-                                                                            //     onClick={() => handleViewItem(item)} 
-                                                                            //     variant="contained" 
-                                                                            //     color="info" 
-                                                                            //     size="small"
-                                                                            // >
-                                                                            //     View
-                                                                            // </Button>
-                                                                            <IconButton onClick={() => handleViewItem(item)} color="info" aria-label="view" size='xx-large'>
-                                                                                <VisibilityIcon />
-                                                                            </IconButton>
-                                                                        ) : (
-                                                                            <SmallAlert severity='success' message='MATCHED'/>
-                                                                        )}
-                                                                    </TableCell>
+                                    {invoice.inserted_in_qb || invoice.items_unmatched.length > 0 ? (
+                                        <TableRow>
+                                            <TableCell component="th" scope="row" sx={{ width: '150px', maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis' }}>Errors sync Items</TableCell>
+                                            <TableCell>
+                                                {invoice.items_unmatched.length > 0 ? (
+                                                    <TableContainer component={Paper} elevation={0}>
+                                                        <Table aria-label="coincidences table" size="small">
+                                                            <TableHead sx={{ backgroundColor: '#e0e0e0' }}>
+                                                                <TableRow>
+                                                                    <TableCell sx={{ width: '40%', maxWidth: '40%', overflow: 'hidden', textOverflow: 'ellipsis' }}>Item from Zoho</TableCell>
+                                                                    <TableCell sx={{ width: '50%', maxWidth: '50%', overflow: 'hidden', textOverflow: 'ellipsis' }}>Reason</TableCell>
+                                                                    <TableCell>Action</TableCell>
                                                                 </TableRow>
-                                                            ))}
-                                                        </TableBody>
-                                                    </Table>
-                                                </TableContainer>
-                                            ) : (
-                                                invoice.inserted_in_qb ? (
-                                                    <Alert severity="success"
-                                                        style={{ 
-                                                            fontSize: '0.80rem',  
-                                                            padding: '4px 8px', 
-                                                            borderRadius: '4px',
-                                                        }}>
-                                                        <b>Processed successfully</b>
-                                                    </Alert>
+                                                            </TableHead>
+                                                            <TableBody>
+                                                                {invoice.items_unmatched.map((item, index) => (
+                                                                    <TableRow key={index}>
+                                                                        <TableCell>{item.zoho_item_unmatched}</TableCell>
+                                                                        <TableCell>
+                                                                            <Alert severity="error"
+                                                                                style={{ 
+                                                                                    fontSize: '0.80rem',  
+                                                                                    padding: '4px 8px', 
+                                                                                    borderRadius: '4px',
+                                                                                }}>
+                                                                                <b>{item.reason}</b>
+                                                                            </Alert>
+                                                                        </TableCell>
+                                                                        <TableCell>
+                                                                            {!item.qb_list_id ? (
+                                                                                // <Button 
+                                                                                //     onClick={() => handleViewItem(item)} 
+                                                                                //     variant="contained" 
+                                                                                //     color="info" 
+                                                                                //     size="small"
+                                                                                // >
+                                                                                //     View
+                                                                                // </Button>
+                                                                                <IconButton onClick={() => handleViewItem(item)} color="info" aria-label="view" size='xx-large'>
+                                                                                    <VisibilityIcon />
+                                                                                </IconButton>
+                                                                            ) : (
+                                                                                <SmallAlert severity='success' message='MATCHED'/>
+                                                                            )}
+                                                                        </TableCell>
+                                                                    </TableRow>
+                                                                ))}
+                                                            </TableBody>
+                                                        </Table>
+                                                    </TableContainer>
                                                 ) : (
-                                                    <Alert severity="warning"
-                                                        style={{ 
-                                                            fontSize: '0.80rem',  
-                                                            padding: '4px 8px', 
-                                                            borderRadius: '4px',
-                                                        }}>
-                                                        <b>No Errors in matched items detected (Not Processed).</b>
-                                                    </Alert>
-                                                )
-                                            )}
-                                        </TableCell>
-                                    </TableRow>
-                                    <TableRow>
-                                        <TableCell component="th" scope="row" sx={{ width: '150px', maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis' }}>Errors sync Customer</TableCell>
-                                        <TableCell>
-                                            {invoice.customer_unmatched.length > 0 ? (
-                                                <TableContainer component={Paper} elevation={0}>
-                                                    <Table aria-label="coincidences table" size="small">
-                                                        <TableHead sx={{ backgroundColor: '#e0e0e0' }}>
-                                                            <TableRow>
-                                                                <TableCell sx={{ width: '40%', maxWidth: '40%', overflow: 'hidden', textOverflow: 'ellipsis' }}>Customer from Zoho</TableCell>
-                                                                <TableCell sx={{ width: '50%', maxWidth: '50%', overflow: 'hidden', textOverflow: 'ellipsis' }}>Reason</TableCell>
-                                                                <TableCell>Action</TableCell>
-                                                            </TableRow>
-                                                        </TableHead>
-                                                        <TableBody>
-                                                            {invoice.customer_unmatched.map((customer, index) => (
-                                                                <TableRow key={index}>
-                                                                    <TableCell>{customer.zoho_customer_unmatched}</TableCell>
-                                                                    <TableCell>
-                                                                        <Alert severity="error"
-                                                                            style={{ 
-                                                                                fontSize: '0.80rem',  
-                                                                                padding: '4px 8px', 
-                                                                                borderRadius: '4px',
-                                                                            }}>
-                                                                            <b>{customer.reason}</b>
-                                                                        </Alert>
-                                                                    </TableCell>
-                                                                    <TableCell>
-                                                                        {!customer.qb_list_id ? (
-                                                                            // <Button 
-                                                                            //     onClick={() => handleViewCustomer(customer)} 
-                                                                            //     variant="contained" 
-                                                                            //     color="info" 
-                                                                            //     size="small"
-                                                                            // >
-                                                                            //     View
-                                                                            // </Button>
-                                                                            <IconButton onClick={() => handleViewCustomer(customer)} color="info" aria-label="view" size='xx-large'>
-                                                                                <VisibilityIcon />
-                                                                            </IconButton>
-                                                                        ) : (
-                                                                            <SmallAlert severity='success' message='MATCHED'/>
-                                                                        )}
-                                                                    </TableCell>
+                                                    invoice.inserted_in_qb ? (
+                                                        <Alert severity="success"
+                                                            style={{ 
+                                                                fontSize: '0.80rem',  
+                                                                padding: '4px 8px', 
+                                                                borderRadius: '4px',
+                                                            }}>
+                                                            <b>Processed successfully</b>
+                                                        </Alert>
+                                                    ) : (
+                                                        null
+                                                    )
+                                                )}
+                                            </TableCell>
+                                        </TableRow>
+                                        ) : (null)
+                                    }
+                                    {invoice.inserted_in_qb || invoice.customer_unmatched.length > 0 ? (
+                                        <TableRow>
+                                            <TableCell component="th" scope="row" sx={{ width: '150px', maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis' }}>Errors sync Customer</TableCell>
+                                            <TableCell>
+                                                {invoice.customer_unmatched.length > 0 ? (
+                                                    <TableContainer component={Paper} elevation={0}>
+                                                        <Table aria-label="coincidences table" size="small">
+                                                            <TableHead sx={{ backgroundColor: '#e0e0e0' }}>
+                                                                <TableRow>
+                                                                    <TableCell sx={{ width: '40%', maxWidth: '40%', overflow: 'hidden', textOverflow: 'ellipsis' }}>Customer from Zoho</TableCell>
+                                                                    <TableCell sx={{ width: '50%', maxWidth: '50%', overflow: 'hidden', textOverflow: 'ellipsis' }}>Reason</TableCell>
+                                                                    <TableCell>Action</TableCell>
                                                                 </TableRow>
-                                                            ))}
-                                                        </TableBody>
-                                                    </Table>
-                                                </TableContainer>
-                                            ) : (
-                                                invoice.inserted_in_qb ? (
-                                                    <Alert severity="success"
-                                                        style={{ 
-                                                            fontSize: '0.80rem',  
-                                                            padding: '4px 8px', 
-                                                            borderRadius: '4px',
-                                                        }}>
-                                                        <b>Processed successfully</b>
-                                                    </Alert>
+                                                            </TableHead>
+                                                            <TableBody>
+                                                                {invoice.customer_unmatched.map((customer, index) => (
+                                                                    <TableRow key={index}>
+                                                                        <TableCell>{customer.zoho_customer_unmatched}</TableCell>
+                                                                        <TableCell>
+                                                                            <Alert severity="error"
+                                                                                style={{ 
+                                                                                    fontSize: '0.80rem',  
+                                                                                    padding: '4px 8px', 
+                                                                                    borderRadius: '4px',
+                                                                                }}>
+                                                                                <b>{customer.reason}</b>
+                                                                            </Alert>
+                                                                        </TableCell>
+                                                                        <TableCell>
+                                                                            {!customer.qb_list_id ? (
+                                                                                // <Button 
+                                                                                //     onClick={() => handleViewCustomer(customer)} 
+                                                                                //     variant="contained" 
+                                                                                //     color="info" 
+                                                                                //     size="small"
+                                                                                // >
+                                                                                //     View
+                                                                                // </Button>
+                                                                                <IconButton onClick={() => handleViewCustomer(customer)} color="info" aria-label="view" size='xx-large'>
+                                                                                    <VisibilityIcon />
+                                                                                </IconButton>
+                                                                            ) : (
+                                                                                <SmallAlert severity='success' message='MATCHED'/>
+                                                                            )}
+                                                                        </TableCell>
+                                                                    </TableRow>
+                                                                ))}
+                                                            </TableBody>
+                                                        </Table>
+                                                    </TableContainer>
                                                 ) : (
-                                                    <Alert severity="warning"
-                                                        style={{ 
-                                                            fontSize: '0.80rem',  
-                                                            padding: '4px 8px', 
-                                                            borderRadius: '4px',
-                                                        }}>
-                                                        <b>No Errors in matched items detected (Not Processed).</b>
-                                                    </Alert>
-                                                )
-                                            )}
-                                        </TableCell>
-                                    </TableRow>
+                                                    invoice.inserted_in_qb ? (
+                                                        <Alert severity="success"
+                                                            style={{ 
+                                                                fontSize: '0.80rem',  
+                                                                padding: '4px 8px', 
+                                                                borderRadius: '4px',
+                                                            }}>
+                                                            <b>Processed successfully</b>
+                                                        </Alert>
+                                                    ) : (
+                                                        null
+                                                    )
+                                                )}
+                                            </TableCell>
+                                        </TableRow>
+                                        )  : (null)
+                                    }
                                 </TableBody>
                             </Table>
                         </TableContainer>

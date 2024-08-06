@@ -43,12 +43,14 @@ def match_one_item_ajax(request):
             try:
                 qb_list_id = data.get('qb_item_list_id')
                 zoho_item_id = data.get('item_id')
+                username = data.get('username')
                 qb_item = get_object_or_404(QbItem, list_id=qb_list_id)
                 zoho_item = get_object_or_404(ZohoItem, item_id=zoho_item_id)
                 zoho_item.qb_list_id = qb_list_id if action == 'match' else ''
                 zoho_item.save()
                 qb_item.matched = True if action == 'match' else False
                 qb_item.save()
+                api_zoho_views.manage_api_tracking_log(username, f'{action}_item', request.META.get('REMOTE_ADDR'), f'{action.capitalize()} item')
                 return JsonResponse({'status': 'success', 'message': 'Item matched successfully'})
             except Exception as e:
                 return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
@@ -258,7 +260,7 @@ def load_items(request):
             )
             if created:
                 zoho_loading.save()
-            api_zoho_views.manage_api_tracking_log(username, 'load_items', request.META.get('REMOTE_ADDR'), 'Loaded items from Zoho Books (Date: %s)' % datetime.datetime.now().strftime('%Y-%m-%d'))
+            api_zoho_views.manage_api_tracking_log(username, 'load_items', request.META.get('REMOTE_ADDR'), 'Loaded items from Zoho Books')
                 
         return JsonResponse({'message': 'Items loaded successfully'}, status=200)
     

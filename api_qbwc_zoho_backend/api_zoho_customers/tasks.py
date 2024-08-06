@@ -73,7 +73,7 @@ def load_customers_task(headers, params, username, pc_ip):
         else:
             zoho_loading.zoho_record_updated = current_time_utc
         zoho_loading.save()
-        api_zoho_views.manage_api_tracking_log(username, 'load_customers', pc_ip, 'Loaded customers from Zoho Books (Date: %s)' % datetime.datetime.now().strftime('%Y-%m-%d'))
+        api_zoho_views.manage_api_tracking_log(username, 'load_customers', pc_ip, 'Loaded customers from Zoho Books')
     
     return {'message': 'Customers loaded successfully', 'status': 200}
 

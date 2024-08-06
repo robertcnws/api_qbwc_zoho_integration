@@ -34,6 +34,7 @@ const CustomersList = ({ customers }) => {
     const [orderBy, setOrderBy] = useState('');
     const [order, setOrder] = useState('asc');
     const [filter, setFilter] = useState('all');
+    const [hoveredRowIndex, setHoveredRowIndex] = useState(null);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -106,18 +107,18 @@ const CustomersList = ({ customers }) => {
         { id: 'phone', label: 'Phone' },
         { id: 'company_name', label: 'Company Name' },
         { id: 'matched', label: 'Matched' },
-        { id: 'actions', label: 'Actions' }
+        // { id: 'actions', label: 'Actions' }
     ];
 
     return (
         <Container
             maxWidth="xl"
             sx={{
-                marginLeft: '-10%',
+                marginLeft: '-9%',
                 marginTop: '-6%',
                 transition: 'margin-left 0.3s ease',
-                minHeight: '100vh',
-                minWidth: '88vw',
+                // minHeight: '100vh',
+                minWidth: '87vw',
                 padding: 1,
             }}
             >
@@ -135,7 +136,7 @@ const CustomersList = ({ customers }) => {
                     Customers List
                 </Typography>
                 <FormControl variant="outlined" size="small">
-                    <InputLabel>Filter</InputLabel>
+                    <InputLabel>{filteredCustomers.length}</InputLabel>
                     <Select
                         value={filter}
                         onChange={handleFilterChange}
@@ -148,18 +149,6 @@ const CustomersList = ({ customers }) => {
                 </FormControl>
                 </Grid>
                 <Grid item xs={6} container justifyContent="flex-end" spacing={1}>
-                    <Grid item>
-                        <Button variant="contained" color="success" size="small" component={Link}  to="/integration">
-                            Back to Integration
-                        </Button>
-                    </Grid>
-                </Grid>
-                <Grid item xs={12} container justifyContent="flex-end" spacing={1}>
-                    <Grid item xs={8}>
-                        <Alert severity="info" sx={{ mb: 2 }}>
-                            There are {filteredCustomers.length} customers found.
-                        </Alert>
-                    </Grid>
                     <Grid item xs={4}>
                         <TextField
                             label="Search"
@@ -170,20 +159,39 @@ const CustomersList = ({ customers }) => {
                             sx={{ width: '100%', mb: 2 }}
                         />
                     </Grid>
+                    <Grid item>
+                        <Button variant="contained" color="success" size="small" component={Link}  to="/integration">
+                            Back to Integration
+                        </Button>
+                    </Grid>
+                </Grid>
+                <Grid item xs={12} container justifyContent="flex-end" spacing={1}>
+                    {/* <Grid item xs={8}>
+                        <Alert severity="info" sx={{ mb: 2 }}>
+                            There are {filteredCustomers.length} customers found.
+                        </Alert>
+                    </Grid> */}
                 </Grid>
                 <Grid item xs={12}>
-                    <TableContainer component={Paper}>
-                        <Table id="myTable" aria-label="customers table" sx={{ minWidth: 650 }}>
-                            <TableHead sx={{ backgroundColor: '#e0e0e0' }}> 
+                    <TableContainer component={Paper} style={{ maxHeight: '585px' }}>
+                        <Table id="myTable" aria-label="customers table" sx={{ minWidth: 650 }} stickyHeader>
+                            <TableHead sx={{ backgroundColor: '#F9F9FB' }}> 
                                 <TableRow>
                                 {columns.map((column) => (
-                                        <TableCell key={column.id} sx={{ fontWeight: 'bold', color: '#333', borderBottom: '1px solid #ccc' }}>
+                                        <TableCell key={column.id} 
+                                        sx={{ 
+                                            fontWeight: 'bold', 
+                                            color: '#6C7184', 
+                                            borderBottom: '1px solid #ddd', 
+                                            borderTop: '1px solid #ddd',
+                                            backgroundColor: '#F9F9FB' }}
+                                        >
                                             <TableSortLabel
                                                 active={orderBy === column.id}
                                                 direction={orderBy === column.id ? order : 'asc'}
                                                 onClick={() => handleSortChange(column.id)}
                                             >
-                                                {column.label}
+                                                {column.label.toUpperCase()}
                                             </TableSortLabel>
                                         </TableCell>
                                     ))}
@@ -197,7 +205,17 @@ const CustomersList = ({ customers }) => {
                                             ? sortedCustomers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                                             : sortedCustomers
                                         ).map((customer, index) => (
-                                            <TableRow key={index} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
+                                            <TableRow key={index} 
+                                                sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                                                style = {{ 
+                                                    cursor: 'pointer', 
+                                                    transition: 'background-color 0.3s ease',  
+                                                    backgroundColor: hoveredRowIndex === index ? '#F6F6FA' : '#FFFFFF'
+                                                }}
+                                                onMouseEnter={() => setHoveredRowIndex(index)}
+                                                onMouseLeave={() => setHoveredRowIndex(null)}
+                                                onClick={() => handleViewCustomer(customer)}
+                                            >
                                                 <TableCell>{customer.fields.contact_name}</TableCell>
                                                 <TableCell>{customer.fields.email}</TableCell>
                                                 <TableCell>{customer.fields.phone}</TableCell>
@@ -206,23 +224,18 @@ const CustomersList = ({ customers }) => {
                                                             color: !customer.fields.qb_list_id || customer.fields.qb_list_id === "" ? theme.palette.error.main : theme.palette.success.main,
                                                             fontWeight: 'bold',
                                                             borderBottom: '1px solid #ccc',
-                                                            width: '50px', 
-                                                            maxWidth: '50px'
+                                                            width: '20px', 
+                                                            maxWidth: '20px'
                                                         })}>
                                                         <b>{!customer.fields.qb_list_id || customer.fields.qb_list_id === "" ? 
-                                                            <SmallAlert severity='error' message='NO'/> : <SmallAlert severity='success' message='YES'/>
+                                                            'NO' : 'YES'
                                                         }</b>
                                                 </TableCell>
-                                                <TableCell className="text-center align-middle">
-                                                    {/* <Button 
-                                                        onClick={() => handleViewCustomer(customer)} 
-                                                        variant="contained" 
-                                                        color="info" 
-                                                        size="small">View</Button> */}
-                                                        <IconButton onClick={() => handleViewCustomer(customer)} color="info" aria-label="view" size='xx-large'>
+                                                {/* <TableCell className="text-center align-middle">
+                                                        <IconButton onClick={() => handleViewCustomer(customer)} color="info" aria-label="view" size='large'>
                                                             <VisibilityIcon />
                                                         </IconButton>
-                                                </TableCell>
+                                                </TableCell> */}
                                             </TableRow>
                                         ))
                                     )}

@@ -24,6 +24,7 @@ const UsersFormContainer = () => {
 
     const handleSubmit = async (data) => {
         try {
+            data = { ...data, logged_username: localStorage.getItem('username') };
             data = JSON.stringify(data)
             const response = await fetchWithToken(`${apiUrl}/manage_user/`, 'POST', data, {}, apiUrl);
             setSuccess(response.data.message);

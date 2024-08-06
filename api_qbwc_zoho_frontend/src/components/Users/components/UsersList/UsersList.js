@@ -81,11 +81,11 @@ const UsersList = ({ users, onSyncComplete }) => {
     <Container
             maxWidth="xl"
             sx={{
-                marginLeft: '-10%',
+                marginLeft: '-9%',
                 marginTop: '-6%',
                 transition: 'margin-left 0.3s ease',
-                minHeight: '100vh',
-                minWidth: '88vw',
+                // minHeight: '100vh',
+                minWidth: '87vw',
                 padding: 1,
             }}
         >
@@ -104,7 +104,17 @@ const UsersList = ({ users, onSyncComplete }) => {
                 </Typography>
             </Grid>
             <Grid item xs={6} container justifyContent="flex-end" spacing={1}>
-            <Grid item>
+                <Grid item xs={4}>
+                    <TextField
+                        label="Search"
+                        variant="outlined"
+                        size="small"
+                        value={searchTerm}
+                        onChange={handleSearchChange}
+                        sx={{ width: '100%', mb: 2 }}
+                    />
+                </Grid>
+                <Grid item>
                     <Button variant="contained" color="info" size="small" onClick={() => viewUser(null)}>
                         Create User
                     </Button>
@@ -116,29 +126,19 @@ const UsersList = ({ users, onSyncComplete }) => {
                 </Grid>
             </Grid>
             <Grid item xs={12} container justifyContent="flex-end" spacing={1}>
-                <Grid item xs={8}>
+                <Grid item xs={12}>
                     <Alert severity="info" sx={{ mb: 2 }}>
                         There are {filteredUsers.length} users found.
                     </Alert>
                 </Grid>
-                <Grid item xs={4}>
-                    <TextField
-                        label="Search"
-                        variant="outlined"
-                        size="small"
-                        value={searchTerm}
-                        onChange={handleSearchChange}
-                        sx={{ width: '100%', mb: 2 }}
-                    />
-                </Grid>
             </Grid>
             <Grid item xs={12}>
-                <TableContainer component={Paper}>
-                    <Table id="myTable" aria-label="items table" sx={{ minWidth: 650 }}>
+                <TableContainer component={Paper} style={{ maxHeight: '590px' }}>
+                    <Table id="myTable" aria-label="items table" sx={{ minWidth: 650 }} stickyHeader>
                         <TableHead sx={{ backgroundColor: '#e0e0e0' }}> 
                             <TableRow>
                                 {columns.map((column) => (
-                                    <TableCell key={column.id} sx={{ fontWeight: 'bold', color: '#333', borderBottom: '1px solid #ccc' }}>
+                                    <TableCell key={column.id} sx={{ fontWeight: 'bold', color: '#333', borderBottom: '1px solid #ccc', backgroundColor: '#e0e0e0' }}>
                                         <TableSortLabel
                                             active={orderBy === column.id}
                                             direction={orderBy === column.id ? order : 'asc'}

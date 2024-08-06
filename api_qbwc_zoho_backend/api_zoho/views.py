@@ -77,7 +77,8 @@ def logout_view(request):
     if request.method == 'GET':
         username = request.GET.get('username')
         logout(request) 
-        manage_api_tracking_log(username, 'logout', request.META.get('REMOTE_ADDR'), 'User logged out')
+        if username:
+            manage_api_tracking_log(username, 'logout', request.META.get('REMOTE_ADDR'), 'User logged out')
         return JsonResponse({'status': 'success'}, status=200)
     return JsonResponse({'error': 'Method not allowed'}, status=405)
 
@@ -140,9 +141,11 @@ def manage_user(request):
             email = data.get('email')
             is_new = data.get('is_new')
             is_staff = True if role == 'admin' else False
+            logged_username = data.get('logged_username')
             user = LoginUser.objects.filter(username=username).first()
             if not user:
                 user = LoginUser.objects.create_user(username=username, email=email, password=password, is_staff=is_staff)
+                action, message = 'create_user', 'Create user'
             else:
                 if not is_new:
                     user.first_name = first_name
@@ -151,12 +154,14 @@ def manage_user(request):
                     user.is_staff = is_staff
                     user.set_password(password)
                     user.save()
+                    action, message = 'update_user', 'Update user'
                 else:
                     return JsonResponse({'error': 'User already exists'}, status=400)
         except LoginUser.DoesNotExist:
             return JsonResponse({'error': 'User not found or could not be created'}, status=404)
         user = model_to_dict(user)
         logger.info(f'User {user["username"]} has been created/updated')
+        manage_api_tracking_log(logged_username, action, request.META.get('REMOTE_ADDR'), message)
         return JsonResponse(user, status=200)
     return JsonResponse({'error': 'Invalid JWT Token'}, status=401)
 
@@ -544,6 +549,8 @@ def do_backup_db(request):
     valid_token = validateJWTTokenRequest(request)
     if valid_token:
         if create_backup():
+            username = request.GET.get('username')
+            manage_api_tracking_log(username, 'backup_db', request.META.get('REMOTE_ADDR'), 'Backup DB')
             return JsonResponse({'message': 'Backup DB started successfully.'}, status=200)
         return JsonResponse({'error': 'Error creating the backup.'}, status=500)
     return JsonResponse({'error': 'Invalid JWT Token'}, status=401)

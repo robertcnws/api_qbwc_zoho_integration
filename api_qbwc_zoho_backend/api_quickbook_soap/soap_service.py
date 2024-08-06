@@ -97,12 +97,7 @@ def generate_item_query_response(query_object_name):
     data_xml = f'''<{query_object_name}QueryRq requestID="2">
                     <IncludeRetElement>ListID</IncludeRetElement>
                     <IncludeRetElement>Name</IncludeRetElement>
-                  </{query_object_name}QueryRq>'''
-                  
-    # data_xml = '''<ItemSalesTaxQueryRq requestID="2">
-    #                 <IncludeRetElement>ListID</IncludeRetElement>
-    #                 <IncludeRetElement>Name</IncludeRetElement>
-    #               </ItemSalesTaxQueryRq>'''
+                  </{query_object_name}QueryRq>''' 
     
     request_xml = f'''<?qbxml version="8.0"?>
                     <QBXML>
@@ -326,9 +321,11 @@ def generate_invoice_add_response_new_version():
 
 def generate_invoice_add_response():
     today = date.today()
+    yesterday = today.replace(day=today.day - 1)    
     logging.debug(f'Today: {today}')
+    logging.debug(f'Yesterday: {yesterday}')
 
-    invoices = ZohoFullInvoice.objects.filter(Q(force_to_sync=True) | Q(date=today), inserted_in_qb=False)
+    invoices = ZohoFullInvoice.objects.filter(Q(force_to_sync=True) | Q(date=yesterday), inserted_in_qb=False)
     logging.debug(f'Length Invoices: {len(invoices)}')
 
     data_xml = ''

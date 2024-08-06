@@ -28,4 +28,4 @@ COPY . /app/
 EXPOSE 8000
 
 # Ejecuta el script de inicialización y luego arranca Gunicorn y cron
-CMD ["sh", "-c", "python manage.py makemigrations && python manage.py migrate && python init_script.py && gunicorn --bind 0.0.0.0:8000 project_api.wsgi:application & celery -A project_api worker --loglevel=info "]
+CMD ["sh", "-c", "python manage.py makemigrations && python manage.py migrate && python init_script.py && gunicorn --bind 0.0.0.0:8000 project_api.wsgi:application & celery -A project_api worker --loglevel=info & celery -A project_api beat --loglevel=info"]

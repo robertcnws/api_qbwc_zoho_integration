@@ -114,7 +114,12 @@ const QbwcSimilarCustomersList = ({ similarCustomers, onSyncComplete }) => {
   const renderTableRows = (customers) => {
     return customers.map((customer, index) => (
       customer.coincidences_by_order ? customer.coincidences_by_order.map((coincidence, subIndex) => (
-        <TableRow key={`${index}-${subIndex}`}>
+        <TableRow key={`${index}-${subIndex}`} 
+          sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+          style={{ 
+            cursor: 'pointer',
+          }}
+        >
             <TableCell style={{ backgroundColor: subIndex === 0 ? '#f8d7da' : '' }}>
                 {customer.qb_customer_name}
             </TableCell>
@@ -170,11 +175,11 @@ const QbwcSimilarCustomersList = ({ similarCustomers, onSyncComplete }) => {
     <Container
       maxWidth="xl"
       sx={{
-        marginLeft: '-10%',
+        marginLeft: '-9%',
         marginTop: '-6%',
         transition: 'margin-left 0.3s ease',
-        minHeight: '100vh',
-        minWidth: '88vw',
+        // minHeight: '100vh',
+        minWidth: '87vw',
         padding: 1,
     }}
     >
@@ -193,9 +198,19 @@ const QbwcSimilarCustomersList = ({ similarCustomers, onSyncComplete }) => {
           </Typography>
         </Grid>
         <Grid item xs={6} container justifyContent="flex-end" spacing={1}>
+          <Grid item xs={4}>
+            <TextField
+              label="Search"
+              variant="outlined"
+              size="small"
+              value={searchTerm}
+              onChange={handleSearchChange}
+              sx={{ width: '100%', mb: 2 }}
+            />
+          </Grid>
           <Grid item>
             <Button variant="contained" color="success" size="small" onClick={() => navigate(-1)}>
-              Back to List
+              Back to QBWC
             </Button>
           </Grid>
           <Grid item>
@@ -206,28 +221,18 @@ const QbwcSimilarCustomersList = ({ similarCustomers, onSyncComplete }) => {
         </Grid>
       </Grid>
       <Grid container spacing={2} alignItems="center" justifyContent="space-between" mb={3}>
-        <Grid item xs={8}>
+        <Grid item xs={12}>
           <Alert severity="info">
             There are {filteredCustomers.length} customers found.
           </Alert>
         </Grid>
-        <Grid item xs={4}>
-          <TextField
-            label="Search"
-            variant="outlined"
-            size="small"
-            value={searchTerm}
-            onChange={handleSearchChange}
-            sx={{ width: '100%', mb: 2 }}
-          />
-        </Grid>
       </Grid>
-      <TableContainer component={Paper}>
-        <Table id="myTable" aria-label="similar customers table">
+      <TableContainer component={Paper} style={{ maxHeight: '560px' }}>
+        <Table id="myTable" aria-label="similar customers table" stickyHeader>
           <TableHead sx={{ backgroundColor: '#e0e0e0' }}>
             <TableRow>
               {columns.map((column) => (
-                <TableCell key={column.id} sx={{ fontWeight: 'bold', color: '#333', borderBottom: '1px solid #ccc' }}>
+                <TableCell key={column.id} sx={{ fontWeight: 'bold', color: '#333', borderBottom: '1px solid #ccc', backgroundColor: '#e0e0e0' }}>
                   <TableSortLabel
                     active={orderBy === column.id}
                     direction={orderBy === column.id ? order : 'asc'}

@@ -85,7 +85,8 @@
                         'csrfmiddlewaretoken': csrftoken,
                         'qb_customer_list_id': qb_customer_list_id,
                         'zoho_customer_id': zoho_customer_id,
-                        'action': 'unmatch'
+                        'action': 'unmatch',
+                        'username': localStorage.getItem('username')
                     },
                     success: function(response) {
                         console.log(response);

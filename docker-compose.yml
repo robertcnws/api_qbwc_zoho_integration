@@ -75,11 +75,14 @@ services:
   redis:
     image: redis:latest
     container_name: redis
+    volumes:
+      - redis_data:/data
     networks:
       - api_qbwc_zoho_network
 
 volumes:
   postgres_data:
+  redis_data:
 
 networks:
   api_qbwc_zoho_network:

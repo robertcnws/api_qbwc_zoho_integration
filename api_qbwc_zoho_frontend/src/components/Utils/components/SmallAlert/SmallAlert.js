@@ -6,8 +6,9 @@ const SmallAlert = ({ severity, title, message }) => {
     <Alert
       severity={severity}
       sx={{
-        fontSize: '0.75rem', // Tamaño de la fuente pequeño
-        padding: '4px 4px 4px 4px',  // Espaciado reducido
+        fontSize: '0.75rem', 
+        padding: '2px 2px 2px 2px',  
+        display: 'inline-flex', 
       }}
     >
       {title && <AlertTitle sx={{ fontSize: '0.85rem' }}>{title}</AlertTitle>}

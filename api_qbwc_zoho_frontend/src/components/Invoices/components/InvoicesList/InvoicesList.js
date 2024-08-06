@@ -53,6 +53,7 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
     const [orderBy, setOrderBy] = useState('');
     const [order, setOrder] = useState('asc');
     const [filter, setFilter] = useState('all');
+    const [hoveredRowIndex, setHoveredRowIndex] = useState(null);
     const navigate = useNavigate();
     
     const today = dayjs();
@@ -145,7 +146,8 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
                 const fetchData = async () => {
                     try {
                         const url = `${apiUrl}/api_zoho_invoices/delete_invoice/${invoice.fields.invoice_id}/`
-                        const response = await fetchWithToken(url, 'POST', null, {}, apiUrl);
+                        const data = { username: localStorage.getItem('username') };
+                        const response = await fetchWithToken(url, 'POST', data, {}, apiUrl);
                         if (response.data.status === 'success') {
                             Swal.fire({
                                 title: 'Success!',
@@ -287,13 +289,16 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
         window.history.replaceState(null, '', `${window.location.pathname}?${queryParams.toString()}`);
     };
 
-    const getBackgroundColor = (invoice) => {
+    const getBackgroundColor = (invoice, isMouseOver) => {
         if (invoice.fields.customer_unmatched.length > 0 || invoice.fields.items_unmatched.length > 0) {
-            return 'rgba(255, 0, 0, 0.1)';
+            // return !isMouseOver ? 'rgba(255, 255, 255, 1)' : 'rgba(255, 0, 0, 0.1)';
+            return !isMouseOver ? '#FFFFFF' : '#f6f6fa';
         } else if (invoice.fields.inserted_in_qb) {
-            return 'rgba(0, 255, 0, 0.1)';
+            // return !isMouseOver ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 255, 0, 0.1)';
+            return !isMouseOver ? '#FFFFFF' : '#f6f6fa';
         } else {
-            return 'rgba(255, 255, 0, 0.1)';
+            // return !isMouseOver ? 'rgba(255, 255, 255, 1)' : 'rgba(255, 255, 0, 0.1)';
+            return !isMouseOver ? '#FFFFFF' : '#f6f6fa';
         }
     };
 
@@ -309,9 +314,9 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
 
     const renderMatchStatus = (invoice) => {
         if (invoice.fields.all_items_matched && invoice.fields.all_customer_matched) {
-            return <SmallAlert severity='success' message='YES'/>
+            return 'YES'
         } else {
-            return <SmallAlert severity='error' message='NO'/>
+            return 'NO'
         }
     };
 
@@ -391,11 +396,11 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
         <Container
             maxWidth="xl"
             sx={{
-                marginLeft: '-10%',
+                marginLeft: '-9%',
                 marginTop: '-6%',
                 transition: 'margin-left 0.3s ease',
-                minHeight: '100vh',
-                minWidth: '88vw',
+                // minHeight: '100vh',
+                minWidth: '87vw',
                 padding: 1,
             }}
             >
@@ -413,7 +418,7 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
                         Invoices List
                     </Typography>
                     <FormControl variant="outlined" size="small">
-                        <InputLabel>Filter</InputLabel>
+                        <InputLabel>{filteredInvoices.length}</InputLabel>
                         <Select
                             value={filter}
                             onChange={handleFilterChange}
@@ -496,40 +501,47 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
             </Grid>
 
             <Grid container spacing={2} mb={3}>
-            <Grid item xs={12}>
-                <Alert severity={filter === 'all' ? 
-                    'info' : (filter === 'not_processed' ? 
-                    'warning' : (filter === 'synced' ? 
-                    'success' : (filter === 'forced_sync' || filter === 'not_forced_sync' ? 
-                    'info':  (filter === 'matched' ? 
-                    'success' : (filter === 'not_matched' ? 
-                    'warning' : 'error')))))
-                } sx={{ fontSize: 'small' }}>
-                    <b>{filteredInvoices.length}</b> {filter === 'all' ? 
-                    'Total' : (filter === 'not_processed' ? 
-                    'Not Processed' : (filter === 'synced' ? 
-                    'Synced' : (filter === 'forced_sync' ? 
-                    'Forced to Sync' : (filter === 'not_forced_sync' ? 
-                    'Not Forced to Sync' : (filter === 'matched' ? 
-                    'Matched': (filter === 'not_matched' ? 
-                    'Not Matched':'Not Synced'))))))
-                } invoices found
-                </Alert>
-            </Grid>
+                {/* <Grid item xs={12}>
+                    <Alert severity={filter === 'all' ? 
+                        'info' : (filter === 'not_processed' ? 
+                        'warning' : (filter === 'synced' ? 
+                        'success' : (filter === 'forced_sync' || filter === 'not_forced_sync' ? 
+                        'info':  (filter === 'matched' ? 
+                        'success' : (filter === 'not_matched' ? 
+                        'warning' : 'error')))))
+                    } sx={{ fontSize: 'small' }}>
+                        <b>{filteredInvoices.length}</b> {filter === 'all' ? 
+                        'Total' : (filter === 'not_processed' ? 
+                        'Not Processed' : (filter === 'synced' ? 
+                        'Synced' : (filter === 'forced_sync' ? 
+                        'Forced to Sync' : (filter === 'not_forced_sync' ? 
+                        'Not Forced to Sync' : (filter === 'matched' ? 
+                        'Matched': (filter === 'not_matched' ? 
+                        'Not Matched':'Not Synced'))))))
+                    } invoices found
+                    </Alert>
+                </Grid> */}
             </Grid>
 
-            <TableContainer component={Paper} sx={{ mt: 3 }}>
-                <Table>
+            <TableContainer component={Paper} sx={{ mt: 3 }} style={{ maxHeight: '590px' }}>
+                <Table stickyHeader>
                     <TableHead>
-                        <TableRow sx={{ backgroundColor: '#e0e0e0' }}>
+                        <TableRow sx={{ backgroundColor: '#f9f9fb' }}>
                             {columns.map((column) => (
-                                <TableCell key={column.id} sx={{ fontWeight: 'bold', color: '#333', borderBottom: '1px solid #ccc' }}>
+                                <TableCell key={column.id} 
+                                sx={{ 
+                                    fontWeight: 'bold', 
+                                    color: '#6c7184', 
+                                    borderBottom: '1px solid #ddd', 
+                                    borderTop: '1px solid #ddd',
+                                    backgroundColor: '#f9f9fb' }}
+                                    >
                                     <TableSortLabel
                                         active={orderBy === column.id}
                                         direction={orderBy === column.id ? order : 'asc'}
                                         onClick={() => handleSortChange(column.id)}
                                     >
-                                        {column.label}
+                                        {column.label.toUpperCase()}
                                     </TableSortLabel>
                                 </TableCell>
                             ))}
@@ -544,21 +556,34 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
                                 : sortedInvoices
                             ).map((invoice, index) => {
                                 const isItemSelected = isSelected(invoice.fields.invoice_id);
+                                const backgroundColor =
+                                    index === hoveredRowIndex
+                                    ? getBackgroundColor(invoice, true)
+                                    : getBackgroundColor(invoice, false);
                                 return (
-                                    <TableRow key={index} style={{ backgroundColor: getBackgroundColor(invoice) }}>
-                                        <TableCell>{invoice.fields.invoice_number}</TableCell>
-                                        <TableCell>{invoice.fields.customer_name}</TableCell>
-                                        <TableCell>{invoice.fields.date}</TableCell>
-                                        <TableCell>$ {invoice.fields.total}</TableCell>
-                                        <TableCell align="center">
+                                    <TableRow key={index} 
+                                        style={{ 
+                                            cursor: 'pointer', 
+                                            transition: 'background-color 0.3s ease',  
+                                            backgroundColor: backgroundColor 
+                                        }}
+                                        onMouseEnter={() => setHoveredRowIndex(index)}
+                                        onMouseLeave={() => setHoveredRowIndex(null)}
+                                    >
+                                        <TableCell onClick={() => handleViewInvoice(invoice)}>{invoice.fields.invoice_number}</TableCell>
+                                        <TableCell onClick={() => handleViewInvoice(invoice)}>{invoice.fields.customer_name}</TableCell>
+                                        <TableCell onClick={() => handleViewInvoice(invoice)}>{invoice.fields.date}</TableCell>
+                                        <TableCell onClick={() => handleViewInvoice(invoice)}>$ {invoice.fields.total}</TableCell>
+                                        <TableCell align="center" onClick={() => handleViewInvoice(invoice)}>
                                             {renderSyncStatus(invoice)}
                                         </TableCell>
-                                        <TableCell align="center" sx={() => ({
+                                        <TableCell align="center" sx={(theme) => ({
                                                 fontWeight: 'bold',
                                                 borderBottom: '1px solid #ccc',
-                                                width: '50px', 
-                                                maxWidth: '50px'
-                                            })}>
+                                                width: '20px', 
+                                                maxWidth: '20px',
+                                                color: invoice.fields.all_items_matched && invoice.fields.all_customer_matched ? theme.palette.success.main : theme.palette.error.main,
+                                            })} onClick={() => handleViewInvoice(invoice)}>
                                             {renderMatchStatus(invoice)}
                                         </TableCell>
                                         <TableCell align="center">
@@ -575,9 +600,9 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
                                             {/* <Button variant="contained" color="info" size="small" onClick={() => handleViewInvoice(invoice)} >
                                                 View
                                             </Button> */}
-                                            <IconButton onClick={() => handleViewInvoice(invoice)} color="info" aria-label="view" size='xx-large'>
+                                            {/* <IconButton onClick={() => handleViewInvoice(invoice)} color="info" aria-label="view" size='xx-large'>
                                                 <VisibilityIcon />
-                                            </IconButton>
+                                            </IconButton> */}
                                             <IconButton onClick={() => handleDeleteInvoice(invoice)} color="error" aria-label="view" size='xx-large'>
                                                 <DeleteIcon />
                                             </IconButton>

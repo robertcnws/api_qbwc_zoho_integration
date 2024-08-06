@@ -38,6 +38,7 @@ const QbwcCustomersList = ({ customers, onSyncComplete }) => {
     const [orderBy, setOrderBy] = useState('');
     const [order, setOrder] = useState('asc');
     const [filter, setFilter] = useState('all');
+    const [hoveredRowIndex, setHoveredRowIndex] = useState(null);
 
     const handleFilterChange = event => {
         setFilter(event.target.value);
@@ -184,13 +185,13 @@ const QbwcCustomersList = ({ customers, onSyncComplete }) => {
 
   return (
     <Container
-            maxWidth="xl"
+            // maxWidth="xl"
             sx={{
-                marginLeft: '-10%',
+                marginLeft: '-9%',
                 marginTop: '-6%',
                 transition: 'margin-left 0.3s ease',
-                minHeight: '100vh',
-                minWidth: '88vw',
+                // minHeight: '100vh',
+                minWidth: '87vw',
                 padding: 1,
             }}
         >
@@ -208,7 +209,7 @@ const QbwcCustomersList = ({ customers, onSyncComplete }) => {
                     QB Customers List
                 </Typography>
                 <FormControl variant="outlined" size="small">
-                        <InputLabel>Filter</InputLabel>
+                        <InputLabel>{filteredCustomers.length}</InputLabel>
                         <Select
                             value={filter}
                             onChange={handleFilterChange}
@@ -222,6 +223,16 @@ const QbwcCustomersList = ({ customers, onSyncComplete }) => {
                     </FormControl>
             </Grid>
             <Grid item xs={6} container justifyContent="flex-end" spacing={1}>
+                <Grid item xs={4}>
+                    <TextField
+                        label="Search"
+                        variant="outlined"
+                        size="small"
+                        value={searchTerm}
+                        onChange={handleSearchChange}
+                        sx={{ width: '100%', mb: 2 }}
+                    />
+                </Grid>
                 <Grid item>
                     <Button variant="contained" color="success" size="small" component={Link} to="/integration/qbwc">
                         Back to QBWC
@@ -236,29 +247,19 @@ const QbwcCustomersList = ({ customers, onSyncComplete }) => {
                 )}
             </Grid>
             <Grid item xs={12} container justifyContent="flex-end" spacing={1}>
-                <Grid item xs={8}>
+                {/* <Grid item xs={8}>
                     <Alert severity="info" sx={{ mb: 2 }}>
                         There are {filteredCustomers.length} customers found.
                     </Alert>
-                </Grid>
-                <Grid item xs={4}>
-                    <TextField
-                        label="Search"
-                        variant="outlined"
-                        size="small"
-                        value={searchTerm}
-                        onChange={handleSearchChange}
-                        sx={{ width: '100%', mb: 2 }}
-                    />
-                </Grid>
+                </Grid> */}
             </Grid>
             <Grid item xs={12}>
-                <TableContainer component={Paper}>
-                    <Table id="myTable" aria-label="customers table" sx={{ minWidth: 650 }}>
+                <TableContainer component={Paper} style={{ maxHeight: '585px' }}>
+                    <Table id="myTable" aria-label="customers table" stickyHeader>
                         <TableHead sx={{ backgroundColor: '#e0e0e0' }}> 
                             <TableRow>
                                 {columns.map((column) => (
-                                    <TableCell key={column.id} sx={{ fontWeight: 'bold', color: '#333', borderBottom: '1px solid #ccc' }}>
+                                    <TableCell key={column.id} sx={{ fontWeight: 'bold', color: '#333', borderBottom: '1px solid #ccc', backgroundColor: '#e0e0e0' }}>
                                         <TableSortLabel
                                             active={orderBy === column.id}
                                             direction={orderBy === column.id ? order : 'asc'}
@@ -277,7 +278,16 @@ const QbwcCustomersList = ({ customers, onSyncComplete }) => {
                                             ? sortedCustomers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                                             : sortedCustomers
                                         ).map((customer, index) => (
-                                            <TableRow key={index} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
+                                            <TableRow key={index} 
+                                                sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                                                style = {{ 
+                                                    cursor: 'pointer', 
+                                                    transition: 'background-color 0.3s ease',  
+                                                    backgroundColor: hoveredRowIndex === index ? '#f2f2f2' : 'inherit'
+                                                }}
+                                                onMouseEnter={() => setHoveredRowIndex(index)}
+                                                onMouseLeave={() => setHoveredRowIndex(null)}
+                                            >
                                                 <TableCell>{customer.fields.name}</TableCell>
                                                 <TableCell>{customer.fields.email}</TableCell>
                                                 <TableCell>{customer.fields.phone}</TableCell>

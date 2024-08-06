@@ -100,22 +100,22 @@ const DownloadBackupList = () => {
   return (
     <Container
             maxWidth="xl"
-            sx={{
-                marginLeft: -5,
-                marginTop: -3,
-                transition: 'margin-left 0.3s ease',
-                minHeight: '100vh',
-                minWidth: '87vw',
-                padding: 1,
-            }}
             // sx={{
-            //     marginLeft: '-10%',
-            //     marginTop: '-6%',
+            //     marginLeft: -2,
+            //     marginTop: -2,
             //     transition: 'margin-left 0.3s ease',
-            //     minHeight: '100vh',
-            //     minWidth: '88vw',
+            //     // minHeight: '100vh',
+            //     minWidth: '87vw',
             //     padding: 1,
             // }}
+            sx={{
+                marginLeft: '-2%',
+                marginTop: '-1%',
+                transition: 'margin-left 0.3s ease',
+                // minHeight: '100vh',
+                minWidth: '85vw',
+                padding: 1,
+            }}
             
         >
         <Grid container spacing={2} alignItems="center" justifyContent="space-between" mb={3}>
@@ -133,18 +133,6 @@ const DownloadBackupList = () => {
                 </Typography>
             </Grid>
             <Grid item xs={6} container justifyContent="flex-end" spacing={1}>
-                <Grid item>
-                    <Button variant="contained" color="success" size="small" component={Link} to="/integration">
-                        Back to Integration
-                    </Button>
-                </Grid>
-            </Grid>
-            <Grid item xs={12} container justifyContent="flex-end" spacing={1}>
-                <Grid item xs={8}>
-                    <Alert severity="info" sx={{ mb: 2 }}>
-                        There are {filteredItems.length} items found.
-                    </Alert>
-                </Grid>
                 <Grid item xs={4}>
                     <TextField
                         label="Search"
@@ -155,14 +143,26 @@ const DownloadBackupList = () => {
                         sx={{ width: '100%', mb: 2 }}
                     />
                 </Grid>
+                <Grid item>
+                    <Button variant="contained" color="success" size="small" component={Link} to="/integration">
+                        Back to Integration
+                    </Button>
+                </Grid>
+            </Grid>
+            <Grid item xs={12} container justifyContent="flex-end" spacing={1}>
+                <Grid item xs={12}>
+                    <Alert severity="info" sx={{ mb: 2 }}>
+                        There are {filteredItems.length} items found.
+                    </Alert>
+                </Grid>
             </Grid>
             <Grid item xs={12}>
-                <TableContainer component={Paper}>
-                    <Table id="myTable" aria-label="items table" sx={{ minWidth: 650 }}>
+                <TableContainer component={Paper} style={{ maxHeight: '570px' }}>
+                    <Table id="myTable" aria-label="items table" stickyHeader>
                         <TableHead sx={{ backgroundColor: '#e0e0e0' }}> 
                             <TableRow>
                                 {columns.map((column) => (
-                                    <TableCell key={column.id} sx={{ fontWeight: 'bold', color: '#333', borderBottom: '1px solid #ccc' }}>
+                                    <TableCell key={column.id} sx={{ fontWeight: 'bold', color: '#333', borderBottom: '1px solid #ccc', backgroundColor: '#e0e0e0' }}>
                                         <TableSortLabel
                                             active={orderBy === column.id}
                                             direction={orderBy === column.id ? order : 'asc'}

@@ -46,6 +46,7 @@ def match_one_customer_ajax(request):
             try:
                 qb_list_id = data.get('qb_customer_list_id')
                 zoho_customer_id = data.get('contact_id')
+                username = data.get('username')
                 qb_customer = get_object_or_404(QbCustomer, list_id=qb_list_id)
                 zoho_customer = get_object_or_404(ZohoCustomer, contact_id=zoho_customer_id)
                 zoho_customer.qb_list_id = qb_list_id if action == 'match' else ''
@@ -53,6 +54,7 @@ def match_one_customer_ajax(request):
                 qb_customer.matched = True if action == 'match' else False
                 qb_customer.save()
                 message = 'Customer matched successfully' if action == 'match' else 'Customer unmatched successfully'
+                api_zoho_views.manage_api_tracking_log(username, f'{action}_customer', request.META.get('REMOTE_ADDR'), f'{action.capitalize()} customer')
                 return JsonResponse({'status': 'success', 'message': message}, status=200)
             except Exception as e:
                 return JsonResponse({'status': 'error', 'message': str(e)}, status=400)

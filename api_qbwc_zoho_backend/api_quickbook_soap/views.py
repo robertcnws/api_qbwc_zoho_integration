@@ -195,7 +195,8 @@ def never_match_items_ajax(request):
                 qb_item = get_object_or_404(QbItem, list_id=item)
                 qb_item.never_match = not to_match
                 qb_item.save()
-                api_zoho_views.manage_api_tracking_log(username, 'never_match_items', request.META.get('REMOTE_ADDR'), 'Never match items')
+                action, message = ('never_match_items', 'Never match items') if not to_match else ('undo_never_match_items', 'Undo never match items')
+                api_zoho_views.manage_api_tracking_log(username, action, request.META.get('REMOTE_ADDR'), message)
             return JsonResponse({'message': 'success', 'status': 200})
         except Exception as e:
             logger.error(f"An error occurred: {e}")
@@ -217,7 +218,8 @@ def never_match_customers_ajax(request):
                 qb_customer = get_object_or_404(QbCustomer, list_id=customer)
                 qb_customer.never_match = not to_match
                 qb_customer.save()
-                api_zoho_views.manage_api_tracking_log(username, 'never_match_customers', request.META.get('REMOTE_ADDR'), 'Never match customers')
+                action, message = ('never_match_customers', 'Never match customers') if not to_match else ('undo_never_match_customers', 'Undo never match customers')
+                api_zoho_views.manage_api_tracking_log(username, action, request.META.get('REMOTE_ADDR'), message)
             return JsonResponse({'message': 'success'}, status=200)
         except Exception as e:
             logger.error(f"An error occurred: {e}")
@@ -594,7 +596,7 @@ def match_one_item_ajax(request):
             qb_item.matched = True if action == 'match' else False
             qb_item.save()
             message = 'Item matched successfully' if action == 'match' else 'Item unmatched successfully'
-            api_zoho_views.manage_api_tracking_log(username, 'match_item', request.META.get('REMOTE_ADDR'), 'Match item')
+            api_zoho_views.manage_api_tracking_log(username, f'{action}_item', request.META.get('REMOTE_ADDR'), f'{action.capitalize()} item')
             return JsonResponse({'status': 'success', 'message': message})
         except Exception as e:
             return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
@@ -620,7 +622,7 @@ def match_one_customer_ajax(request):
             qb_customer.matched = True if action == 'match' else False
             qb_customer.save()
             message = 'Customer matched successfully' if action == 'match' else 'Customer unmatched successfully'
-            api_zoho_views.manage_api_tracking_log(username, 'match_customer', request.META.get('REMOTE_ADDR'), 'Match customer')
+            api_zoho_views.manage_api_tracking_log(username, f'{action}_customer', request.META.get('REMOTE_ADDR'), f'{action.capitalize()} customer')
             return JsonResponse({'status': 'success', 'message': message})
         except Exception as e:
             return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
@@ -637,7 +639,7 @@ def start_qbwc_invoice_add_request(request):
         response_xml = process_qbwc_invoice_add_request(xml_data)
         qb_loading = QbLoading.objects.filter(qb_module='invoices', qb_record_created=datetime.now(timezone.utc)).first()
         app_config = AppConfig.objects.first()
-        api_zoho_views.manage_api_tracking_log(app_config.qb_username, 'sync_invoices_to_qb', request.META.get('REMOTE_ADDR'), 'Sync invoices to QuickBooks')
+        api_zoho_views.manage_api_tracking_log(f'{app_config.qb_username} (From QBWC)', 'sync_invoices_to_qb', request.META.get('REMOTE_ADDR'), 'Sync invoices to QuickBooks')
         if not qb_loading:
             qb_loading = create_qb_loading_instance('invoices')
         else:
@@ -650,6 +652,7 @@ def start_qbwc_invoice_add_request(request):
     
     
 def start_qbwc_query_request(request, query_object_name, list_of_objects):
+    # query_object_name = 'Item' if query_object_name == 'ItemNonInventory' else query_object_name
     if request.method == 'POST':
         module = ''
         xml_data = request.body.decode('utf-8')
@@ -657,19 +660,21 @@ def start_qbwc_query_request(request, query_object_name, list_of_objects):
             xml_dict = xmltodict.parse(xml_data)
             response_xml = xml_dict['soap:Envelope']['soap:Body']['receiveResponseXML']['response']
             data_dict = xmltodict.parse(response_xml)
-            # logger.info(f"Data dict: {data_dict}")
             if f'{query_object_name}QueryRs' in xml_data:
                 elements_query_rs = data_dict['QBXML']['QBXMLMsgsRs'][f'{query_object_name}QueryRs'][f'{query_object_name}Ret']
-                list_of_objects = [elem for elem in elements_query_rs]
+                list_of_objects = [elem for elem in elements_query_rs] if isinstance(elements_query_rs, list) else [elements_query_rs]
                 logger.info(f"Number of {query_object_name} detected: {len(list_of_objects)}")
 
-                if query_object_name in ['ItemInventory','ItemSalesTax', 'ItemService']:
+                if query_object_name in ['ItemInventory','ItemSalesTax', 'ItemService', 'ItemNonInventory', 'Item']:
                     module = 'items'
                     existing_items_ids = set(QbItem.objects.values_list('list_id', flat=True))
                     items_to_save = [
-                        QbItem(list_id=item['ListID'], name=item.get('Name', ''), item_type=query_object_name)
+                        QbItem(
+                            list_id=item.get('ListID', ''), 
+                            name=item.get('Name', ''), 
+                            item_type=query_object_name)
                         for item in list_of_objects
-                        if item['ListID'] not in existing_items_ids
+                        if item.get('ListID', '') not in existing_items_ids
                     ]
                     logger.info(f"Number of {query_object_name} to save: {len(items_to_save)}")
                     save_items_in_batches(items_to_save)
@@ -698,7 +703,7 @@ def start_qbwc_query_request(request, query_object_name, list_of_objects):
                 qb_loading.qb_record_updated = datetime.now(timezone.utc)
             qb_loading.save()
             app_config = AppConfig.objects.first()
-            api_zoho_views.manage_api_tracking_log(app_config.qb_username, f'load_{module}_from_qb', request.META.get('REMOTE_ADDR'), f'Load {module} from QuickBooks')
+            api_zoho_views.manage_api_tracking_log(f'{app_config.qb_username} (From QBWC)', f'load_{module}_from_qb', request.META.get('REMOTE_ADDR'), f'Load {module} from QuickBooks')
             logger.info(f"QB Loading instance created/updated for module {module}")
             logger.info(f"Task done: {qb_loading}")
 
@@ -749,7 +754,7 @@ def process_qbwc_query_request(xml_data, query_object_name):
             response = soap_service.handle_authenticate(body)
         elif 'sendRequestXML' in body and counter == 0:
             counter += 1
-            if query_object_name in ['ItemInventory', 'ItemSalesTax', 'ItemService']:
+            if query_object_name in ['ItemInventory', 'ItemSalesTax', 'ItemService', 'Item', 'ItemNonInventory']:
                 response = soap_service.generate_item_query_response(query_object_name)
             else:
                 response = soap_service.generate_customer_query_response()

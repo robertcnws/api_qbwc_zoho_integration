@@ -7,12 +7,13 @@ const Footer = () => {
             sx={{
                 // position: 'fixed',
                 bottom: 0,
-                width: '99%',
-                minWidth: '99%',
+                width: '99.2%',
+                minWidth: '99.2%',
                 backgroundColor: '#f7f7fe',
                 padding: '10px 10px 10px 0',
                 boxShadow: '0 -2px 10px rgba(0, 0, 0, 0.1)',
                 textAlign: 'center',
+                border: '1px solid #ccc'
             }}
         >
             <Container maxWidth="md">

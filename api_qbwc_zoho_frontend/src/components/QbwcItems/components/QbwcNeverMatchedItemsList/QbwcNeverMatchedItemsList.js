@@ -109,7 +109,8 @@ const QbwcNeverMatchedItemsList = ({ neverMatchedItems, onSyncComplete }) => {
                 const url = `${apiUrl}/api_quickbook_soap/never_match_items_ajax/`
                 const body = {
                     items: selectedNeverMatchedItems,
-                    to_match: true
+                    to_match: true,
+                    username: localStorage.getItem('username')
                 };
                 const response = await fetchWithToken(url, 'POST', body, {}, apiUrl);
                 if (response.data.message === 'error') {
@@ -159,11 +160,11 @@ const QbwcNeverMatchedItemsList = ({ neverMatchedItems, onSyncComplete }) => {
     <Container
             maxWidth="xl"
             sx={{
-                marginLeft: '-10%',
+                marginLeft: '-9%',
                 marginTop: '-6%',
                 transition: 'margin-left 0.3s ease',
-                minHeight: '100vh',
-                minWidth: '88vw',
+                // minHeight: '100vh',
+                minWidth: '87vw',
                 padding: 1,
             }}
         >
@@ -182,6 +183,16 @@ const QbwcNeverMatchedItemsList = ({ neverMatchedItems, onSyncComplete }) => {
                 </Typography>
             </Grid>
             <Grid item xs={6} container justifyContent="flex-end" spacing={1}>
+                <Grid item xs={4}>
+                    <TextField
+                        label="Search"
+                        variant="outlined"
+                        size="small"
+                        value={searchTerm}
+                        onChange={handleSearchChange}
+                        sx={{ width: '100%', mb: 2 }}
+                    />
+                </Grid>
                 <Grid item>
                     <Button variant="contained" color="success" size="small" component={Link} to="/integration/qbwc">
                         Back to QBWC
@@ -194,29 +205,19 @@ const QbwcNeverMatchedItemsList = ({ neverMatchedItems, onSyncComplete }) => {
                 </Grid>
             </Grid>
             <Grid item xs={12} container justifyContent="flex-end" spacing={1}>
-                <Grid item xs={8}>
+                <Grid item xs={12}>
                     <Alert severity="info" sx={{ mb: 2 }}>
                         There are {filteredNeverMatchedItems.length} items found.
                     </Alert>
                 </Grid>
-                <Grid item xs={4}>
-                    <TextField
-                        label="Search"
-                        variant="outlined"
-                        size="small"
-                        value={searchTerm}
-                        onChange={handleSearchChange}
-                        sx={{ width: '100%', mb: 2 }}
-                    />
-                </Grid>
             </Grid>
             <Grid item xs={12}>
-                <TableContainer component={Paper}>
-                    <Table id="myTable" aria-label="items table" sx={{ minWidth: 650 }}>
+                <TableContainer component={Paper} style={{ maxHeight: '585px' }}>
+                    <Table id="myTable" aria-label="items table" sx={{ minWidth: 650 }} stickyHeader>
                         <TableHead sx={{ backgroundColor: '#e0e0e0' }}> 
                             <TableRow>
                                 {columns.map((column) => (
-                                    <TableCell key={column.id} sx={{ fontWeight: 'bold', color: '#333', borderBottom: '1px solid #ccc' }}>
+                                    <TableCell key={column.id} sx={{ fontWeight: 'bold', color: '#333', borderBottom: '1px solid #ccc', backgroundColor: '#e0e0e0' }}>
                                         <TableSortLabel
                                             active={orderBy === column.id}
                                             direction={orderBy === column.id ? order : 'asc'}

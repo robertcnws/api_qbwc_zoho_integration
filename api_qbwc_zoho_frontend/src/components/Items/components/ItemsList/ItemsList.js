@@ -34,6 +34,7 @@ const ItemsList = ({ items }) => {
     const [orderBy, setOrderBy] = useState('');
     const [order, setOrder] = useState('asc');
     const [filter, setFilter] = useState('all');
+    const [hoveredRowIndex, setHoveredRowIndex] = useState(null);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -105,19 +106,19 @@ const ItemsList = ({ items }) => {
         { id: 'rate', label: 'Rate' },
         { id: 'sku', label: 'SKU' },
         { id: 'matched', label: 'Matched' },
-        { id: 'actions', label: 'Actions' }
+        // { id: 'actions', label: 'Actions' }
     ];
 
     return (
         <Container
             maxWidth="xl"
             sx={{
-                marginLeft: '-10%',
+                marginLeft: '-9%',
                 marginTop: '-6%',
                 transition: 'margin-left 0.3s ease',
-                minHeight: '100vh',
-                minWidth: '88vw',
-                padding: 1,
+                // minHeight: '100vh',
+                minWidth: '87vw',
+                padding: 0,
             }}
             >
             <Grid container spacing={2} alignItems="center" justifyContent="space-between" mb={3}>
@@ -134,7 +135,7 @@ const ItemsList = ({ items }) => {
                         Items List
                     </Typography>
                     <FormControl variant="outlined" size="small">
-                        <InputLabel>Filter</InputLabel>
+                        <InputLabel>{filteredItems.length}</InputLabel>
                         <Select
                             value={filter}
                             onChange={handleFilterChange}
@@ -147,18 +148,6 @@ const ItemsList = ({ items }) => {
                     </FormControl>
                 </Grid>
                 <Grid item xs={6} container justifyContent="flex-end" spacing={1}>
-                    <Grid item>
-                        <Button variant="contained" color="success" size="small" component={Link} to='/integration'>
-                            Back to Integration
-                        </Button>
-                    </Grid>
-                </Grid>
-                <Grid item xs={12} container justifyContent="flex-end" spacing={1}>
-                    <Grid item xs={8}>
-                        <Alert severity="info" sx={{ mb: 2 }}>
-                            There are {filteredItems.length} items found.
-                        </Alert>
-                    </Grid>
                     <Grid item xs={4}>
                         <TextField
                             label="Search"
@@ -169,20 +158,40 @@ const ItemsList = ({ items }) => {
                             sx={{ width: '100%', mb: 2 }}
                         />
                     </Grid>
+                    <Grid item>
+                        <Button variant="contained" color="success" size="small" component={Link} to='/integration'>
+                            Back to Integration
+                        </Button>
+                    </Grid>
+                </Grid>
+                <Grid item xs={12} container justifyContent="flex-end" spacing={1}>
+                    {/* <Grid item xs={8}>
+                        <Alert severity="info" sx={{ mb: 2 }}>
+                            There are {filteredItems.length} items found.
+                        </Alert>
+                    </Grid> */}
                 </Grid>
                 <Grid item xs={12}>
-                    <TableContainer component={Paper}>
-                        <Table id="myTable" aria-label="items table" sx={{ minWidth: 650 }}>
+                    <TableContainer component={Paper} style={{ maxHeight: '585px' }}>
+                        <Table id="myTable" aria-label="items table" sx={{ minWidth: 650 }} stickyHeader>
                             <TableHead sx={{ backgroundColor: '#e0e0e0' }}> 
                                 <TableRow>
                                     {columns.map((column) => (
-                                        <TableCell key={column.id} sx={{ fontWeight: 'bold', color: '#333', borderBottom: '1px solid #ccc' }}>
+                                        <TableCell key={column.id} 
+                                            sx={{ 
+                                                fontWeight: 'bold', 
+                                                color: '#6C7184',
+                                                borderBottom: '1px solid #ddd', 
+                                                borderTop: '1px solid #ddd',
+                                                backgroundColor: '#F9F9FB' 
+                                            }}
+                                        >
                                             <TableSortLabel
                                                 active={orderBy === column.id}
                                                 direction={orderBy === column.id ? order : 'asc'}
                                                 onClick={() => handleSortChange(column.id)}
                                             >
-                                                {column.label}
+                                                {column.label.toUpperCase()}
                                             </TableSortLabel>
                                         </TableCell>
                                     ))}
@@ -196,7 +205,18 @@ const ItemsList = ({ items }) => {
                                         ? sortedItems.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                                         : sortedItems
                                     ).map((item, index) => (
-                                        <TableRow key={index} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
+                                        <TableRow key={index} 
+                                            sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                                            style = {{ 
+                                                cursor: 'pointer', 
+                                                transition: 'background-color 0.3s ease',  
+                                                backgroundColor: hoveredRowIndex === index ? '#F6F6FA' : '#FFFFFF',
+                                                maxHeight: '20px'
+                                            }}
+                                            onMouseEnter={() => setHoveredRowIndex(index)}
+                                            onMouseLeave={() => setHoveredRowIndex(null)}
+                                            onClick={() => handleViewItem(item)}
+                                        >
                                             <TableCell>{item.fields.name}</TableCell>
                                             <TableCell>{item.fields.status}</TableCell>
                                             <TableCell>$ {item.fields.rate}</TableCell>
@@ -210,22 +230,14 @@ const ItemsList = ({ items }) => {
                                             })}>
                                                 {/* <b>{!item.fields.qb_list_id || item.fields.qb_list_id === "" ? "NO" : "YES"}</b> */}
                                                 {!item.fields.qb_list_id || item.fields.qb_list_id === "" ? 
-                                                    <SmallAlert severity='error' message='NO'/> : <SmallAlert severity='success' message='YES'/>
+                                                    'NO' : 'YES'
                                                 }
                                             </TableCell>
-                                            <TableCell className="text-center align-middle">
-                                                {/* <Button 
-                                                    onClick={() => handleViewItem(item)} 
-                                                    variant="contained" 
-                                                    color="info" 
-                                                    size="small"
-                                                >
-                                                    View
-                                                </Button> */}
+                                            {/* <TableCell className="text-center align-middle">
                                                 <IconButton onClick={() => handleViewItem(item)} color="info" aria-label="view" size='xx-large'>
                                                     <VisibilityIcon />
                                                 </IconButton>
-                                            </TableCell>
+                                            </TableCell> */}
                                         </TableRow>
                                     ))
                                 )}

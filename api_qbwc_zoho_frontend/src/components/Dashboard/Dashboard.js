@@ -31,7 +31,10 @@ const Dashboard = () => {
         const fetchData = async () => {
           try {
               const url = `${apiUrl}/do_backup_db/`
-              const response = await fetchWithToken(url, 'GET', null, {}, apiUrl);
+              const data = {
+                username: localStorage.getItem('username')
+              }
+              const response = await fetchWithToken(url, 'GET', data, {}, apiUrl);
               if (response.status === 200) {
                 Swal.fire({
                   title: 'Success!',
@@ -102,8 +105,8 @@ const Dashboard = () => {
       disableGutters
       sx={{ 
         display: 'flex', 
-        minHeight: '100vh', 
-        maxHeight: '100vh',
+        // minHeight: '100vh', 
+        // maxHeight: '100vh',
         minWidth: '100vw',
         backgroundColor: 'white'
       }}
