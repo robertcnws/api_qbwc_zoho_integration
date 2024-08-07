@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { 
     Container, 
@@ -23,14 +23,18 @@ import {
     Box,
     ListSubheader,
     TextField,
-    IconButton, 
+    IconButton,
+    Tooltip, 
 } from '@mui/material';
 import VisibilityIcon from '@mui/icons-material/Visibility';
+import DeleteIcon from '@mui/icons-material/Delete';
+import CloseIcon from '@mui/icons-material/Close';
 import { grey } from '@mui/material/colors';
 import { fetchWithToken } from '../../../../utils'
 import { AlertLoading } from '../../../Utils/components/AlertLoading/AlertLoading';
 import { AlertError } from '../../../Utils/components/AlertError/AlertError';
 import SmallAlert from '../../../Utils/components/SmallAlert/SmallAlert';
+import Swal from 'sweetalert2';
 
 const apiUrl = process.env.REACT_APP_ENVIRONMENT === 'DEV' ? process.env.REACT_APP_BACKEND_URL_DEV : process.env.REACT_APP_BACKEND_URL_PROD;;
 
@@ -49,6 +53,55 @@ const InvoicesDetails = () => {
     const [searchSelectTerm, setSearchSelectTerm] = useState('');
     const theme = useTheme();
     const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
+
+
+    const handleDeleteInvoice = useCallback((invoice) => {
+        Swal.fire({
+            title: 'Are you sure?',
+            text: 'Do you want to delete this invoice? This action cannot be undone.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Yes, delete it!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const fetchData = async () => {
+                    try {
+                        const url = `${apiUrl}/api_zoho_invoices/delete_invoice/${invoice.invoice_id}/`
+                        const data = { username: localStorage.getItem('username') };
+                        const response = await fetchWithToken(url, 'POST', data, {}, apiUrl);
+                        if (response.data.status === 'success') {
+                            Swal.fire({
+                                title: 'Success!',
+                                text: 'Invoice has been deleted successfully.',
+                                icon: 'success',
+                                confirmButtonText: 'OK'
+                            }).then(() => {
+                                navigate('/integration/list_invoices');
+                            });
+                        } else {
+                            Swal.fire({
+                                title: 'Error!',
+                                text: `An error occurred while deleting invoice: ${response.data.message}`,
+                                icon: 'error',
+                                confirmButtonText: 'OK'
+                            });
+                        }
+                    } catch (error) {
+                        console.error('An error occurred while deleting invoice:', error);
+                        Swal.fire({
+                            title: 'Error!',
+                            text: `An error occurred while deleting invoice: ${error}`,
+                            icon: 'error',
+                            confirmButtonText: 'OK'
+                        });
+                    }
+                };
+                fetchData();
+            }
+        });
+    }, [apiUrl]);
 
 
     const filterInvoices = (filter, searchTerm) => {
@@ -258,6 +311,20 @@ if (error) {
                                 value={filter}
                                 onChange={handleFilterChange}
                                 label="Filter"
+                                sx={{
+                                    fontSize: '22px',
+                                    border: 'none',
+                                    '& .MuiOutlinedInput-notchedOutline': {
+                                    border: 'none',
+                                    },
+                                    '& .MuiSelect-select': {
+                                    padding: '10px',
+                                    },
+                                    '& .MuiInputLabel-root': {
+                                    top: '-6px',
+                                    },
+                                    color: '#212529',
+                                }}
                             >
                                 <MenuItem value="all">All Invoices</MenuItem>
                                 <MenuItem value="synced">Synced Invoices</MenuItem>
@@ -298,7 +365,9 @@ if (error) {
                                             >
                                                 <TableCell>
                                                     <b>{filteredInvoice.fields.invoice_number}</b><br/>
-                                                    Date: {filteredInvoice.fields.date ? filteredInvoice.fields.date : '--'}
+                                                    Date: <b>{filteredInvoice.fields.date ? filteredInvoice.fields.date : '--'}</b><br/>
+                                                    Client: <b>{filteredInvoice.fields.customer_name}</b>
+
                                                 </TableCell>
                                             </TableRow>
                                         ))
@@ -330,7 +399,7 @@ if (error) {
                                 gutterBottom
                                 sx={{
                                     textTransform: 'uppercase',
-                                    color: 'info.main',
+                                    color: '#212529',
                                     fontWeight: 'bold',
                                 }}
                             >
@@ -344,14 +413,38 @@ if (error) {
                                 </Button>
                             </Grid> */}
                             <Grid item>
-                                <Button variant="contained" color="error" size="small" onClick={() => navigate("/integration/list_invoices")}>
-                                    Delete invoice
-                                </Button>
+                                <Tooltip 
+                                    title="Delete Invoice" 
+                                    arrow 
+                                    sx={{ 
+                                        '& .MuiTooltip-tooltip': { 
+                                            backgroundColor: '#000000', 
+                                            color: 'white', 
+                                            fontSize: '0.875rem' 
+                                        } 
+                                    }}
+                                    >
+                                    <IconButton onClick={() => handleDeleteInvoice(invoice)} sx={{ alignSelf: 'flex-end', mt: '-8px', color: 'error.main' }}>
+                                        <DeleteIcon />
+                                    </IconButton>
+                                </Tooltip>
                             </Grid>
                             <Grid item>
-                                <Button variant="contained" color="success" size="small" onClick={() => navigate("/integration/list_invoices")}>
-                                    Return to list
-                                </Button>
+                                <Tooltip 
+                                    title="Back to List Invoices" 
+                                    arrow 
+                                    sx={{ 
+                                        '& .MuiTooltip-tooltip': { 
+                                            backgroundColor: '#000000', 
+                                            color: 'white', 
+                                            fontSize: '0.875rem' 
+                                        } 
+                                    }}
+                                    >
+                                    <IconButton onClick={() => navigate("/integration/list_invoices")} sx={{ alignSelf: 'flex-end', mt: '-8px', color: '#000000' }}>
+                                        <CloseIcon />
+                                    </IconButton>
+                                </Tooltip>
                             </Grid>
                         </Grid>
                     </Grid>
@@ -360,22 +453,22 @@ if (error) {
                             <Table aria-label="invoice details table">
                                 <TableBody>
                                     <TableRow>
-                                        <TableCell component="th" scope="row" sx={{ width: '150px', maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis' }}>Invoice Number</TableCell>
-                                        <TableCell><b>{invoice.invoice_number}</b></TableCell>
+                                        <TableCell component="th" scope="row" sx={{ border: 'none', width: '150px', maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis' }}>Invoice Number</TableCell>
+                                        <TableCell sx={{ border: 'none' }}><b>{invoice.invoice_number}</b></TableCell>
                                     </TableRow>
                                     <TableRow>
-                                        <TableCell component="th" scope="row" sx={{ width: '150px', maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis' }}>Customer</TableCell>
-                                        <TableCell>
+                                        <TableCell component="th" scope="row" sx={{ border: 'none', width: '150px', maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis' }}>Customer</TableCell>
+                                        <TableCell sx={{ border: 'none' }}>
                                             <Table>
                                                 <TableBody>
                                                     <TableRow style={{
                                                                  backgroundColor: invoice.qb_customer_list_id ? 'rgba(102, 187, 106, 0.1)' : 'rgba(255, 167, 38, 0.1'
                                                               }}
                                                     >
-                                                        <TableCell>
+                                                        <TableCell sx={{ border: 'none' }}>
                                                             <b>{invoice.customer_name}</b>
                                                         </TableCell>
-                                                        <TableCell sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                                                        <TableCell sx={{ display: 'flex', justifyContent: 'flex-end', border: 'none' }}>
                                                             {!invoice.qb_customer_list_id ? (
                                                                 // <Button variant="contained" color="info" size="small" onClick={() => handleViewCustomer(invoice.customer_id)} >
                                                                 //     View
@@ -394,24 +487,24 @@ if (error) {
                                         </TableCell>
                                     </TableRow>
                                     <TableRow>
-                                        <TableCell component="th" scope="row" sx={{ width: '150px', maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis' }}>Date</TableCell>
-                                        <TableCell><b>{invoice.date}</b></TableCell>
+                                        <TableCell component="th" scope="row" sx={{ border: 'none', width: '150px', maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis' }}>Date</TableCell>
+                                        <TableCell sx={{ border: 'none' }}><b>{invoice.date}</b></TableCell>
                                     </TableRow>
                                     <TableRow>
-                                        <TableCell component="th" scope="row" sx={{ width: '150px', maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis' }}>Total Amount</TableCell>
-                                        <TableCell><b>$ {invoice.total}</b></TableCell>
+                                        <TableCell component="th" scope="row" sx={{ border: 'none', width: '150px', maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis' }}>Total Amount</TableCell>
+                                        <TableCell sx={{ border: 'none' }}><b>$ {invoice.total}</b></TableCell>
                                     </TableRow>
                                     <TableRow>
-                                        <TableCell component="th" scope="row" sx={{ width: '150px', maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis' }}>Last Sync Date</TableCell>
-                                        <TableCell><b>{invoice.last_sync_date ? invoice.last_sync_date : "---"}</b></TableCell>
+                                        <TableCell component="th" scope="row" sx={{ border: 'none', width: '150px', maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis' }}>Last Sync Date</TableCell>
+                                        <TableCell sx={{ border: 'none' }}><b>{invoice.last_sync_date ? invoice.last_sync_date : "---"}</b></TableCell>
                                     </TableRow>
                                     <TableRow>
-                                        <TableCell component="th" scope="row" sx={{ width: '150px', maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis' }}>Number of attemps to sync</TableCell>
-                                        <TableCell><b>{invoice.number_of_times_synced}</b></TableCell>
+                                        <TableCell component="th" scope="row" sx={{ border: 'none', width: '150px', maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis' }}>Number of attemps to sync</TableCell>
+                                        <TableCell sx={{ border: 'none' }}><b>{invoice.number_of_times_synced}</b></TableCell>
                                     </TableRow>
                                     <TableRow>
-                                        <TableCell component="th" scope="row" sx={{ width: '150px', maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis' }}>Items</TableCell>
-                                        <TableCell>
+                                        <TableCell component="th" scope="row" sx={{ border: 'none', width: '150px', maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis' }}>Items</TableCell>
+                                        <TableCell sx={{ border: 'none' }}>
                                             {invoice.line_items.length > 0 ? (
                                                 <TableContainer component={Paper} elevation={0}>
                                                     <Table aria-label="coincidences table" size="small">
@@ -465,8 +558,8 @@ if (error) {
                                     </TableRow>
                                     {invoice.inserted_in_qb || invoice.items_unmatched.length > 0 ? (
                                         <TableRow>
-                                            <TableCell component="th" scope="row" sx={{ width: '150px', maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis' }}>Errors sync Items</TableCell>
-                                            <TableCell>
+                                            <TableCell component="th" scope="row" sx={{ border: 'none', width: '150px', maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis' }}>Errors sync Items</TableCell>
+                                            <TableCell sx={{ border: 'none' }}>
                                                 {invoice.items_unmatched.length > 0 ? (
                                                     <TableContainer component={Paper} elevation={0}>
                                                         <Table aria-label="coincidences table" size="small">
@@ -493,14 +586,6 @@ if (error) {
                                                                         </TableCell>
                                                                         <TableCell>
                                                                             {!item.qb_list_id ? (
-                                                                                // <Button 
-                                                                                //     onClick={() => handleViewItem(item)} 
-                                                                                //     variant="contained" 
-                                                                                //     color="info" 
-                                                                                //     size="small"
-                                                                                // >
-                                                                                //     View
-                                                                                // </Button>
                                                                                 <IconButton onClick={() => handleViewItem(item)} color="info" aria-label="view" size='xx-large'>
                                                                                     <VisibilityIcon />
                                                                                 </IconButton>
@@ -533,8 +618,8 @@ if (error) {
                                     }
                                     {invoice.inserted_in_qb || invoice.customer_unmatched.length > 0 ? (
                                         <TableRow>
-                                            <TableCell component="th" scope="row" sx={{ width: '150px', maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis' }}>Errors sync Customer</TableCell>
-                                            <TableCell>
+                                            <TableCell component="th" scope="row" sx={{ border: 'none', width: '150px', maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis' }}>Errors sync Customer</TableCell>
+                                            <TableCell sx={{ border: 'none' }}>
                                                 {invoice.customer_unmatched.length > 0 ? (
                                                     <TableContainer component={Paper} elevation={0}>
                                                         <Table aria-label="coincidences table" size="small">
@@ -561,14 +646,6 @@ if (error) {
                                                                         </TableCell>
                                                                         <TableCell>
                                                                             {!customer.qb_list_id ? (
-                                                                                // <Button 
-                                                                                //     onClick={() => handleViewCustomer(customer)} 
-                                                                                //     variant="contained" 
-                                                                                //     color="info" 
-                                                                                //     size="small"
-                                                                                // >
-                                                                                //     View
-                                                                                // </Button>
                                                                                 <IconButton onClick={() => handleViewCustomer(customer)} color="info" aria-label="view" size='xx-large'>
                                                                                     <VisibilityIcon />
                                                                                 </IconButton>

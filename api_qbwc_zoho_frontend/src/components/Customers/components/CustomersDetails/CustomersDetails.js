@@ -26,10 +26,13 @@ import {
     styled,
     InputAdornment,
     IconButton,
-    ListSubheader
+    ListSubheader,
+    Tooltip
 } from '@mui/material';
 import { grey } from '@mui/material/colors';
 import ClearIcon from '@mui/icons-material/Clear';
+import CloseIcon from '@mui/icons-material/Close';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import Swal from 'sweetalert2';
 import { List, AutoSizer } from 'react-virtualized';
 import { fetchWithToken } from '../../../../utils';
@@ -369,6 +372,20 @@ const CustomersDetails = () => {
                                 value={filter}
                                 onChange={handleFilterChange}
                                 label="Filter"
+                                sx={{
+                                    fontSize: '22px',
+                                    border: 'none',
+                                    '& .MuiOutlinedInput-notchedOutline': {
+                                    border: 'none',
+                                    },
+                                    '& .MuiSelect-select': {
+                                    padding: '10px',
+                                    },
+                                    '& .MuiInputLabel-root': {
+                                    top: '-6px',
+                                    },
+                                    color: '#212529',
+                                }}
                             >
                                 <MenuItem value="all">All Customers</MenuItem>
                                 <MenuItem value="matched">Matched Customers</MenuItem>
@@ -435,7 +452,7 @@ const CustomersDetails = () => {
                             variant="h6"
                             sx={{
                                 textTransform: 'uppercase',
-                                color: 'info.main',
+                                color: '#212529',
                                 fontWeight: 'bold',
                             }}
                         >
@@ -445,15 +462,39 @@ const CustomersDetails = () => {
                     <Grid item xs={6} container justifyContent="flex-end" spacing={1}>
                         {localStorage.getItem('backNavigation') === 'invoice_details' && (  
                             <Grid item>
-                                <Button variant="contained" color="primary" size="small" onClick={() => handleBackNavigation()}>
-                                    Back
-                                </Button>
+                                <Tooltip 
+                                    title="Back to Invoice Details" 
+                                    arrow 
+                                    sx={{ 
+                                        '& .MuiTooltip-tooltip': { 
+                                            backgroundColor: '#000000', 
+                                            color: 'white', 
+                                            fontSize: '0.875rem' 
+                                        } 
+                                    }}
+                                    >
+                                    <IconButton onClick={() => handleBackNavigation()} sx={{ alignSelf: 'flex-end', mt: '-8px', color: '#000000' }}>
+                                        <ArrowBackIcon />
+                                    </IconButton>
+                                </Tooltip>
                             </Grid>
                         )}
                         <Grid item>
-                            <Button variant="contained" color="success" size="small" onClick={() => navigate("/integration/list_customers")}>
-                                Return to list
-                            </Button>
+                                <Tooltip 
+                                        title="Back to List Customers" 
+                                        arrow 
+                                        sx={{ 
+                                            '& .MuiTooltip-tooltip': { 
+                                                backgroundColor: '#000000', 
+                                                color: 'white', 
+                                                fontSize: '0.875rem' 
+                                            } 
+                                        }}
+                                        >
+                                        <IconButton onClick={() => navigate("/integration/list_customers")} sx={{ alignSelf: 'flex-end', mt: '-8px', color: '#000000' }}>
+                                            <CloseIcon />
+                                        </IconButton>
+                                </Tooltip>
                         </Grid>
                     </Grid>
                   </Grid>
@@ -465,81 +506,81 @@ const CustomersDetails = () => {
                                       <TableCell 
                                       component="th" 
                                       scope="row" 
-                                      sx={{ width: '150px', maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis' }}
+                                      sx={{ width: '150px', maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis', border: 'none' }}
                                       >
                                         Zoho Customer ID
                                       </TableCell>
-                                      <TableCell><b>{customer.contact_id}</b></TableCell>
+                                      <TableCell sx={{ border: 'none' }}><b>{customer.contact_id}</b></TableCell>
                                   </TableRow>
                                   <TableRow>
                                     <TableCell 
                                       component="th" 
                                       scope="row" 
-                                      sx={{ width: '150px', maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis' }}
+                                      sx={{ width: '150px', maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis', border: 'none' }}
                                       >
                                         Zoho Customer Name
                                       </TableCell>
-                                      <TableCell><b>{customer.customer_name ? customer.customer_name : '--'}</b></TableCell>
+                                      <TableCell sx={{ border: 'none' }}><b>{customer.customer_name ? customer.customer_name : '--'}</b></TableCell>
                                   </TableRow>
                                   <TableRow>
                                     <TableCell 
                                       component="th" 
                                       scope="row" 
-                                      sx={{ width: '150px', maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis' }}
+                                      sx={{ width: '150px', maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis', border: 'none' }}
                                       >
                                         Zoho Contact Name
                                       </TableCell>
-                                      <TableCell><b>{customer.contact_name ? customer.contact_name : '--'}</b></TableCell>
+                                      <TableCell sx={{ border: 'none' }}><b>{customer.contact_name ? customer.contact_name : '--'}</b></TableCell>
                                   </TableRow>
                                   <TableRow>
                                     <TableCell 
                                       component="th" 
                                       scope="row" 
-                                      sx={{ width: '150px', maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis' }}
+                                      sx={{ width: '150px', maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis', border: 'none' }}
                                       >
                                         Zoho Customer Email
                                       </TableCell>
-                                      <TableCell><b>{customer.email ? customer.email : '--'}</b></TableCell>
+                                      <TableCell sx={{ border: 'none' }}><b>{customer.email ? customer.email : '--'}</b></TableCell>
                                   </TableRow>
                                   <TableRow>
                                     <TableCell 
                                       component="th" 
                                       scope="row" 
-                                      sx={{ width: '150px', maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis' }}
+                                      sx={{ width: '150px', maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis', border: 'none' }}
                                       >
                                         Zoho Customer Phone
                                       </TableCell>
-                                      <TableCell><b>{customer.phone ? customer.phone : '--'}</b></TableCell>
+                                      <TableCell sx={{ border: 'none' }}><b>{customer.phone ? customer.phone : '--'}</b></TableCell>
                                   </TableRow>
                                   <TableRow>
                                     <TableCell 
                                       component="th" 
                                       scope="row" 
-                                      sx={{ width: '150px', maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis' }}
+                                      sx={{ width: '150px', maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis', border: 'none' }}
                                       >
                                         Zoho Customer Mobile
                                       </TableCell>
-                                      <TableCell><b>{customer.mobile ? customer.mobile : '--'}</b></TableCell>
+                                      <TableCell sx={{ border: 'none' }}><b>{customer.mobile ? customer.mobile : '--'}</b></TableCell>
                                   </TableRow>
                                   <TableRow>
                                     <TableCell 
                                       component="th" 
                                       scope="row" 
-                                      sx={{ width: '150px', maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis' }}
+                                      sx={{ width: '150px', maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis', border: 'none' }}
                                       >
                                         Zoho Customer Company Name
                                       </TableCell>
-                                      <TableCell><b>{customer.company_name ? customer.company_name : '--'}</b></TableCell>
+                                      <TableCell sx={{ border: 'none' }}><b>{customer.company_name ? customer.company_name : '--'}</b></TableCell>
                                   </TableRow>
                                   <TableRow>
                                     <TableCell 
                                       component="th" 
                                       scope="row" 
-                                      sx={{ width: '150px', maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis' }}
+                                      sx={{ width: '150px', maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis', border: 'none' }}
                                       >
                                         QB Customer Info
                                       </TableCell>
-                                      <TableCell>
+                                      <TableCell sx={{ border: 'none' }}>
                                         QB List ID: <b>{customer.qb_list_id ? customer.qb_list_id : '--'}</b><br/>
                                         Matched QB Customer: <b>{customer.qb_list_id ? customer.qb_customer.name : '--'}</b>
                                     </TableCell>
@@ -548,11 +589,11 @@ const CustomersDetails = () => {
                                     <TableCell 
                                       component="th" 
                                       scope="row" 
-                                      sx={{ width: '150px', maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis' }}
+                                      sx={{ width: '150px', maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis', border: 'none' }}
                                       >
                                         Coincidences by Order
                                       </TableCell>
-                                      <TableCell>
+                                      <TableCell sx={{ border: 'none'}}>
                                       {coincidences.length > 0 && !customer.matched ? (
                                         <TableContainer component={Paper} elevation={0}>
                                             <Table aria-label="coincidences table" size="small">
@@ -628,11 +669,11 @@ const CustomersDetails = () => {
                                         <TableCell 
                                         component="th" 
                                         scope="row" 
-                                        sx={{ width: '150px', maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis' }}
+                                        sx={{ width: '150px', maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis', border: 'none' }}
                                         >
                                             Force Matching
                                         </TableCell>
-                                            <TableCell>
+                                            <TableCell sx={{ border: 'none' }}>
                                                     <FormControl variant="outlined" size="small" style={{ width: '100%' }}>
                                                     <TextField
                                                         label={"Search QB Customers (" + filteredQbCustomers.length + ")"}
@@ -693,9 +734,9 @@ const CustomersDetails = () => {
                                             <TableCell 
                                                 component="th" 
                                                 scope="row" 
-                                                sx={{ width: '150px', maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis' }}
+                                                sx={{ width: '150px', maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis', border: 'none' }}
                                             ></TableCell>
-                                            <TableCell>
+                                            <TableCell sx={{ border: 'none' }}>
                                                 <Alert severity="info"
                                                     style={{ 
                                                         fontSize: '0.80rem',  

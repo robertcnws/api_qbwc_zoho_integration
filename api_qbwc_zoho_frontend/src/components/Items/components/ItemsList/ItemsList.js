@@ -19,12 +19,16 @@ import {
     InputLabel, 
     Select, 
     MenuItem, 
-    IconButton 
+    IconButton, 
+    Menu
 } from '@mui/material';
 import VisibilityIcon from '@mui/icons-material/Visibility';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
+import HomeIcon from '@mui/icons-material/Home';
 import { Link, useNavigate } from 'react-router-dom';
 import { stableSort, getComparator } from '../../../../utils';
 import { EmptyRecordsCell } from '../../../Utils/components/EmptyRecordsCell/EmptyRecordsCell';
+import HomeNavigationRightButton  from '../../../Utils/components/NavigationRightButton/NavigationRightButton';
 import SmallAlert from '../../../Utils/components/SmallAlert/SmallAlert';
 
 const ItemsList = ({ items }) => {
@@ -35,6 +39,7 @@ const ItemsList = ({ items }) => {
     const [order, setOrder] = useState('asc');
     const [filter, setFilter] = useState('all');
     const [hoveredRowIndex, setHoveredRowIndex] = useState(null);
+    const [anchorEl, setAnchorEl] = useState(null);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -109,6 +114,23 @@ const ItemsList = ({ items }) => {
         // { id: 'actions', label: 'Actions' }
     ];
 
+    const handleClick = (event) => {
+        setAnchorEl(event.currentTarget);
+    };
+
+    const handleClose = () => {
+        setAnchorEl(null);
+    };
+
+    const childrenNavigationRightButton = [
+        { 
+            label: 'Back to Integration', 
+            icon: <HomeIcon sx={{ marginRight: 1 }} />, 
+            route: '/integration',
+            visibility: true 
+        }
+    ];
+
     return (
         <Container
             maxWidth="xl"
@@ -121,31 +143,36 @@ const ItemsList = ({ items }) => {
                 padding: 0,
             }}
             >
-            <Grid container spacing={2} alignItems="center" justifyContent="space-between" mb={3}>
-                <Grid item xs={6}>
-                    <Typography
-                        variant="h6"
-                        gutterBottom
-                        sx={{
-                            textTransform: 'uppercase',
-                            color: 'info.main',
-                            fontWeight: 'bold',
-                        }}
-                    >
-                        Items List
-                    </Typography>
-                    <FormControl variant="outlined" size="small">
-                        <InputLabel>{filteredItems.length}</InputLabel>
-                        <Select
-                            value={filter}
-                            onChange={handleFilterChange}
-                            label="Filter"
-                        >
-                            <MenuItem value="all">All Items</MenuItem>
-                            <MenuItem value="matched">Matched Items</MenuItem>
-                            <MenuItem value="unmatched">Unmatched Items</MenuItem>
-                        </Select>
-                    </FormControl>
+            <Grid container spacing={2} alignItems="center" mb={3} justifyContent="space-between">
+                <Grid item container xs={6} justifyContent="flex-start">
+                    <Grid item xs={3}>
+                        <FormControl variant="outlined" size="small">
+                            <InputLabel>{filteredItems.length}</InputLabel>
+                            <Select
+                                value={filter}
+                                onChange={handleFilterChange}
+                                label="Filter"
+                                sx={{
+                                    fontSize: '22px',
+                                    border: 'none',
+                                    '& .MuiOutlinedInput-notchedOutline': {
+                                    border: 'none',
+                                    },
+                                    '& .MuiSelect-select': {
+                                    padding: '10px',
+                                    },
+                                    '& .MuiInputLabel-root': {
+                                    top: '-6px',
+                                    },
+                                    color: '#212529',
+                                }}
+                            >
+                                <MenuItem value="all">All Items</MenuItem>
+                                <MenuItem value="matched">Matched Items</MenuItem>
+                                <MenuItem value="unmatched">Unmatched Items</MenuItem>
+                            </Select>
+                        </FormControl>
+                    </Grid>
                 </Grid>
                 <Grid item xs={6} container justifyContent="flex-end" spacing={1}>
                     <Grid item xs={4}>
@@ -158,11 +185,7 @@ const ItemsList = ({ items }) => {
                             sx={{ width: '100%', mb: 2 }}
                         />
                     </Grid>
-                    <Grid item>
-                        <Button variant="contained" color="success" size="small" component={Link} to='/integration'>
-                            Back to Integration
-                        </Button>
-                    </Grid>
+                    <HomeNavigationRightButton children={childrenNavigationRightButton} />
                 </Grid>
                 <Grid item xs={12} container justifyContent="flex-end" spacing={1}>
                     {/* <Grid item xs={8}>
@@ -172,7 +195,7 @@ const ItemsList = ({ items }) => {
                     </Grid> */}
                 </Grid>
                 <Grid item xs={12}>
-                    <TableContainer component={Paper} style={{ maxHeight: '585px' }}>
+                    <TableContainer component={Paper} style={{ maxHeight: '605px' }}>
                         <Table id="myTable" aria-label="items table" sx={{ minWidth: 650 }} stickyHeader>
                             <TableHead sx={{ backgroundColor: '#e0e0e0' }}> 
                                 <TableRow>

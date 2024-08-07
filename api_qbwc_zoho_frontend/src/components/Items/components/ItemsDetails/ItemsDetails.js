@@ -27,10 +27,13 @@ import {
     IconButton,
     ListSubheader,
     Box,
+    Tooltip,
 } from '@mui/material';
 import { List, AutoSizer } from 'react-virtualized';
 import { grey } from '@mui/material/colors';
 import ClearIcon from '@mui/icons-material/Clear';
+import CloseIcon from '@mui/icons-material/Close';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import Swal from 'sweetalert2';
 import { fetchWithToken } from '../../../../utils';
 import { AlertLoading } from '../../../Utils/components/AlertLoading/AlertLoading';
@@ -343,9 +346,9 @@ const ItemsDetails = () => {
                       <Alert severity="warning">No item found.</Alert>
                   </Grid>
                   <Grid item xs={6} container>
-                      <Button variant="contained" color="success" size="small" onClick={() => navigate(-1)}>
-                          Back to List
-                      </Button>
+                      <IconButton onClick={() => navigate(-1)} sx={{ alignSelf: 'flex-end', mt: '-8px', color: 'error.main' }}>
+                         <CloseIcon />
+                      </IconButton>
                   </Grid>
               </Grid>
           ) : (
@@ -360,6 +363,20 @@ const ItemsDetails = () => {
                                 value={filter}
                                 onChange={handleFilterChange}
                                 label="Filter"
+                                sx={{
+                                    fontSize: '22px',
+                                    border: 'none',
+                                    '& .MuiOutlinedInput-notchedOutline': {
+                                    border: 'none',
+                                    },
+                                    '& .MuiSelect-select': {
+                                    padding: '10px',
+                                    },
+                                    '& .MuiInputLabel-root': {
+                                    top: '-6px',
+                                    },
+                                    color: '#212529',
+                                }}
                             >
                                 <MenuItem value="all">All Items</MenuItem>
                                 <MenuItem value="matched">Matched Items</MenuItem>
@@ -427,7 +444,7 @@ const ItemsDetails = () => {
                             gutterBottom
                             sx={{
                                 textTransform: 'uppercase',
-                                color: 'info.main',
+                                color: '#212529',
                                 fontWeight: 'bold',
                             }}
                         >
@@ -437,55 +454,80 @@ const ItemsDetails = () => {
                     <Grid item xs={6} container justifyContent="flex-end" spacing={1}>
                         {localStorage.getItem('backNavigation') === 'invoice_details' && (  
                             <Grid item>
-                                    <Button variant="contained" color="primary" size="small" onClick={() => handleBackNavigation()}>
-                                        Back
-                                    </Button>
+                                <Tooltip 
+                                    title="Back to Invoice Details" 
+                                    arrow 
+                                    sx={{ 
+                                        '& .MuiTooltip-tooltip': { 
+                                            backgroundColor: '#000000', 
+                                            color: 'white', 
+                                            fontSize: '0.875rem' 
+                                        } 
+                                    }}
+                                    >
+                                    <IconButton onClick={() => handleBackNavigation()} sx={{ alignSelf: 'flex-end', mt: '-8px', color: '#000000' }}>
+                                        <ArrowBackIcon />
+                                    </IconButton>
+                                </Tooltip>
+                                    
                             </Grid>
                         )}
                             <Grid item>
-                                    <Button variant="contained" color="success" size="small" onClick={() => navigate("/integration/list_items")}>
-                                        Return to list
-                                    </Button>
+                                    <Tooltip 
+                                        title="Back to List Items" 
+                                        arrow 
+                                        sx={{ 
+                                            '& .MuiTooltip-tooltip': { 
+                                                backgroundColor: '#000000', 
+                                                color: 'white', 
+                                                fontSize: '0.875rem' 
+                                            } 
+                                        }}
+                                        >
+                                        <IconButton onClick={() => navigate("/integration/list_items")} sx={{ alignSelf: 'flex-end', mt: '-8px', color: '#000000' }}>
+                                            <CloseIcon />
+                                        </IconButton>
+                                    </Tooltip>
                             </Grid>
                     </Grid>
                     <Grid item container xs={12} spacing={1} sx={{ minHeight: 700, maxHeight: 700 }}>
-                        <TableContainer component={Paper} sx={{ minHeight: 700, maxHeight: 700, minWidth:'101%', maxWidth: '101%' }}>
+                        <TableContainer component={Paper} sx={{ minHeight: 700, maxHeight: 700, minWidth:'101%', maxWidth: '101%'}}>
                             <Table aria-label="item details table">
                                 <TableBody>
                                     <TableRow>
-                                        <TableCell component="th" scope="row" sx={{ width: '150px', maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis' }}>Zoho Item ID</TableCell>
-                                        <TableCell><b>{item.item_id}</b></TableCell>
+                                        <TableCell component="th" scope="row" sx={{ border: 'none', width: '150px', maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis' }}>Zoho Item ID</TableCell>
+                                        <TableCell sx={{ border: 'none'}}><b>{item.item_id}</b></TableCell>
                                     </TableRow>
                                     <TableRow>
-                                        <TableCell component="th" scope="row" sx={{ width: '150px', maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis' }}>Zoho Item Name</TableCell>
-                                        <TableCell><b>{item.name}</b></TableCell>
+                                        <TableCell component="th" scope="row" sx={{ border: 'none', width: '150px', maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis' }}>Zoho Item Name</TableCell>
+                                        <TableCell sx={{ border: 'none'}}><b>{item.name}</b></TableCell>
                                     </TableRow>
                                     <TableRow>
-                                        <TableCell component="th" scope="row" sx={{ width: '150px', maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis' }}>Zoho Item SKU</TableCell>
-                                        <TableCell><b>{item.sku ? item.sku : '--'}</b></TableCell>
+                                        <TableCell component="th" scope="row" sx={{ border: 'none', width: '150px', maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis' }}>Zoho Item SKU</TableCell>
+                                        <TableCell sx={{ border: 'none'}}><b>{item.sku ? item.sku : '--'}</b></TableCell>
                                     </TableRow>
                                     <TableRow>
-                                        <TableCell component="th" scope="row" sx={{ width: '150px', maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis' }}>Zoho Item Rate</TableCell>
-                                        <TableCell><b>$ {item.rate}</b></TableCell>
+                                        <TableCell component="th" scope="row" sx={{ border: 'none', width: '150px', maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis' }}>Zoho Item Rate</TableCell>
+                                        <TableCell sx={{ border: 'none'}}><b>$ {item.rate}</b></TableCell>
                                     </TableRow>
                                     <TableRow>
-                                        <TableCell component="th" scope="row" sx={{ width: '150px', maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis' }}>Zoho Item Status</TableCell>
-                                        <TableCell><b>{item.status}</b></TableCell>
+                                        <TableCell component="th" scope="row" sx={{ border: 'none', width: '150px', maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis' }}>Zoho Item Status</TableCell>
+                                        <TableCell sx={{ border: 'none'}}><b>{item.status}</b></TableCell>
                                     </TableRow>
                                     <TableRow>
-                                        <TableCell component="th" scope="row" sx={{ width: '150px', maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis' }}>Zoho Item Description</TableCell>
-                                        <TableCell><b>{item.description ? item.description : '--'}</b></TableCell>
+                                        <TableCell component="th" scope="row" sx={{ border: 'none', width: '150px', maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis' }}>Zoho Item Description</TableCell>
+                                        <TableCell sx={{ border: 'none'}}><b>{item.description ? item.description : '--'}</b></TableCell>
                                     </TableRow>
                                     <TableRow>
-                                        <TableCell component="th" scope="row" sx={{ width: '150px', maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis' }}>QB Item Info</TableCell>
-                                        <TableCell>
+                                        <TableCell component="th" scope="row" sx={{ border: 'none', width: '150px', maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis' }}>QB Item Info</TableCell>
+                                        <TableCell sx={{ border: 'none'}}>
                                             QB List ID: <b>{item.qb_list_id ? item.qb_list_id : '--'}</b><br/>
                                             Matched QB Item: <b>{item.qb_list_id ? item.qb_item.name : '--'}</b>
                                         </TableCell>
                                     </TableRow>
                                     <TableRow>
-                                        <TableCell component="th" scope="row" sx={{ width: '150px', maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis' }}>Coincidences by Order</TableCell>
-                                        <TableCell>
+                                        <TableCell component="th" scope="row" sx={{ border: 'none', width: '150px', maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis' }}>Coincidences by Order</TableCell>
+                                        <TableCell sx={{ border: 'none'}}>
                                             {coincidences.length > 0 && !item.matched ? (
                                                 <TableContainer component={Paper} elevation={0}>
                                                     <Table aria-label="coincidences table" size="small">

@@ -7,6 +7,7 @@ import AppsIcon from '@mui/icons-material/Apps';
 import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
 import AccountCircle from '@mui/icons-material/AccountCircle';
 import { Link, useLocation } from 'react-router-dom';
+import './Sidebar.css';
 
 const Sidebar = ({ expanded, toggleSubmenu, handleLogout, handleDoBackup }) => {
   const location = useLocation();
@@ -32,6 +33,7 @@ const Sidebar = ({ expanded, toggleSubmenu, handleLogout, handleDoBackup }) => {
   
 
   return (
+    
     <Container maxWidth="md" sx={{
       width: 250,
       backgroundColor: '#21263c',
@@ -42,6 +44,7 @@ const Sidebar = ({ expanded, toggleSubmenu, handleLogout, handleDoBackup }) => {
       minHeight: '100vh',
       display: 'flex',
       flexDirection: 'column',
+      fontSize: '20px'
     }}>
       <Box sx={{ padding: 0, textAlign: 'center' }}>
         {/* <Typography variant="h5">Zoho - QBWC</Typography> */}
@@ -51,11 +54,25 @@ const Sidebar = ({ expanded, toggleSubmenu, handleLogout, handleDoBackup }) => {
           style={{ maxWidth: '100%', height: 'auto', marginTop: '-5px', borderRadius: '3px', }} 
         />
       </Box>
-      <List>
+      <List sx={{
+          fontFamily: 'Inter, Source Sans Pro, Helvetica, Arial, sans-serif', 
+          fontSize: '13px'
+      }}>
         <ListItemButton component={Link} to="/integration" 
-        sx={{ backgroundColor: isActive('/integration') ? '#00796b' : 'inherit', borderRadius: isActive('/integration') ? 3 : 0 }}>
+        sx={{ 
+          backgroundColor: isActive('/integration') ? '#00796b' : 'inherit', 
+          borderRadius: isActive('/integration') ? 3 : 0,
+          fontFamily: 'Inter, Source Sans Pro, Helvetica, Arial, sans-serif', 
+          fontSize: '13px'
+        }}
+        >
           <ListItemIcon><Dashboard sx={{ color: '#fff' }} /></ListItemIcon>
-          <ListItemText primary="Dashboard" />
+          <ListItemText primary="Dashboard" 
+                        sx={{ 
+                          fontFamily: 'Inter, Source Sans Pro, Helvetica, Arial, sans-serif', 
+                          fontSize: '13px' 
+                        }}
+          />
         </ListItemButton>
         <ListItemButton component={Link} to="/integration/list_customers" 
         sx={{ backgroundColor: isActive('/integration/list_customers') ? '#00796b' : 'inherit', borderRadius: isActive('/integration/list_customers') ? 3 : 0 }}>
@@ -112,7 +129,9 @@ const Sidebar = ({ expanded, toggleSubmenu, handleLogout, handleDoBackup }) => {
         </ListItemButton>
         {localStorage.getItem('isStaff') === 'admin' &&
           <ListItemButton component={Link} to="/integration/list_users" 
-          sx={{ backgroundColor: isActive('/integration/list_users') ? '#00796b' : 'inherit', borderRadius: isActive('/integration/list_users') ? 3 : 0  }}>
+          sx={{ 
+            backgroundColor: isActive('/integration/list_users') || isActive('/integration/view_user') ? '#00796b' : 'inherit', 
+            borderRadius: isActive('/integration/list_users') || isActive('/integration/view_user') ? 3 : 0  }}>
             <ListItemIcon><AccountCircle sx={{ color: '#fff' }}/></ListItemIcon>
             <ListItemText primary="Users" />
           </ListItemButton>

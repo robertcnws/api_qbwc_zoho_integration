@@ -34,7 +34,7 @@ const QbwcGetting = () => {
             boxShadow: 3, 
             borderRadius: 2, 
             minWidth:'60%', 
-            minHeight: '40%',
+            minHeight: '35%',
             ml: 0,
           }}
     >
@@ -79,7 +79,7 @@ const QbwcGetting = () => {
                     </Button>
                 </Grid>
             </Grid>
-            <Grid container spacing={2} alignItems="center" justifyContent="center" mb={3}>
+            {/* <Grid container spacing={2} alignItems="center" justifyContent="center" mb={3}>
                 <Grid item xs={6} sx={{ textAlign: 'center' }}>
                     <Button
                         onClick={handleSimilarCustomers}
@@ -104,7 +104,7 @@ const QbwcGetting = () => {
                         {loadingItems ? 'Loading Items...' : 'Similar Items'}
                     </Button>
                 </Grid>
-            </Grid>
+            </Grid> */}
             {/* <Grid container spacing={2} alignItems="center" justifyContent="center" mb={3}>
                 <Grid item xs={6} sx={{ textAlign: 'center' }}>
                     <Button

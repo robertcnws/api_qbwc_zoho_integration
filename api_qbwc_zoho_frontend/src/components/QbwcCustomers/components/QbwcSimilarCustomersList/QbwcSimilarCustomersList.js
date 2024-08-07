@@ -17,9 +17,12 @@ import {
   TextField
 } from '@mui/material';
 import { Link, useNavigate } from 'react-router-dom';
+import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
+import GroupIcon from '@mui/icons-material/Group'
 import Swal from 'sweetalert2';
 import { stableSort, getComparatorUndefined, fetchWithToken } from '../../../../utils';
 import { EmptyRecordsCell } from '../../../Utils/components/EmptyRecordsCell/EmptyRecordsCell';
+import NavigationRightButton from '../../../Utils/components/NavigationRightButton/NavigationRightButton';
 
 const apiUrl = process.env.REACT_APP_ENVIRONMENT === 'DEV' ? process.env.REACT_APP_BACKEND_URL_DEV : process.env.REACT_APP_BACKEND_URL_PROD;;
 
@@ -29,6 +32,7 @@ const QbwcSimilarCustomersList = ({ similarCustomers, onSyncComplete }) => {
   const [orderBy, setOrderBy] = useState('qb_customer_name'); // Default orderBy column
   const [order, setOrder] = useState('asc');
   const [searchTerm, setSearchTerm] = useState('');
+  const [hoveredRowIndex, setHoveredRowIndex] = useState(null);
   const navigate = useNavigate();
 
   const handleSortChange = (columnId) => {
@@ -118,23 +122,27 @@ const QbwcSimilarCustomersList = ({ similarCustomers, onSyncComplete }) => {
           sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
           style={{ 
             cursor: 'pointer',
+            transition: 'background-color 0.3s ease',
+            backgroundColor: hoveredRowIndex === `${index}-${subIndex}` ? '#f8d7da' : '#FFFFFF'
           }}
+          onMouseEnter={() => setHoveredRowIndex(`${index}-${subIndex}`)}
+          onMouseLeave={() => setHoveredRowIndex(null)}
         >
-            <TableCell style={{ backgroundColor: subIndex === 0 ? '#f8d7da' : '' }}>
+            <TableCell style={{ backgroundColor: subIndex === 0 ? '#f8d7da' : '#FFFFFF' }}>
                 {customer.qb_customer_name}
             </TableCell>
-            <TableCell style={{ backgroundColor: subIndex === 0 ? '#f8d7da' : '' }}>
+            <TableCell style={{ backgroundColor: subIndex === 0 ? '#f8d7da' : '#FFFFFF' }}>
                 {customer.qb_customer_email}
             </TableCell>
-            <TableCell style={{ backgroundColor: subIndex === 0 ? '#f8d7da' : '' }}>
+            <TableCell style={{ backgroundColor: subIndex === 0 ? '#f8d7da' : '#FFFFFF' }}>
                 {customer.qb_customer_phone}
             </TableCell>
-          <TableCell style={{ backgroundColor: subIndex === 0 ? '#f8d7da' : '' }}>
+          <TableCell style={{ backgroundColor: subIndex === 0 ? '#f8d7da' : '#FFFFFF' }}>
             Name: <b>{coincidence.zoho_customer}</b><br /> 
             Company Name: <b>{coincidence.zoho_company_name ? `${coincidence.zoho_company_name}` : '---'}</b><br />
             (ID: <b>{coincidence.zoho_customer_id}</b>)
           </TableCell>
-          <TableCell style={{ backgroundColor: subIndex === 0 ? '#f8d7da' : '' }}>
+          <TableCell style={{ backgroundColor: subIndex === 0 ? '#f8d7da' : '#FFFFFF' }}>
             {coincidence.email ? (
                 <>
                 {coincidence.email} <br /> (Match: {coincidence.coincidence_email})
@@ -143,7 +151,7 @@ const QbwcSimilarCustomersList = ({ similarCustomers, onSyncComplete }) => {
                 '---'
             )}
           </TableCell>
-          <TableCell style={{ backgroundColor: subIndex === 0 ? '#f8d7da' : '' }}>
+          <TableCell style={{ backgroundColor: subIndex === 0 ? '#f8d7da' : '#FFFFFF' }}>
             {coincidence.phone ? (
                 <>
                 {coincidence.phone} <br /> (Match: {coincidence.coincidence_phone})
@@ -152,7 +160,7 @@ const QbwcSimilarCustomersList = ({ similarCustomers, onSyncComplete }) => {
                 '---'
             )}
           </TableCell>
-          <TableCell style={{ backgroundColor: subIndex === 0 ? '#f8d7da' : '' }} align="center">
+          <TableCell style={{ backgroundColor: subIndex === 0 ? '#f8d7da' : '#FFFFFF' }} align="center">
             <Button
               variant="contained"
               color="info"
@@ -170,6 +178,21 @@ const QbwcSimilarCustomersList = ({ similarCustomers, onSyncComplete }) => {
 
   const sortedCustomers = stableSort(filteredCustomers, getComparatorUndefined(order, orderBy));
   const paginatedCustomers = sortedCustomers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
+
+  const childrenNavigationRightButton = [ 
+    { 
+        label: 'Matched Customers', 
+        icon: <GroupIcon sx={{ marginRight: 1 }} />, 
+        route: '/integration/qbwc/customers/matched',
+        visibility: true
+    },
+    { 
+        label: 'Back to QBWC', 
+        icon: <AccountBalanceWalletIcon sx={{ marginRight: 1 }} />, 
+        route: '/integration/qbwc', 
+        visibility: true
+    }
+ ];
 
   return (
     <Container
@@ -208,16 +231,7 @@ const QbwcSimilarCustomersList = ({ similarCustomers, onSyncComplete }) => {
               sx={{ width: '100%', mb: 2 }}
             />
           </Grid>
-          <Grid item>
-            <Button variant="contained" color="success" size="small" onClick={() => navigate(-1)}>
-              Back to QBWC
-            </Button>
-          </Grid>
-          <Grid item>
-            <Button variant="contained" color="success" size="small" component={Link} to="/integration/qbwc/customers/matched">
-              Matched Customers
-            </Button>
-          </Grid>
+          <NavigationRightButton children={childrenNavigationRightButton} />
         </Grid>
       </Grid>
       <Grid container spacing={2} alignItems="center" justifyContent="space-between" mb={3}>
@@ -232,13 +246,20 @@ const QbwcSimilarCustomersList = ({ similarCustomers, onSyncComplete }) => {
           <TableHead sx={{ backgroundColor: '#e0e0e0' }}>
             <TableRow>
               {columns.map((column) => (
-                <TableCell key={column.id} sx={{ fontWeight: 'bold', color: '#333', borderBottom: '1px solid #ccc', backgroundColor: '#e0e0e0' }}>
+                <TableCell key={column.id} 
+                sx={{ 
+                  fontWeight: 'bold', 
+                  color: '#6c7184', 
+                  borderBottom: '1px solid #ddd', 
+                  borderTop: '1px solid #ddd',
+                  backgroundColor: '#f9f9fb' 
+                  }}>
                   <TableSortLabel
                     active={orderBy === column.id}
                     direction={orderBy === column.id ? order : 'asc'}
                     onClick={() => handleSortChange(column.id)}
                   >
-                    {column.label}
+                    {column.label.toUpperCase()}
                   </TableSortLabel>
                 </TableCell>
               ))}

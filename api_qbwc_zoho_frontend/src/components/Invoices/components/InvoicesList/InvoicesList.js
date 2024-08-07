@@ -28,6 +28,7 @@ import {
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import DeleteIcon from '@mui/icons-material/Delete';
+import HomeIcon from '@mui/icons-material/Home';
 import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import Swal from 'sweetalert2';
@@ -38,6 +39,7 @@ import timezone from 'dayjs/plugin/timezone';
 import { stableSort, fetchWithToken, getComparatorUndefined } from '../../../../utils';
 import { EmptyRecordsCell } from '../../../Utils/components/EmptyRecordsCell/EmptyRecordsCell';
 import SmallAlert from '../../../Utils/components/SmallAlert/SmallAlert';
+import HomeNavigationRightButton  from '../../../Utils/components/NavigationRightButton/NavigationRightButton';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -392,6 +394,21 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
         { id: 'actions', label: 'Actions' }
     ];
 
+    const childrenNavigationRightButton = [ 
+        { 
+            label: 'Sync Selected', 
+            icon: <CheckCircleIcon sx={{ marginRight: 1 }} />, 
+            onClick: handleForceToSync,
+            visibility: selectedInvoices.length > 0 
+        },
+        { 
+            label: 'Back to Integration', 
+            icon: <HomeIcon sx={{ marginRight: 1 }} />, 
+            route: '/integration',
+            visibility: true 
+        }
+    ];
+
     return (
         <Container
             maxWidth="xl"
@@ -405,35 +422,40 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
             }}
             >
             <Grid container spacing={1} mb={3}>
-                <Grid item xs={4}>
-                    <Typography
-                        variant="h6"
-                        gutterBottom
-                        sx={{
-                            textTransform: 'uppercase',
-                            color: 'info.main',
-                            fontWeight: 'bold',
-                        }}
-                    >
-                        Invoices List
-                    </Typography>
-                    <FormControl variant="outlined" size="small">
-                        <InputLabel>{filteredInvoices.length}</InputLabel>
-                        <Select
-                            value={filter}
-                            onChange={handleFilterChange}
-                            label="Filter"
-                        >
-                            <MenuItem value="all">All Invoices</MenuItem>
-                            <MenuItem value="synced">Synced Invoices</MenuItem>
-                            <MenuItem value="not_synced">Not Synced Invoices</MenuItem>
-                            <MenuItem value="not_processed">Not Processed Invoices</MenuItem>
-                            <MenuItem value="forced_sync">Forced to Sync Invoices</MenuItem>
-                            <MenuItem value="not_forced_sync">Not Forced to Sync Invoices</MenuItem>
-                            <MenuItem value="matched">Matched Invoices</MenuItem>
-                            <MenuItem value="not_matched">Not Matched Invoices</MenuItem>
-                        </Select>
-                    </FormControl>
+                <Grid item container xs={4} justifyContent="flex-start">
+                    <Grid item xs={5}>
+                        <FormControl variant="outlined" size="small">
+                            <InputLabel>{filteredInvoices.length}</InputLabel>
+                            <Select
+                                value={filter}
+                                onChange={handleFilterChange}
+                                label="Filter"
+                                sx={{
+                                    fontSize: '22px',
+                                    border: 'none',
+                                    '& .MuiOutlinedInput-notchedOutline': {
+                                    border: 'none',
+                                    },
+                                    '& .MuiSelect-select': {
+                                    padding: '10px',
+                                    },
+                                    '& .MuiInputLabel-root': {
+                                    top: '-6px',
+                                    },
+                                    color: '#212529',
+                                }}
+                            >
+                                <MenuItem value="all">All Invoices</MenuItem>
+                                <MenuItem value="synced">Synced Invoices</MenuItem>
+                                <MenuItem value="not_synced">Not Synced Invoices</MenuItem>
+                                <MenuItem value="not_processed">Not Processed Invoices</MenuItem>
+                                <MenuItem value="forced_sync">Forced to Sync Invoices</MenuItem>
+                                <MenuItem value="not_forced_sync">Not Forced to Sync Invoices</MenuItem>
+                                <MenuItem value="matched">Matched Invoices</MenuItem>
+                                <MenuItem value="not_matched">Not Matched Invoices</MenuItem>
+                            </Select>
+                        </FormControl>
+                    </Grid>
                 </Grid>
                 <Grid item xs={8} container justifyContent="flex-end" spacing={1}>
                     <Grid item xs={3} sx={{ display: 'flex', flexDirection: 'column' }}>
@@ -486,7 +508,7 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
                             </Button>
                         )}
                     </Grid>
-                    <Grid item xs={2} sx={{ display: 'flex', flexDirection: 'column' }}>
+                    {/* <Grid item xs={2} sx={{ display: 'flex', flexDirection: 'column' }}>
                         <Button
                             variant="contained"
                             color="info"
@@ -496,7 +518,8 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
                         >
                             Sync Selected
                         </Button>
-                    </Grid>
+                    </Grid> */}
+                    <HomeNavigationRightButton children={childrenNavigationRightButton} />
                 </Grid>
             </Grid>
 
@@ -523,7 +546,7 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
                 </Grid> */}
             </Grid>
 
-            <TableContainer component={Paper} sx={{ mt: 3 }} style={{ maxHeight: '590px' }}>
+            <TableContainer component={Paper} sx={{ mt: 3 }} style={{ maxHeight: '600px' }}>
                 <Table stickyHeader>
                     <TableHead>
                         <TableRow sx={{ backgroundColor: '#f9f9fb' }}>

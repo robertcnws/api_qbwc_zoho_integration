@@ -20,9 +20,12 @@ import {
   Checkbox
 } from '@mui/material';
 import { Link } from 'react-router-dom';
+import UndoIcon from '@mui/icons-material/Undo';
+import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
 import Swal from 'sweetalert2';
 import { stableSort, getComparator, fetchWithToken } from '../../../../utils';
 import { EmptyRecordsCell } from '../../../Utils/components/EmptyRecordsCell/EmptyRecordsCell';
+import NavigationRightButton from '../../../Utils/components/NavigationRightButton/NavigationRightButton';
 
 const apiUrl = process.env.REACT_APP_ENVIRONMENT === 'DEV' ? process.env.REACT_APP_BACKEND_URL_DEV : process.env.REACT_APP_BACKEND_URL_PROD;
 
@@ -34,6 +37,7 @@ const QbwcNeverMatchedCustomersList = ({ customers, onSyncComplete }) => {
     const [selectedCustomers, setSelectedCustomers] = useState([]);
     const [orderBy, setOrderBy] = useState('');
     const [order, setOrder] = useState('asc');
+    const [hoveredRowIndex, setHoveredRowIndex] = useState(null);
 
     const handleSortChange = (columnId) => {
         const isAsc = orderBy === columnId && order === 'asc';
@@ -161,6 +165,21 @@ const QbwcNeverMatchedCustomersList = ({ customers, onSyncComplete }) => {
       { id: 'actions', label: 'Actions' }
   ];
 
+  const childrenNavigationRightButton = [ 
+    { 
+        label: 'Undo Never Match', 
+        icon: <UndoIcon sx={{ marginRight: 1 }} />, 
+        onClick: handleNeverMatchCustomers,
+        visibility: selectedCustomers.length > 0 
+    },
+    { 
+        label: 'Back to QBWC', 
+        icon: <AccountBalanceWalletIcon sx={{ marginRight: 1 }} />, 
+        route: '/integration/qbwc', 
+        visibility: true
+    }
+ ];
+
   return (
     <Container
             maxWidth="xl"
@@ -180,7 +199,7 @@ const QbwcNeverMatchedCustomersList = ({ customers, onSyncComplete }) => {
                     gutterBottom
                     sx={{
                         textTransform: 'uppercase',
-                        color: 'info.main',
+                        color: '#212529',
                         fontWeight: 'bold',
                     }}
                 >
@@ -198,16 +217,7 @@ const QbwcNeverMatchedCustomersList = ({ customers, onSyncComplete }) => {
                         sx={{ width: '100%', mb: 2 }}
                     />
                 </Grid>
-                <Grid item>
-                    <Button variant="contained" color="success" size="small" component={Link} to="/integration/qbwc">
-                        Back to QBWC
-                    </Button>
-                </Grid>
-                <Grid item>
-                    <Button variant="contained" color="error" size="small" onClick={handleNeverMatchCustomers} disabled={filteredCustomers.length === 0}>
-                        Undo match selected
-                    </Button>
-                </Grid>
+                <NavigationRightButton children={childrenNavigationRightButton} />
             </Grid>
             <Grid item xs={12} container justifyContent="flex-end" spacing={1}>
                 <Grid item xs={12}>
@@ -222,13 +232,20 @@ const QbwcNeverMatchedCustomersList = ({ customers, onSyncComplete }) => {
                         <TableHead sx={{ backgroundColor: '#e0e0e0' }}> 
                             <TableRow>
                                 {columns.map((column) => (
-                                    <TableCell key={column.id} sx={{ fontWeight: 'bold', color: '#333', borderBottom: '1px solid #ccc', backgroundColor: '#e0e0e0' }}>
+                                    <TableCell key={column.id} 
+                                    sx={{ 
+                                        fontWeight: 'bold', 
+                                        color: '#6c7184', 
+                                        borderBottom: '1px solid #ddd',
+                                        borderTop: '1px solid #ddd',
+                                        backgroundColor: '#f9f9fb' 
+                                        }}>
                                         <TableSortLabel
                                             active={orderBy === column.id}
                                             direction={orderBy === column.id ? order : 'asc'}
                                             onClick={() => handleSortChange(column.id)}
                                         >
-                                            {column.label}
+                                            {column.label.toUpperCase()}
                                         </TableSortLabel>
                                     </TableCell>
                                 ))}
@@ -242,7 +259,16 @@ const QbwcNeverMatchedCustomersList = ({ customers, onSyncComplete }) => {
                                             ? sortedCustomers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                                             : sortedCustomers
                                         ).map((customer, index) => (
-                                            <TableRow key={index} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
+                                            <TableRow key={index} 
+                                            sx={{ '&:last-child td, &:last-child th': { border: 0 }}}
+                                            style = {{ 
+                                                cursor: 'pointer', 
+                                                transition: 'background-color 0.3s ease',  
+                                                backgroundColor: hoveredRowIndex === index ? '#F6F6FA' : '#FFFFFF'
+                                            }}
+                                            onMouseEnter={() => setHoveredRowIndex(index)}
+                                            onMouseLeave={() => setHoveredRowIndex(null)}
+                                            >
                                                 <TableCell>{customer.fields.name}</TableCell>
                                                 <TableCell>{customer.fields.email}</TableCell>
                                                 <TableCell>{customer.fields.phone}</TableCell>

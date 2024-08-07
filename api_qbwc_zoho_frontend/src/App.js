@@ -68,10 +68,11 @@ const useIdleTimer = (navigate, timeout = 60000) => {
   return null;
 };
 
+
 const App = () => {
 
   const navigate = useNavigate();
-  useIdleTimer(navigate, 300000);
+  useIdleTimer(navigate, 1800000);
 
   return (
         <Routes>

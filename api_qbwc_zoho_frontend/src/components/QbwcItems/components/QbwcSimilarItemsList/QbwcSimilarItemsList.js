@@ -29,6 +29,7 @@ const QbwcSimilarItemsList = ({ similarItems, onSyncComplete }) => {
   const [orderBy, setOrderBy] = useState('qb_item_name'); // Default orderBy column
   const [order, setOrder] = useState('asc');
   const [searchTerm, setSearchTerm] = useState('');
+  const [hoveredRowIndex, setHoveredRowIndex] = useState(null);
   const navigate = useNavigate();
 
   const handleSortChange = (columnId) => {
@@ -107,7 +108,12 @@ const QbwcSimilarItemsList = ({ similarItems, onSyncComplete }) => {
   const renderTableRows = (items) => {
     return items.map((item, index) => (
       item.coincidences_by_order ? item.coincidences_by_order.map((coincidence, subIndex) => (
-        <TableRow key={`${index}-${subIndex}`}>
+        <TableRow key={`${index}-${subIndex}`} 
+          style={{ 
+            cursor: 'pointer',
+            transition: 'background-color 0.3s ease',
+          }}
+        >
           {subIndex === 0 && (
             <TableCell rowSpan={item.coincidences_by_order.length}>
               {item.qb_item_name}
@@ -205,13 +211,20 @@ const QbwcSimilarItemsList = ({ similarItems, onSyncComplete }) => {
           <TableHead sx={{ backgroundColor: '#e0e0e0' }}>
             <TableRow>
               {columns.map((column) => (
-                <TableCell key={column.id} sx={{ fontWeight: 'bold', color: '#333', borderBottom: '1px solid #ccc', backgroundColor: '#e0e0e0' }}>
+                <TableCell key={column.id} 
+                sx={{ 
+                  fontWeight: 'bold', 
+                  color: '#6c7184', 
+                  borderBottom: '1px solid #ddd', 
+                  borderTop: '1px solid #ddd',
+                  backgroundColor: '#f9f9fb'  }}
+                >
                   <TableSortLabel
                     active={orderBy === column.id}
                     direction={orderBy === column.id ? order : 'asc'}
                     onClick={() => handleSortChange(column.id)}
                   >
-                    {column.label}
+                    {column.label.toUpperCase()}
                   </TableSortLabel>
                 </TableCell>
               ))}

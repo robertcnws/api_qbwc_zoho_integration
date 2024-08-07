@@ -22,10 +22,13 @@ import {
   Select,
   MenuItem
 } from '@mui/material';
+import DoNotDisturbIcon from '@mui/icons-material/DoNotDisturb';
+import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
 import Swal from 'sweetalert2';
 import { Link } from 'react-router-dom';
 import { stableSort, getComparator, fetchWithToken } from '../../../../utils';
 import { EmptyRecordsCell } from '../../../Utils/components/EmptyRecordsCell/EmptyRecordsCell';
+import NavigationRightButton from '../../../Utils/components/NavigationRightButton/NavigationRightButton';
 
 const apiUrl = process.env.REACT_APP_ENVIRONMENT === 'DEV' ? process.env.REACT_APP_BACKEND_URL_DEV : process.env.REACT_APP_BACKEND_URL_PROD;
 
@@ -38,6 +41,7 @@ const QbwcItemsList = ({ items, onSyncComplete }) => {
   const [orderBy, setOrderBy] = useState('');
   const [order, setOrder] = useState('asc');
   const [filter, setFilter] = useState('all');
+  const [hoveredRowIndex, setHoveredRowIndex] = useState(null);
 
   const handleFilterChange = event => {
       setFilter(event.target.value);
@@ -179,6 +183,21 @@ const QbwcItemsList = ({ items, onSyncComplete }) => {
       { id: 'actions', label: 'Actions' }
   ];
 
+  const childrenNavigationRightButton = [ 
+    { 
+        label: 'Never Match Selected', 
+        icon: <DoNotDisturbIcon sx={{ marginRight: 1 }} />, 
+        onClick: handleNeverMatchItems,
+        visibility: filter !== 'matched' && selectedItems.length > 0 
+    },
+    { 
+        label: 'Back to QBWC', 
+        icon: <AccountBalanceWalletIcon sx={{ marginRight: 1 }} />, 
+        route: '/integration/qbwc', 
+        visibility: true
+    }
+ ];
+
   return (
     <Container
             maxWidth="xl"
@@ -192,24 +211,28 @@ const QbwcItemsList = ({ items, onSyncComplete }) => {
             }}
         >
         <Grid container spacing={2} alignItems="center" justifyContent="space-between" mb={3}>
-            <Grid item xs={6}>
-                <Typography
-                    variant="h6"
-                    gutterBottom
-                    sx={{
-                        textTransform: 'uppercase',
-                        color: 'info.main',
-                        fontWeight: 'bold',
-                    }}
-                >
-                    QB Items List
-                </Typography>
-                <FormControl variant="outlined" size="small">
+            <Grid item container xs={5} justifyContent="flex-start">
+                <Grid item xs={4}>
+                    <FormControl variant="outlined" size="small">
                         <InputLabel>{filteredItems.length}</InputLabel>
                         <Select
                             value={filter}
                             onChange={handleFilterChange}
                             label="Filter"
+                            sx={{
+                                fontSize: '22px',
+                                border: 'none',
+                                '& .MuiOutlinedInput-notchedOutline': {
+                                  border: 'none',
+                                },
+                                '& .MuiSelect-select': {
+                                  padding: '10px',
+                                },
+                                '& .MuiInputLabel-root': {
+                                  top: '-6px',
+                                },
+                                color: '#212529',
+                              }}
                         >
                             <MenuItem value="all">All Items</MenuItem>
                             <MenuItem value="matched">Matched Items</MenuItem>
@@ -217,6 +240,7 @@ const QbwcItemsList = ({ items, onSyncComplete }) => {
 
                         </Select>
                     </FormControl>
+                </Grid>
             </Grid>
             <Grid item xs={6} container justifyContent="flex-end" spacing={1}>
                 <Grid item xs={4}>
@@ -229,18 +253,7 @@ const QbwcItemsList = ({ items, onSyncComplete }) => {
                         sx={{ width: '100%', mb: 2 }}
                     />
                 </Grid>
-                <Grid item>
-                    <Button variant="contained" color="success" size="small" component={Link} to="/integration/qbwc">
-                        Back to QBWC
-                    </Button>
-                </Grid>
-                {filter !== 'matched' && (
-                    <Grid item>
-                        <Button variant="contained" color="primary" size="small" onClick={handleNeverMatchItems} disabled={filteredItems.length === 0}>
-                            Never match selected
-                        </Button>
-                    </Grid>
-                )}
+                <NavigationRightButton children={childrenNavigationRightButton} />
             </Grid>
             <Grid item xs={12} container justifyContent="flex-end" spacing={1}>
                 {/* <Grid item xs={8}>
@@ -251,18 +264,25 @@ const QbwcItemsList = ({ items, onSyncComplete }) => {
                 
             </Grid>
             <Grid item xs={12}>
-                <TableContainer component={Paper} style={{ maxHeight: '585px' }}>
+                <TableContainer component={Paper} style={{ maxHeight: '605px' }}>
                     <Table id="myTable" aria-label="items table" sx={{ minWidth: 650 }} stickyHeader>
                         <TableHead sx={{ backgroundColor: '#e0e0e0' }}> 
                             <TableRow>
                                 {columns.map((column) => (
-                                    <TableCell key={column.id} sx={{ fontWeight: 'bold', color: '#333', borderBottom: '1px solid #ccc', backgroundColor: '#e0e0e0' }}>
+                                    <TableCell key={column.id} 
+                                    sx={{ 
+                                        fontWeight: 'bold', 
+                                        color: '#6c7184', 
+                                        borderBottom: '1px solid #ddd', 
+                                        borderTop: '1px solid #ddd',
+                                        backgroundColor: '#f9f9fb' 
+                                        }}>
                                         <TableSortLabel
                                             active={orderBy === column.id}
                                             direction={orderBy === column.id ? order : 'asc'}
                                             onClick={() => handleSortChange(column.id)}
                                         >
-                                            {column.label}
+                                            {column.label.toUpperCase()}
                                         </TableSortLabel>
                                     </TableCell>
                                 ))}
@@ -276,7 +296,16 @@ const QbwcItemsList = ({ items, onSyncComplete }) => {
                                             ? sortedItems.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                                             : sortedItems
                                         ).map((item, index) => (
-                                            <TableRow key={index} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
+                                            <TableRow key={index} 
+                                            sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                                            style = {{ 
+                                                cursor: 'pointer', 
+                                                transition: 'background-color 0.3s ease',  
+                                                backgroundColor: hoveredRowIndex === index ? '#F6F6FA' : '#FFFFFF'
+                                            }}
+                                            onMouseEnter={() => setHoveredRowIndex(index)}
+                                            onMouseLeave={() => setHoveredRowIndex(null)}
+                                            >
                                                 <TableCell>{item.fields.name}</TableCell>
                                                 <TableCell>{item.fields.list_id}</TableCell>
                                                 <TableCell>

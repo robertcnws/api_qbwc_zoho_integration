@@ -19,10 +19,13 @@ import {
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
+import AddIcon from '@mui/icons-material/Add';
+import HomeIcon from '@mui/icons-material/Home';
 import { Link, useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import { stableSort, getComparatorUndefined, fetchWithToken, formatDate } from '../../../../utils';
 import { EmptyRecordsCell } from '../../../Utils/components/EmptyRecordsCell/EmptyRecordsCell';
+import NavigationRightButton from '../../../Utils/components/NavigationRightButton/NavigationRightButton';
 
 const apiUrl = process.env.REACT_APP_ENVIRONMENT === 'DEV' ? process.env.REACT_APP_BACKEND_URL_DEV : process.env.REACT_APP_BACKEND_URL_PROD;
 
@@ -33,6 +36,7 @@ const UsersList = ({ users, onSyncComplete }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [orderBy, setOrderBy] = useState('');
   const [order, setOrder] = useState('asc');
+  const [hoveredRowIndex, setHoveredRowIndex] = useState(null);
   const navigate = useNavigate();
 
   const handleSortChange = (columnId) => {
@@ -77,6 +81,21 @@ const UsersList = ({ users, onSyncComplete }) => {
       { id: 'actions', label: 'Actions' }
   ];
 
+  const childrenNavigationRightButton = [ 
+    { 
+        label: 'Add New User', 
+        icon: <AddIcon sx={{ marginRight: 1 }} />, 
+        onClick: viewUser,
+        visibility: true
+    },
+    { 
+        label: 'Back to Integration', 
+        icon: <HomeIcon sx={{ marginRight: 1 }} />, 
+        route: '/integration/qbwc', 
+        visibility: true
+    }
+ ];
+
   return (
     <Container
             maxWidth="xl"
@@ -114,16 +133,7 @@ const UsersList = ({ users, onSyncComplete }) => {
                         sx={{ width: '100%', mb: 2 }}
                     />
                 </Grid>
-                <Grid item>
-                    <Button variant="contained" color="info" size="small" onClick={() => viewUser(null)}>
-                        Create User
-                    </Button>
-                </Grid>
-                <Grid item>
-                    <Button variant="contained" color="success" size="small" component={Link} to="/integration">
-                        Back to Integration
-                    </Button>
-                </Grid>
+                <NavigationRightButton children={childrenNavigationRightButton} />
             </Grid>
             <Grid item xs={12} container justifyContent="flex-end" spacing={1}>
                 <Grid item xs={12}>
@@ -138,13 +148,20 @@ const UsersList = ({ users, onSyncComplete }) => {
                         <TableHead sx={{ backgroundColor: '#e0e0e0' }}> 
                             <TableRow>
                                 {columns.map((column) => (
-                                    <TableCell key={column.id} sx={{ fontWeight: 'bold', color: '#333', borderBottom: '1px solid #ccc', backgroundColor: '#e0e0e0' }}>
+                                    <TableCell key={column.id} 
+                                    sx={{ 
+                                        fontWeight: 'bold', 
+                                        color: '#6c7184', 
+                                        borderBottom: '1px solid #ddd', 
+                                        borderTop: '1px solid #ddd', 
+                                        backgroundColor: '#f9f9fb' 
+                                        }}>
                                         <TableSortLabel
                                             active={orderBy === column.id}
                                             direction={orderBy === column.id ? order : 'asc'}
                                             onClick={() => handleSortChange(column.id)}
                                         >
-                                            {column.label}
+                                            {column.label.toUpperCase()}
                                         </TableSortLabel>
                                     </TableCell>
                                 ))}
@@ -158,7 +175,16 @@ const UsersList = ({ users, onSyncComplete }) => {
                                     ? sortedUsers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                                     : sortedUsers
                                 ).map((user, index) => (
-                                    <TableRow key={index} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
+                                    <TableRow key={index} 
+                                    sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                                    style = {{ 
+                                        cursor: 'pointer', 
+                                        transition: 'background-color 0.3s ease',  
+                                        backgroundColor: hoveredRowIndex === index ? '#F6F6FA' : '#FFFFFF'
+                                    }}
+                                    onMouseEnter={() => setHoveredRowIndex(index)}
+                                    onMouseLeave={() => setHoveredRowIndex(null)}
+                                    >
                                         <TableCell>{user.username}</TableCell>
                                         <TableCell>{user.role}</TableCell>
                                         <TableCell>{user.first_name ? user.first_name : user.username}</TableCell>
