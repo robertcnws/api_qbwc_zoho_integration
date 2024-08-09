@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { 
   Container, 
   Grid, 
@@ -30,6 +30,8 @@ import { stableSort, getComparator, fetchWithToken } from '../../../../utils';
 import { EmptyRecordsCell } from '../../../Utils/components/EmptyRecordsCell/EmptyRecordsCell';
 import HomeNavigationRightButton  from '../../../Utils/components/NavigationRightButton/NavigationRightButton';
 import NavigationRightButton from '../../../Utils/components/NavigationRightButton/NavigationRightButton';
+import TableCustomPagination from '../../../Utils/components/TableCustomPagination/TableCustomPagination';
+import CustomFilter from '../../../Utils/components/CustomFilter/CustomFilter';
 
 const apiUrl = process.env.REACT_APP_ENVIRONMENT === 'DEV' ? process.env.REACT_APP_BACKEND_URL_DEV : process.env.REACT_APP_BACKEND_URL_PROD;
 
@@ -37,12 +39,22 @@ const QbwcCustomersList = ({ customers, onSyncComplete }) => {
 
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
-    const [searchTerm, setSearchTerm] = useState('');
+    const [searchTerm, setSearchTerm] = useState(localStorage.getItem('searchTermGlobal') || '');
     const [selectedCustomers, setSelectedCustomers] = useState([]);
     const [orderBy, setOrderBy] = useState('');
     const [order, setOrder] = useState('asc');
     const [filter, setFilter] = useState('all');
     const [hoveredRowIndex, setHoveredRowIndex] = useState(null);
+
+    useEffect(() => {
+        const handleStorageChange = () => {
+            setSearchTerm(localStorage.getItem('searchTermGlobal') || '');
+        };
+        window.addEventListener('storage', handleStorageChange);
+        return () => {
+            window.removeEventListener('storage', handleStorageChange);
+        };
+    }, [searchTerm]);
 
     const handleFilterChange = event => {
         setFilter(event.target.value);
@@ -64,10 +76,10 @@ const QbwcCustomersList = ({ customers, onSyncComplete }) => {
         setPage(0);
     };
 
-    const handleSearchChange = (event) => {
-        setSearchTerm(event.target.value);
-        setPage(0);
-    };
+    // const handleSearchChange = (event) => {
+    //     setSearchTerm(event.target.value);
+    //     setPage(0);
+    // };
     
 
     const isSelected = (customerId) => selectedCustomers.indexOf(customerId) !== -1;
@@ -83,6 +95,17 @@ const QbwcCustomersList = ({ customers, onSyncComplete }) => {
             }
             setSelectedCustomers(newSelected);
     };
+
+    const configCustomFilter = {
+        filter: filter,
+        handleFilterChange: handleFilterChange,
+        listValues: [
+            { value: 'all', label: 'All Customers' },
+            { value: 'matched', label: 'Matched Customers' },
+            { value: 'not_matched', label: 'Unmatched Customers' }
+        ],
+        hasSearch: false
+    }
 
     const renderForceSyncCheckbox = (customer, isSelected) => {
         if (filter !== 'matched'){
@@ -204,50 +227,27 @@ const QbwcCustomersList = ({ customers, onSyncComplete }) => {
 
   return (
     <Container
-            // maxWidth="xl"
+            maxWidth="xl"
             sx={{
-                marginLeft: '-9%',
-                marginTop: '-6%',
-                transition: 'margin-left 0.3s ease',
-                // minHeight: '100vh',
-                minWidth: '87vw',
-                padding: 1,
+                // marginLeft: '-9%',
+                // marginTop: '-6%',
+                // transition: 'margin-left 0.3s ease',
+                // // minHeight: '100vh',
+                // minWidth: '87vw',
+                // padding: 1,
+                marginLeft: '-28.8%',
+                minWidth: '88.2vw',
+                padding: '-1px',
             }}
         >
-        <Grid container spacing={2} alignItems="center" justifyContent="space-between" mb={3}>
+        <Grid container spacing={2} alignItems="center" justifyContent="space-between" mb={3} sx={{ mt: '-3%'}}>
             <Grid item container xs={5} justifyContent="flex-start">
                 <Grid item xs={5}>
-                    <FormControl variant="outlined" size="small">
-                            <InputLabel>{filteredCustomers.length}</InputLabel>
-                            <Select
-                                value={filter}
-                                onChange={handleFilterChange}
-                                label="Filter"
-                                sx={{
-                                    fontSize: '22px',
-                                    border: 'none',
-                                    '& .MuiOutlinedInput-notchedOutline': {
-                                    border: 'none',
-                                    },
-                                    '& .MuiSelect-select': {
-                                    padding: '10px',
-                                    },
-                                    '& .MuiInputLabel-root': {
-                                    top: '-6px',
-                                    },
-                                    color: '#212529',
-                                }}
-                            >
-                                <MenuItem value="all">All Customers</MenuItem>
-                                <MenuItem value="matched">Matched Customers</MenuItem>
-                                <MenuItem value="not_matched">Not Matched Customers</MenuItem>
-
-                            </Select>
-                        </FormControl>
+                    <CustomFilter configCustomFilter={configCustomFilter} />
                 </Grid>
             </Grid>
             <Grid item xs={6} container justifyContent="flex-end" spacing={1}>
-                <Grid item xs={4}>
+                {/* <Grid item xs={4}>
                     <TextField
                         label="Search"
                         variant="outlined"
@@ -256,7 +256,7 @@ const QbwcCustomersList = ({ customers, onSyncComplete }) => {
                         onChange={handleSearchChange}
                         sx={{ width: '100%', mb: 2 }}
                     />
-                </Grid>
+                </Grid> */}
                 <NavigationRightButton children={childrenNavigationRightButton} />
             </Grid>
             <Grid item xs={12} container justifyContent="flex-end" spacing={1}>
@@ -266,8 +266,8 @@ const QbwcCustomersList = ({ customers, onSyncComplete }) => {
                     </Alert>
                 </Grid> */}
             </Grid>
-            <Grid item xs={12}>
-                <TableContainer component={Paper} style={{ maxHeight: '605px' }}>
+            <Grid item xs={12} sx={{ mt: '-1%'}}>
+                <TableContainer style={{  maxHeight: '760px', minWidth: 690 }}>
                     <Table id="myTable" aria-label="customers table" stickyHeader>
                         <TableHead sx={{ backgroundColor: '#e0e0e0' }}> 
                             <TableRow>
@@ -318,19 +318,17 @@ const QbwcCustomersList = ({ customers, onSyncComplete }) => {
                                             </TableRow>
                                         ))
                                 )}
+                                <TableCustomPagination 
+                                    columnsLength={columns.length} 
+                                    data={filteredCustomers} 
+                                    page={page} 
+                                    rowsPerPage={rowsPerPage} 
+                                    handleChangePage={handleChangePage} 
+                                    handleChangeRowsPerPage={handleChangeRowsPerPage}
+                                />
                         </TableBody>
                     </Table>
                 </TableContainer>
-                <TablePagination
-                    rowsPerPageOptions={[5, 10, 25, 50]}
-                    component="div"
-                    count={filteredCustomers.length}
-                    rowsPerPage={rowsPerPage}
-                    page={page}
-                    onPageChange={handleChangePage}
-                    onRowsPerPageChange={handleChangeRowsPerPage}
-                    sx={{ mt: 2 }}
-                />
             </Grid>
         </Grid>
     </Container>

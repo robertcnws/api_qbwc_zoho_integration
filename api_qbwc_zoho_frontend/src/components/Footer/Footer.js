@@ -5,7 +5,7 @@ const Footer = () => {
     return (
         <Box
             sx={{
-                // position: 'fixed',
+                position: 'fixed',
                 bottom: 0,
                 width: '99.2%',
                 minWidth: '99.2%',

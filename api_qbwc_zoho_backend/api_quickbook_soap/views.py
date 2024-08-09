@@ -686,8 +686,8 @@ def start_qbwc_query_request(request, query_object_name, list_of_objects):
                         QbCustomer(
                             list_id=customer['ListID'],
                             name=customer.get('FullName', ''),
-                            email=customer.get('Email', ''),
-                            phone=customer.get('Phone', '')
+                            email=customer.get('Email', '').lower() if customer.get('Email', '') else '',
+                            phone=api_zoho_views.clean_phone_number(customer.get('Phone', '')) if customer.get('Phone', '') else '',
                         )
                         for customer in list_of_objects
                         if customer['ListID'] not in existing_customers_ids

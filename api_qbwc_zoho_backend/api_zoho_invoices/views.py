@@ -306,6 +306,7 @@ def create_invoice_instance(data):
             last_sync_date=parse_date(data.get('last_sync_date')) if isinstance(data , dict) else data.last_sync_date,
             number_of_times_synced=data.get('number_of_times_synced', 0) if isinstance(data , dict) else data.number_of_times_synced
         )
+        instance.email = instance.email.lower() if instance.email else ''
     except Exception as e:
         logger.error(f"Error creating instance: {e}")
         return None

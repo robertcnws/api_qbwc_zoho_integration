@@ -96,13 +96,15 @@ const MainContent = () => {
   return (
     <Container 
       component="main" 
-      maxWidth="md" 
+      maxWidth="lg" 
       sx={{ 
-        mt: 0, 
-        p: 0, 
+        mt: '1%', 
+        
         bgcolor: 'white', 
-        minWidth:'100%', 
-        minHeight: '95%' 
+        minWidth:'87vw', 
+        minHeight: '45vh', 
+        maxHeight: '60vh',
+        marginLeft: '-21%',
       }}
     >
       <Grid container spacing={2}>
@@ -116,7 +118,7 @@ const MainContent = () => {
                           paddingBottom: '8px',
                           marginBottom: '20px',
                           textTransform: 'uppercase',
-                          color: '#2196F3',
+                          color: '#212529',
                           fontWeight: 'bold',
                       }}
             >
@@ -188,19 +190,19 @@ const MainContent = () => {
         </Grid>
         <Grid container spacing={1} style={{ height: '100%' }}>
           <Grid item xs={12} md={5}>
-            <Paper elevation={3} style={{ padding: 5, height: '51%' }}>
+            <Paper elevation={3} style={{ padding: 5, height: '65%' }}>
               <Typography variant="h6">Invoices Last 7 Days Statistics</Typography>
               <LineChartComponent data={invoicesDailyStats} />
             </Paper>
           </Grid>
           <Grid item xs={12} md={3}>
-            <Paper elevation={3} style={{ padding: 5, height: '51%' }}>
+            <Paper elevation={3} style={{ padding: 5, height: '65%' }}>
               <Typography variant="h6">Invoices Historic Statistics</Typography>
               <PieChartComponent data={invoicesHistoricStats}/>
             </Paper>
           </Grid>
           <Grid item xs={12} md={4}>
-            <Paper elevation={3} style={{ padding: 5, height: '51%' }}>
+            <Paper elevation={3} style={{ padding: 5, height: '65%' }}>
               <Typography variant="h6">Invoices Last 5 Months Statistics</Typography>
               <BarChartComponent data={invoicesMonthlyStats} />
             </Paper>

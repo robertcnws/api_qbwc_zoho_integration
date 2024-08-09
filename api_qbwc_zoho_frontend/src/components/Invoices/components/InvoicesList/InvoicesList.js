@@ -28,6 +28,7 @@ import {
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import DeleteIcon from '@mui/icons-material/Delete';
+import FilterAltOffIcon from '@mui/icons-material/FilterAltOff';
 import HomeIcon from '@mui/icons-material/Home';
 import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
@@ -39,7 +40,9 @@ import timezone from 'dayjs/plugin/timezone';
 import { stableSort, fetchWithToken, getComparatorUndefined } from '../../../../utils';
 import { EmptyRecordsCell } from '../../../Utils/components/EmptyRecordsCell/EmptyRecordsCell';
 import SmallAlert from '../../../Utils/components/SmallAlert/SmallAlert';
-import HomeNavigationRightButton  from '../../../Utils/components/NavigationRightButton/NavigationRightButton';
+import HomeNavigationRightButton from '../../../Utils/components/NavigationRightButton/NavigationRightButton';
+import TableCustomPagination from '../../../Utils/components/TableCustomPagination/TableCustomPagination';
+import CustomFilter from '../../../Utils/components/CustomFilter/CustomFilter';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -50,20 +53,24 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
 
     const [selectedInvoices, setSelectedInvoices] = useState([]);
     const [page, setPage] = useState(0);
-    const [searchTerm, setSearchTerm] = useState('');
+    const [searchTerm, setSearchTerm] = useState(localStorage.getItem('searchTermGlobal') || '');
     const [rowsPerPage, setRowsPerPage] = useState(10);
     const [orderBy, setOrderBy] = useState('');
     const [order, setOrder] = useState('asc');
     const [filter, setFilter] = useState('all');
     const [hoveredRowIndex, setHoveredRowIndex] = useState(null);
     const navigate = useNavigate();
-    
+
     const today = dayjs();
     const oneYearAgo = today.subtract(1, 'year');
 
 
     useEffect(() => {
         // Restaurar el estado desde localStorage
+        const handleStorageChange = () => {
+            setSearchTerm(localStorage.getItem('searchTermGlobal') || '');
+        };
+        window.addEventListener('storage', handleStorageChange);
         const savedPage = localStorage.getItem('invoicesListPage');
         const savedRowsPerPage = localStorage.getItem('invoicesListRowsPerPage');
         const savedFilterDate = localStorage.getItem('invoicesListFilterDate');
@@ -71,7 +78,9 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
         const initialPage = savedPage !== null ? Number(savedPage) : 0;
         const initialRowsPerPage = savedRowsPerPage !== null ? Number(savedRowsPerPage) : 10;
 
-        setPage(Number.isInteger(initialPage) ? initialPage : 0);
+        const absInitialPage = initialPage >= 0 ? initialPage : 0;
+
+        setPage(Number.isInteger(absInitialPage) ? absInitialPage : 0);
         setRowsPerPage([5, 10, 25].includes(initialRowsPerPage) ? initialRowsPerPage : 10);
 
         if (savedFilterDate) {
@@ -80,10 +89,17 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
         } else {
             setFilterDate(today);
         }
-    }, [setFilterDate]);
+        return () => {
+            window.removeEventListener('storage', handleStorageChange);
+        };
+    }, [setFilterDate, searchTerm]);
 
 
     useEffect(() => {
+        const handleStorageChange = () => {
+            setSearchTerm(localStorage.getItem('searchTermGlobal') || '');
+        };
+        window.addEventListener('storage', handleStorageChange);
         const queryParams = new URLSearchParams(window.location.search);
         if (filterDate && filterDate.isValid()) {
             queryParams.set('date', filterDate.format('YYYY-MM-DD'));
@@ -92,14 +108,17 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
             // queryParams.set('date', today.format('YYYY-MM-DD'));
         }
         window.history.replaceState(null, '', `${window.location.pathname}?${queryParams.toString()}`);
-    }, [filterDate]);
+        return () => {
+            window.removeEventListener('storage', handleStorageChange);
+        };
+    }, [filterDate, searchTerm]);
 
 
     const handleFilterChange = useCallback((event) => {
         setFilter(event.target.value);
         setPage(0);
     }, []);
-    
+
 
     const handleViewInvoice = useCallback((invoice) => {
         const invoices = data.invoices;
@@ -261,12 +280,12 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
 
     const filterByDate = (invoice) => {
         if (!filterDate) return true;
-        
+
         const invoiceDate = new Date(invoice.fields.date);
         const filterDateFormatted = filterDate.isValid() ? filterDate.toISOString().split('T')[0] : null;
-    
+
         if (!invoiceDate || !filterDateFormatted) return false;
-    
+
         return invoiceDate.toISOString().split('T')[0] === filterDateFormatted;
     };
 
@@ -285,7 +304,7 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
         const today = dayjs();
         setFilterDate(today);
         localStorage.setItem('invoicesListFilterDate', today.format('YYYY-MM-DD'));
-        setSearchTerm('');
+        setSearchTerm(localStorage.getItem('searchTermGlobal') || '');
         const queryParams = new URLSearchParams(window.location.search);
         queryParams.delete('date');
         window.history.replaceState(null, '', `${window.location.pathname}?${queryParams.toString()}`);
@@ -306,11 +325,11 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
 
     const renderSyncStatus = (invoice) => {
         if (invoice.fields.customer_unmatched.length > 0 || invoice.fields.items_unmatched.length > 0) {
-            return <Typography sx={{ color: 'error.main'}}><b>ERROR</b></Typography>;
+            return <Typography sx={{ color: 'error.main' }}><b>ERROR</b></Typography>;
         } else if (!invoice.fields.inserted_in_qb && !invoice.fields.customer_unmatched.length > 0 && !invoice.fields.items_unmatched.length > 0) {
-            return <Typography sx={{ color: 'warning.main'}}><b>Not Processed</b></Typography>;
+            return <Typography sx={{ color: 'warning.main' }}><b>Not Processed</b></Typography>;
         } else {
-            return <Typography sx={{ color: 'success.main'}}><b>SUCCESS</b></Typography>;
+            return <Typography sx={{ color: 'success.main' }}><b>SUCCESS</b></Typography>;
         }
     };
 
@@ -394,71 +413,66 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
         { id: 'actions', label: 'Actions' }
     ];
 
-    const childrenNavigationRightButton = [ 
-        { 
-            label: 'Sync Selected', 
-            icon: <CheckCircleIcon sx={{ marginRight: 1 }} />, 
-            onClick: handleForceToSync,
-            visibility: selectedInvoices.length > 0 
+    const childrenNavigationRightButton = [
+        {
+            label: 'Clear Filters',
+            icon: <FilterAltOffIcon sx={{ marginRight: 1 }} />,
+            onClick: clearFilters,
+            visibility: filterDate || searchTerm
         },
-        { 
-            label: 'Back to Integration', 
-            icon: <HomeIcon sx={{ marginRight: 1 }} />, 
+        {
+            label: 'Sync Selected',
+            icon: <CheckCircleIcon sx={{ marginRight: 1 }} />,
+            onClick: handleForceToSync,
+            visibility: selectedInvoices.length > 0
+        },
+        {
+            label: 'Back to Integration',
+            icon: <HomeIcon sx={{ marginRight: 1 }} />,
             route: '/integration',
-            visibility: true 
+            visibility: true
         }
     ];
+
+    const configCustomFilter = {
+        filter: filter,
+        handleFilterChange: handleFilterChange,
+        listValues: [
+            { value: 'all', label: 'All Invoices' },
+            { value: 'synced', label: 'Synced Invoices' },
+            { value: 'not_synced', label: 'Not Synced Invoices' },
+            { value: 'not_processed', label: 'Not Processed Invoices' },
+            { value: 'forced_sync', label: 'Forced to Sync Invoices' },
+            { value: 'not_forced_sync', label: 'Not Forced to Sync Invoices' },
+            { value: 'matched', label: 'Matched Invoices' },
+            { value: 'not_matched', label: 'Not Matched Invoices' }
+        ],
+        hasSearch: false
+    };
 
     return (
         <Container
             maxWidth="xl"
             sx={{
-                marginLeft: '-9%',
-                marginTop: '-6%',
-                transition: 'margin-left 0.3s ease',
-                // minHeight: '100vh',
-                minWidth: '87vw',
-                padding: 1,
+                // marginLeft: '-9%',
+                // marginTop: '-6%',
+                // transition: 'margin-left 0.3s ease',
+                // // minHeight: '100vh',
+                // minWidth: '87vw',
+                // padding: 1,
+                marginLeft: '-28.8%',
+                minWidth: '88.2vw',
+                padding: '-1px',
             }}
-            >
-            <Grid container spacing={1} mb={3}>
+        >
+            <Grid container spacing={1} mb={3} sx={{ mt: '-2.5%' }}>
                 <Grid item container xs={4} justifyContent="flex-start">
                     <Grid item xs={5}>
-                        <FormControl variant="outlined" size="small">
-                            <InputLabel>{filteredInvoices.length}</InputLabel>
-                            <Select
-                                value={filter}
-                                onChange={handleFilterChange}
-                                label="Filter"
-                                sx={{
-                                    fontSize: '22px',
-                                    border: 'none',
-                                    '& .MuiOutlinedInput-notchedOutline': {
-                                    border: 'none',
-                                    },
-                                    '& .MuiSelect-select': {
-                                    padding: '10px',
-                                    },
-                                    '& .MuiInputLabel-root': {
-                                    top: '-6px',
-                                    },
-                                    color: '#212529',
-                                }}
-                            >
-                                <MenuItem value="all">All Invoices</MenuItem>
-                                <MenuItem value="synced">Synced Invoices</MenuItem>
-                                <MenuItem value="not_synced">Not Synced Invoices</MenuItem>
-                                <MenuItem value="not_processed">Not Processed Invoices</MenuItem>
-                                <MenuItem value="forced_sync">Forced to Sync Invoices</MenuItem>
-                                <MenuItem value="not_forced_sync">Not Forced to Sync Invoices</MenuItem>
-                                <MenuItem value="matched">Matched Invoices</MenuItem>
-                                <MenuItem value="not_matched">Not Matched Invoices</MenuItem>
-                            </Select>
-                        </FormControl>
+                        <CustomFilter configCustomFilter={configCustomFilter} />
                     </Grid>
                 </Grid>
-                <Grid item xs={8} container justifyContent="flex-end" spacing={1}>
-                    <Grid item xs={3} sx={{ display: 'flex', flexDirection: 'column' }}>
+                <Grid item xs={8} container justifyContent="flex-end" spacing={1} sx={{ display: 'flex' }}>
+                    {/* <Grid item xs={3} sx={{ display: 'flex', flexDirection: 'column' }}>
                         <TextField
                             label="Search"
                             variant="outlined"
@@ -473,14 +487,14 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
                                 )
                             }}
                             sx={{
-                                height: '75%', 
+                                height: '100%',
                                 '& .MuiInputBase-root': {
-                                    height: '75%'
+                                    height: '100%'
                                 }
                             }}
                         />
-                    </Grid>
-                    <Grid item xs={3} sx={{ display: 'flex', flexDirection: 'column' }}>
+                    </Grid> */}
+                    <Grid item xs={3} sx={{ display: 'flex', flexDirection: 'column', maxHeight: '40px' }}>
                         <LocalizationProvider dateAdapter={AdapterDayjs}>
                             <DatePicker
                                 label="Filter by date"
@@ -492,21 +506,28 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
                                 textField={(params) => (
                                     <TextField
                                         {...params}
+                                        InputProps={{
+                                            sx: {
+                                                maxHeight: '40px',
+                                                '& input': {
+                                                    padding: '10px 14px',
+                                                    maxHeight: '40px',
+                                                },
+                                            },
+                                        }}
                                         sx={{
-                                            height: '80%', 
-                                            '& .MuiInputBase-root': {
-                                                height: '80%' 
-                                            }
+                                            '& .MuiOutlinedInput-root': {
+                                                maxHeight: '40px',
+                                            },
+                                            '& .MuiOutlinedInput-input': {
+                                                padding: '10px 14px',
+                                                maxHeight: '40px',
+                                            },
                                         }}
                                     />
                                 )}
                             />
                         </LocalizationProvider>
-                        {(filterDate || searchTerm) && (
-                            <Button variant="outlined" color="primary" size="small" onClick={clearFilters} sx={{ mt: 1 }}>
-                                Clear Filters
-                            </Button>
-                        )}
                     </Grid>
                     {/* <Grid item xs={2} sx={{ display: 'flex', flexDirection: 'column' }}>
                         <Button
@@ -546,19 +567,20 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
                 </Grid> */}
             </Grid>
 
-            <TableContainer component={Paper} sx={{ mt: 3 }} style={{ maxHeight: '600px' }}>
+            <TableContainer style={{ maxHeight: '752px', minWidth: 690 }} sx={{ mt: '-1%' }}>
                 <Table stickyHeader>
                     <TableHead>
                         <TableRow sx={{ backgroundColor: '#f9f9fb' }}>
                             {columns.map((column) => (
-                                <TableCell key={column.id} 
-                                sx={{ 
-                                    fontWeight: 'bold', 
-                                    color: '#6c7184', 
-                                    borderBottom: '1px solid #ddd', 
-                                    borderTop: '1px solid #ddd',
-                                    backgroundColor: '#f9f9fb' }}
-                                    >
+                                <TableCell key={column.id}
+                                    sx={{
+                                        fontWeight: 'bold',
+                                        color: '#6c7184',
+                                        borderBottom: '1px solid #ddd',
+                                        borderTop: '1px solid #ddd',
+                                        backgroundColor: '#f9f9fb'
+                                    }}
+                                >
                                     <TableSortLabel
                                         active={orderBy === column.id}
                                         direction={orderBy === column.id ? order : 'asc'}
@@ -572,23 +594,23 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
                     </TableHead>
                     <TableBody>
                         {filteredInvoices.length === 0 ? (
-                                <EmptyRecordsCell columns={columns} />
-                            ) : (
-                                    (rowsPerPage > 0
+                            <EmptyRecordsCell columns={columns} />
+                        ) : (
+                            (rowsPerPage > 0
                                 ? sortedInvoices.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                                 : sortedInvoices
                             ).map((invoice, index) => {
                                 const isItemSelected = isSelected(invoice.fields.invoice_id);
                                 const backgroundColor =
                                     index === hoveredRowIndex
-                                    ? getBackgroundColor(invoice, true)
-                                    : getBackgroundColor(invoice, false);
+                                        ? getBackgroundColor(invoice, true)
+                                        : getBackgroundColor(invoice, false);
                                 return (
-                                    <TableRow key={index} 
-                                        style={{ 
-                                            cursor: 'pointer', 
-                                            transition: 'background-color 0.3s ease',  
-                                            backgroundColor: backgroundColor 
+                                    <TableRow key={index}
+                                        style={{
+                                            cursor: 'pointer',
+                                            transition: 'background-color 0.3s ease',
+                                            backgroundColor: backgroundColor
                                         }}
                                         onMouseEnter={() => setHoveredRowIndex(index)}
                                         onMouseLeave={() => setHoveredRowIndex(null)}
@@ -601,22 +623,22 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
                                             {renderSyncStatus(invoice)}
                                         </TableCell>
                                         <TableCell align="center" sx={(theme) => ({
-                                                fontWeight: 'bold',
-                                                borderBottom: '1px solid #ccc',
-                                                width: '20px', 
-                                                maxWidth: '20px',
-                                                color: invoice.fields.all_items_matched && invoice.fields.all_customer_matched ? theme.palette.success.main : theme.palette.error.main,
-                                            })} onClick={() => handleViewInvoice(invoice)}>
+                                            fontWeight: 'bold',
+                                            borderBottom: '1px solid #ccc',
+                                            width: '20px',
+                                            maxWidth: '20px',
+                                            color: invoice.fields.all_items_matched && invoice.fields.all_customer_matched ? theme.palette.success.main : theme.palette.error.main,
+                                        })} onClick={() => handleViewInvoice(invoice)}>
                                             {renderMatchStatus(invoice)}
                                         </TableCell>
                                         <TableCell align="center">
                                             {
-                                                !invoice.fields.force_to_sync ? 
-                                                renderForceSyncCheckbox(invoice, isItemSelected) : 
-                                                (<Box sx={{ display: 'flex', gap: 1 }}>
-                                                    <CheckCircleIcon color="success" />
-                                                    <Typography sx={{ color: 'success.main' }}><b>Forced to sync</b></Typography>
-                                                </Box>)
+                                                !invoice.fields.force_to_sync ?
+                                                    renderForceSyncCheckbox(invoice, isItemSelected) :
+                                                    (<Box sx={{ display: 'flex', gap: 1 }}>
+                                                        <CheckCircleIcon color="success" />
+                                                        <Typography sx={{ color: 'success.main' }}><b>Forced to sync</b></Typography>
+                                                    </Box>)
                                             }
                                         </TableCell>
                                         <TableCell align="center">
@@ -634,19 +656,17 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
                                 );
                             })
                         )}
+                        <TableCustomPagination
+                            columnsLength={columns.length}
+                            data={data.invoices}
+                            page={Number.isFinite(page) && page >= 0 ? Math.min(page, Math.ceil(data.invoices.length / rowsPerPage) - 1) : 0}
+                            rowsPerPage={rowsPerPage}
+                            handleChangePage={handleChangePage}
+                            handleChangeRowsPerPage={handleChangeRowsPerPage}
+                        />
                     </TableBody>
                 </Table>
             </TableContainer>
-
-            <TablePagination
-                rowsPerPageOptions={[5, 10, 25]}
-                component="div"
-                count={data.invoices.length}
-                rowsPerPage={rowsPerPage}
-                page={Number.isFinite(page) && page >= 0 ? Math.min(page, Math.ceil(data.invoices.length / rowsPerPage) - 1) : 0}
-                onPageChange={handleChangePage}
-                onRowsPerPageChange={handleChangeRowsPerPage}
-            />
         </Container>
     );
 };

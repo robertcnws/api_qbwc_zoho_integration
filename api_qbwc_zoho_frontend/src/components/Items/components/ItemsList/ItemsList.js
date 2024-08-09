@@ -1,25 +1,25 @@
 import React, { useState, useEffect } from 'react';
-import { 
-    Container, 
-    Grid, 
-    Typography, 
-    Alert, 
-    Button, 
-    Table, 
-    TableBody, 
-    TableCell, 
-    TableContainer, 
-    TableHead, 
-    TableRow, 
-    Paper, 
-    TablePagination, 
-    TextField, 
-    TableSortLabel, 
-    FormControl, 
-    InputLabel, 
-    Select, 
-    MenuItem, 
-    IconButton, 
+import {
+    Container,
+    Grid,
+    Typography,
+    Alert,
+    Button,
+    Table,
+    TableBody,
+    TableCell,
+    TableContainer,
+    TableHead,
+    TableRow,
+    Paper,
+    TablePagination,
+    TextField,
+    TableSortLabel,
+    FormControl,
+    InputLabel,
+    Select,
+    MenuItem,
+    IconButton,
     Menu
 } from '@mui/material';
 import VisibilityIcon from '@mui/icons-material/Visibility';
@@ -28,13 +28,15 @@ import HomeIcon from '@mui/icons-material/Home';
 import { Link, useNavigate } from 'react-router-dom';
 import { stableSort, getComparator } from '../../../../utils';
 import { EmptyRecordsCell } from '../../../Utils/components/EmptyRecordsCell/EmptyRecordsCell';
-import HomeNavigationRightButton  from '../../../Utils/components/NavigationRightButton/NavigationRightButton';
+import HomeNavigationRightButton from '../../../Utils/components/NavigationRightButton/NavigationRightButton';
 import SmallAlert from '../../../Utils/components/SmallAlert/SmallAlert';
+import TableCustomPagination from '../../../Utils/components/TableCustomPagination/TableCustomPagination';
+import CustomFilter from '../../../Utils/components/CustomFilter/CustomFilter';
 
 const ItemsList = ({ items }) => {
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
-    const [searchTerm, setSearchTerm] = useState('');
+    const [searchTerm, setSearchTerm] = useState(localStorage.getItem('searchTermGlobal') || '');
     const [orderBy, setOrderBy] = useState('');
     const [order, setOrder] = useState('asc');
     const [filter, setFilter] = useState('all');
@@ -43,17 +45,23 @@ const ItemsList = ({ items }) => {
     const navigate = useNavigate();
 
     useEffect(() => {
+        const handleStorageChange = () => {
+            setSearchTerm(localStorage.getItem('searchTermGlobal') || '');
+        };
         const savedPage = localStorage.getItem('itemListPage');
         const savedRowsPerPage = localStorage.getItem('itemListRowsPerPage');
-    
+        window.addEventListener('storage', handleStorageChange);
         if (savedPage !== null) {
-          setPage(Number(savedPage));
+            setPage(Number(savedPage));
         }
-    
         if (savedRowsPerPage !== null) {
-          setRowsPerPage(Number(savedRowsPerPage));
+            setRowsPerPage(Number(savedRowsPerPage));
         }
-      }, []);
+        return () => {
+            window.removeEventListener('storage', handleStorageChange);
+        };
+
+    }, [searchTerm]);
 
     const handleSortChange = (columnId) => {
         const isAsc = orderBy === columnId && order === 'asc';
@@ -73,17 +81,17 @@ const ItemsList = ({ items }) => {
         setPage(0);
     };
 
-    const handleSearchChange = (event) => {
-        setSearchTerm(event.target.value);
-        setPage(0);
-    };
+    // const handleSearchChange = (event) => {
+    //     setSearchTerm(event.target.value);
+    //     setPage(0);
+    // };
 
     const handleViewItem = (item) => {
         localStorage.setItem('itemListPage', page);
         localStorage.setItem('itemListRowsPerPage', rowsPerPage);
         localStorage.setItem('backNavigation', 'list_items')
         navigate('/integration/item_details', { state: { item, items, filteredItems, filter } });
-        
+
     };
 
     const handleFilterChange = event => {
@@ -94,12 +102,12 @@ const ItemsList = ({ items }) => {
     const filteredItems = items.filter(item => {
 
         const matchesSearchTerm = item.fields.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                                  item.fields.sku.toLowerCase().includes(searchTerm.toLowerCase());
-        
+            item.fields.sku.toLowerCase().includes(searchTerm.toLowerCase());
+
         if (filter === 'all') return matchesSearchTerm;
         if (filter === 'matched') return matchesSearchTerm && item.fields.qb_list_id && item.fields.qb_list_id !== "";
         if (filter === 'unmatched') return matchesSearchTerm && (!item.fields.qb_list_id || item.fields.qb_list_id === "");
-        
+
         return matchesSearchTerm;
     });
 
@@ -123,59 +131,46 @@ const ItemsList = ({ items }) => {
     };
 
     const childrenNavigationRightButton = [
-        { 
-            label: 'Back to Integration', 
-            icon: <HomeIcon sx={{ marginRight: 1 }} />, 
+        {
+            label: 'Back to Integration',
+            icon: <HomeIcon sx={{ marginRight: 1 }} />,
             route: '/integration',
-            visibility: true 
+            visibility: true
         }
     ];
+
+    const configCustomFilter = {
+        filter: filter,
+        handleFilterChange: handleFilterChange,
+        listValues: [
+            { value: 'all', label: 'All Items' },
+            { value: 'matched', label: 'Matched Items' },
+            { value: 'unmatched', label: 'Unmatched Items' }
+        ],
+        hasSearch: false
+    };
 
     return (
         <Container
             maxWidth="xl"
             sx={{
-                marginLeft: '-9%',
-                marginTop: '-6%',
-                transition: 'margin-left 0.3s ease',
+                // marginLeft: '-10%',
+                // marginTop: '-6%',
+                // transition: 'margin-left 0.2s ease',
                 // minHeight: '100vh',
-                minWidth: '87vw',
-                padding: 0,
+                marginLeft: '-28.8%',
+                minWidth: '88.2vw',
+                padding: '-1px',
             }}
-            >
-            <Grid container spacing={2} alignItems="center" mb={3} justifyContent="space-between">
+        >
+            <Grid container spacing={2} alignItems="center" mb={3} justifyContent="space-between" sx={{ mt: '-3%' }}>
                 <Grid item container xs={6} justifyContent="flex-start">
                     <Grid item xs={3}>
-                        <FormControl variant="outlined" size="small">
-                            <InputLabel>{filteredItems.length}</InputLabel>
-                            <Select
-                                value={filter}
-                                onChange={handleFilterChange}
-                                label="Filter"
-                                sx={{
-                                    fontSize: '22px',
-                                    border: 'none',
-                                    '& .MuiOutlinedInput-notchedOutline': {
-                                    border: 'none',
-                                    },
-                                    '& .MuiSelect-select': {
-                                    padding: '10px',
-                                    },
-                                    '& .MuiInputLabel-root': {
-                                    top: '-6px',
-                                    },
-                                    color: '#212529',
-                                }}
-                            >
-                                <MenuItem value="all">All Items</MenuItem>
-                                <MenuItem value="matched">Matched Items</MenuItem>
-                                <MenuItem value="unmatched">Unmatched Items</MenuItem>
-                            </Select>
-                        </FormControl>
+                        <CustomFilter configCustomFilter={configCustomFilter} />
                     </Grid>
                 </Grid>
                 <Grid item xs={6} container justifyContent="flex-end" spacing={1}>
-                    <Grid item xs={4}>
+                    {/* <Grid item xs={4}>
                         <TextField
                             label="Search"
                             variant="outlined"
@@ -184,7 +179,7 @@ const ItemsList = ({ items }) => {
                             onChange={handleSearchChange}
                             sx={{ width: '100%', mb: 2 }}
                         />
-                    </Grid>
+                    </Grid> */}
                     <HomeNavigationRightButton children={childrenNavigationRightButton} />
                 </Grid>
                 <Grid item xs={12} container justifyContent="flex-end" spacing={1}>
@@ -194,19 +189,19 @@ const ItemsList = ({ items }) => {
                         </Alert>
                     </Grid> */}
                 </Grid>
-                <Grid item xs={12}>
-                    <TableContainer component={Paper} style={{ maxHeight: '605px' }}>
-                        <Table id="myTable" aria-label="items table" sx={{ minWidth: 650 }} stickyHeader>
-                            <TableHead sx={{ backgroundColor: '#e0e0e0' }}> 
+                <Grid item xs={12} sx={{ mt: '-1%' }}>
+                    <TableContainer style={{ maxHeight: '760px', minWidth: 690 }}>
+                        <Table id="myTable" aria-label="items table" stickyHeader>
+                            <TableHead sx={{ backgroundColor: '#e0e0e0' }}>
                                 <TableRow>
                                     {columns.map((column) => (
-                                        <TableCell key={column.id} 
-                                            sx={{ 
-                                                fontWeight: 'bold', 
+                                        <TableCell key={column.id}
+                                            sx={{
+                                                fontWeight: 'bold',
                                                 color: '#6C7184',
-                                                borderBottom: '1px solid #ddd', 
+                                                borderBottom: '1px solid #ddd',
                                                 borderTop: '1px solid #ddd',
-                                                backgroundColor: '#F9F9FB' 
+                                                backgroundColor: '#F9F9FB'
                                             }}
                                         >
                                             <TableSortLabel
@@ -223,16 +218,16 @@ const ItemsList = ({ items }) => {
                             <TableBody>
                                 {filteredItems.length === 0 ? (
                                     <EmptyRecordsCell columns={columns} />
-                                    ) : (
+                                ) : (
                                     (rowsPerPage > 0
                                         ? sortedItems.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                                         : sortedItems
                                     ).map((item, index) => (
-                                        <TableRow key={index} 
+                                        <TableRow key={index}
                                             sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                                            style = {{ 
-                                                cursor: 'pointer', 
-                                                transition: 'background-color 0.3s ease',  
+                                            style={{
+                                                cursor: 'pointer',
+                                                transition: 'background-color 0.3s ease',
                                                 backgroundColor: hoveredRowIndex === index ? '#F6F6FA' : '#FFFFFF',
                                                 maxHeight: '20px'
                                             }}
@@ -248,11 +243,11 @@ const ItemsList = ({ items }) => {
                                                 color: !item.fields.qb_list_id || item.fields.qb_list_id === "" ? theme.palette.error.main : theme.palette.success.main,
                                                 fontWeight: 'bold',
                                                 borderBottom: '1px solid #ccc',
-                                                width: '50px', 
+                                                width: '50px',
                                                 maxWidth: '50px'
                                             })}>
                                                 {/* <b>{!item.fields.qb_list_id || item.fields.qb_list_id === "" ? "NO" : "YES"}</b> */}
-                                                {!item.fields.qb_list_id || item.fields.qb_list_id === "" ? 
+                                                {!item.fields.qb_list_id || item.fields.qb_list_id === "" ?
                                                     'NO' : 'YES'
                                                 }
                                             </TableCell>
@@ -264,19 +259,17 @@ const ItemsList = ({ items }) => {
                                         </TableRow>
                                     ))
                                 )}
+                                <TableCustomPagination
+                                    columnsLength={columns.length}
+                                    data={filteredItems}
+                                    page={page}
+                                    rowsPerPage={rowsPerPage}
+                                    handleChangePage={handleChangePage}
+                                    handleChangeRowsPerPage={handleChangeRowsPerPage}
+                                />
                             </TableBody>
                         </Table>
                     </TableContainer>
-                    <TablePagination
-                        rowsPerPageOptions={[5, 10, 25, 50]}
-                        component="div"
-                        count={filteredItems.length}
-                        rowsPerPage={rowsPerPage}
-                        page={page}
-                        onPageChange={handleChangePage}
-                        onRowsPerPageChange={handleChangeRowsPerPage}
-                        sx={{ mt: 2 }}
-                    />
                 </Grid>
             </Grid>
         </Container>

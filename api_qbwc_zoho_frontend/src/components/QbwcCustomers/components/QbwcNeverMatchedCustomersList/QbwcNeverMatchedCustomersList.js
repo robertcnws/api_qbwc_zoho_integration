@@ -1,23 +1,23 @@
-import React, { useState } from 'react';
-import { 
-  Container, 
-  Grid, 
-  Typography, 
-  Alert, 
-  Button, 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableContainer, 
-  TableHead, 
-  TableRow,
-  Paper, 
-  TablePagination, 
-  TextField, 
-  TableSortLabel,
-  FormControl,
-  FormControlLabel,
-  Checkbox
+import React, { useEffect, useState } from 'react';
+import {
+    Container,
+    Grid,
+    Typography,
+    Alert,
+    Button,
+    Table,
+    TableBody,
+    TableCell,
+    TableContainer,
+    TableHead,
+    TableRow,
+    Paper,
+    TablePagination,
+    TextField,
+    TableSortLabel,
+    FormControl,
+    FormControlLabel,
+    Checkbox
 } from '@mui/material';
 import { Link } from 'react-router-dom';
 import UndoIcon from '@mui/icons-material/Undo';
@@ -26,6 +26,7 @@ import Swal from 'sweetalert2';
 import { stableSort, getComparator, fetchWithToken } from '../../../../utils';
 import { EmptyRecordsCell } from '../../../Utils/components/EmptyRecordsCell/EmptyRecordsCell';
 import NavigationRightButton from '../../../Utils/components/NavigationRightButton/NavigationRightButton';
+import TableCustomPagination from '../../../Utils/components/TableCustomPagination/TableCustomPagination';
 
 const apiUrl = process.env.REACT_APP_ENVIRONMENT === 'DEV' ? process.env.REACT_APP_BACKEND_URL_DEV : process.env.REACT_APP_BACKEND_URL_PROD;
 
@@ -33,11 +34,21 @@ const QbwcNeverMatchedCustomersList = ({ customers, onSyncComplete }) => {
 
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
-    const [searchTerm, setSearchTerm] = useState('');
+    const [searchTerm, setSearchTerm] = useState(localStorage.getItem('searchTermGlobal') || '');
     const [selectedCustomers, setSelectedCustomers] = useState([]);
     const [orderBy, setOrderBy] = useState('');
     const [order, setOrder] = useState('asc');
     const [hoveredRowIndex, setHoveredRowIndex] = useState(null);
+
+    useEffect(() => {
+        const handleStorageChange = () => {
+            setSearchTerm(localStorage.getItem('searchTermGlobal') || '');
+        };
+        window.addEventListener('storage', handleStorageChange);
+        return () => {
+            window.removeEventListener('storage', handleStorageChange);
+        };
+    }, [searchTerm]);
 
     const handleSortChange = (columnId) => {
         const isAsc = orderBy === columnId && order === 'asc';
@@ -54,40 +65,40 @@ const QbwcNeverMatchedCustomersList = ({ customers, onSyncComplete }) => {
         setPage(0);
     };
 
-    const handleSearchChange = (event) => {
-        setSearchTerm(event.target.value);
-        setPage(0);
-    };
-    
+    // const handleSearchChange = (event) => {
+    //     setSearchTerm(event.target.value);
+    //     setPage(0);
+    // };
+
 
     const isSelected = (customerId) => selectedCustomers.indexOf(customerId) !== -1;
 
     const handleCheckboxClick = (event, customerId) => {
-            const selectedIndex = selectedCustomers.indexOf(customerId);
-            let newSelected = [];
+        const selectedIndex = selectedCustomers.indexOf(customerId);
+        let newSelected = [];
 
-            if (selectedIndex === -1) {
-                newSelected = [...selectedCustomers, customerId];
-            } else {
-                newSelected = selectedCustomers.filter((id) => id !== customerId);
-            }
-            setSelectedCustomers(newSelected);
+        if (selectedIndex === -1) {
+            newSelected = [...selectedCustomers, customerId];
+        } else {
+            newSelected = selectedCustomers.filter((id) => id !== customerId);
+        }
+        setSelectedCustomers(newSelected);
     };
 
     const renderForceSyncCheckbox = (customer, isSelected) => {
-            return (
-                <FormControl sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <FormControlLabel sx={{ color: 'success.main' }}
-                        control={
-                            <Checkbox sx={{ color: 'success.main' }}
-                                checked={isSelected}
-                                onChange={(e) => handleCheckboxClick(e, customer.fields.list_id)}
-                            />
-                        }
-                        label="Undo never match?"
-                    />
-                </FormControl>
-            );
+        return (
+            <FormControl sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <FormControlLabel sx={{ color: 'success.main' }}
+                    control={
+                        <Checkbox sx={{ color: 'success.main' }}
+                            checked={isSelected}
+                            onChange={(e) => handleCheckboxClick(e, customer.fields.list_id)}
+                        />
+                    }
+                    label="Undo never match?"
+                />
+            </FormControl>
+        );
     };
 
     const handleNeverMatchCustomers = () => {
@@ -125,7 +136,7 @@ const QbwcNeverMatchedCustomersList = ({ customers, onSyncComplete }) => {
                             'error'
                         );
                         return;
-                    }   
+                    }
                     else if (response.data.message === 'success') {
                         Swal.fire(
                             'Success!',
@@ -145,157 +156,158 @@ const QbwcNeverMatchedCustomersList = ({ customers, onSyncComplete }) => {
                 }
             }
         });
-};
+    };
 
 
-  const filteredCustomers = customers.filter(customer =>
+    const filteredCustomers = customers.filter(customer =>
         customer.fields.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         customer.fields.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
         customer.fields.phone.toLowerCase().includes(searchTerm.toLowerCase()) ||
         customer.fields.list_id.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+    );
 
-  const sortedCustomers = stableSort(filteredCustomers, getComparator(order, orderBy));
+    const sortedCustomers = stableSort(filteredCustomers, getComparator(order, orderBy));
 
-  const columns = [
-      { id: 'qb_customer', label: 'QB Customer' },
-      { id: 'qb_email', label: 'QB Email' },
-      { id: 'qb_phone', label: 'QB Phone' },
-      { id: 'qb_list_id', label: 'QB List ID' },
-      { id: 'actions', label: 'Actions' }
-  ];
+    const columns = [
+        { id: 'qb_customer', label: 'QB Customer' },
+        { id: 'qb_email', label: 'QB Email' },
+        { id: 'qb_phone', label: 'QB Phone' },
+        { id: 'qb_list_id', label: 'QB List ID' },
+        { id: 'actions', label: 'Actions' }
+    ];
 
-  const childrenNavigationRightButton = [ 
-    { 
-        label: 'Undo Never Match', 
-        icon: <UndoIcon sx={{ marginRight: 1 }} />, 
-        onClick: handleNeverMatchCustomers,
-        visibility: selectedCustomers.length > 0 
-    },
-    { 
-        label: 'Back to QBWC', 
-        icon: <AccountBalanceWalletIcon sx={{ marginRight: 1 }} />, 
-        route: '/integration/qbwc', 
-        visibility: true
-    }
- ];
+    const childrenNavigationRightButton = [
+        {
+            label: 'Undo Never Match',
+            icon: <UndoIcon sx={{ marginRight: 1 }} />,
+            onClick: handleNeverMatchCustomers,
+            visibility: selectedCustomers.length > 0
+        },
+        {
+            label: 'Back to QBWC',
+            icon: <AccountBalanceWalletIcon sx={{ marginRight: 1 }} />,
+            route: '/integration/qbwc',
+            visibility: true
+        }
+    ];
 
-  return (
-    <Container
+    return (
+        <Container
             maxWidth="xl"
             sx={{
-                marginLeft: '-9%',
-                marginTop: '-6%',
-                transition: 'margin-left 0.3s ease',
-                // minHeight: '100vh',
-                minWidth: '87vw',
-                padding: 1,
+                // marginLeft: '-9%',
+                // marginTop: '-6%',
+                // transition: 'margin-left 0.3s ease',
+                // // minHeight: '100vh',
+                // minWidth: '87vw',
+                // padding: 1,
+                marginLeft: '-28.8%',
+                minWidth: '88.2vw',
+                padding: '-1px',
             }}
         >
-        <Grid container spacing={2} alignItems="center" justifyContent="space-between" mb={3}>
-            <Grid item xs={6}>
-                <Typography
-                    variant="h6"
-                    gutterBottom
-                    sx={{
-                        textTransform: 'uppercase',
-                        color: '#212529',
-                        fontWeight: 'bold',
-                    }}
-                >
-                    QB Never Matched Customers List
-                </Typography>
-            </Grid>
-            <Grid item xs={6} container justifyContent="flex-end" spacing={1}>
-                <Grid item xs={4}>
-                    <TextField
-                        label="Search"
-                        variant="outlined"
-                        size="small"
-                        value={searchTerm}
-                        onChange={handleSearchChange}
-                        sx={{ width: '100%', mb: 2 }}
-                    />
+            <Grid container spacing={2} alignItems="center" justifyContent="space-between" mb={3} sx={{ mt: '-3%' }}>
+                <Grid item xs={6}>
+                    <Typography
+                        variant="h6"
+                        gutterBottom
+                        sx={{
+                            textTransform: 'uppercase',
+                            color: '#212529',
+                            fontWeight: 'bold',
+                        }}
+                    >
+                        QB Never Matched Customers List
+                    </Typography>
                 </Grid>
-                <NavigationRightButton children={childrenNavigationRightButton} />
-            </Grid>
-            <Grid item xs={12} container justifyContent="flex-end" spacing={1}>
-                <Grid item xs={12}>
-                    <Alert severity="info" sx={{ mb: 2 }}>
-                        There are {filteredCustomers.length} never matched customers found.
-                    </Alert>
+                <Grid item xs={6} container justifyContent="flex-end" spacing={1}>
+                    {/* <Grid item xs={4}>
+                        <TextField
+                            label="Search"
+                            variant="outlined"
+                            size="small"
+                            value={searchTerm}
+                            onChange={handleSearchChange}
+                            sx={{ width: '100%', mb: 2 }}
+                        />
+                    </Grid> */}
+                    <NavigationRightButton children={childrenNavigationRightButton} />
                 </Grid>
-            </Grid>
-            <Grid item xs={12}>
-                <TableContainer component={Paper} style={{ maxHeight: '580px' }}>
-                    <Table id="myTable" aria-label="customers table" sx={{ minWidth: 650 }} stickyHeader>
-                        <TableHead sx={{ backgroundColor: '#e0e0e0' }}> 
-                            <TableRow>
-                                {columns.map((column) => (
-                                    <TableCell key={column.id} 
-                                    sx={{ 
-                                        fontWeight: 'bold', 
-                                        color: '#6c7184', 
-                                        borderBottom: '1px solid #ddd',
-                                        borderTop: '1px solid #ddd',
-                                        backgroundColor: '#f9f9fb' 
-                                        }}>
-                                        <TableSortLabel
-                                            active={orderBy === column.id}
-                                            direction={orderBy === column.id ? order : 'asc'}
-                                            onClick={() => handleSortChange(column.id)}
-                                        >
-                                            {column.label.toUpperCase()}
-                                        </TableSortLabel>
-                                    </TableCell>
-                                ))}
-                            </TableRow>
-                        </TableHead>
-                        <TableBody>
-                        {filteredCustomers.length === 0 ? (
-                            <EmptyRecordsCell columns={columns} />
-                            ) : (
-                                (rowsPerPage > 0
-                                            ? sortedCustomers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                                            : sortedCustomers
-                                        ).map((customer, index) => (
-                                            <TableRow key={index} 
-                                            sx={{ '&:last-child td, &:last-child th': { border: 0 }}}
-                                            style = {{ 
-                                                cursor: 'pointer', 
-                                                transition: 'background-color 0.3s ease',  
+                <Grid item xs={12} container justifyContent="flex-end" spacing={1}>
+                    <Grid item xs={12}>
+                        <Alert severity="info" sx={{ mb: 2 }}>
+                            There are {filteredCustomers.length} never matched customers found.
+                        </Alert>
+                    </Grid>
+                </Grid>
+                <Grid item xs={12} sx={{ mt: '-1%' }}>
+                    <TableContainer style={{ maxHeight: '760px', minWidth: 690 }}>
+                        <Table id="myTable" aria-label="customers table" stickyHeader>
+                            <TableHead sx={{ backgroundColor: '#e0e0e0' }}>
+                                <TableRow>
+                                    {columns.map((column) => (
+                                        <TableCell key={column.id}
+                                            sx={{
+                                                fontWeight: 'bold',
+                                                color: '#6c7184',
+                                                borderBottom: '1px solid #ddd',
+                                                borderTop: '1px solid #ddd',
+                                                backgroundColor: '#f9f9fb'
+                                            }}>
+                                            <TableSortLabel
+                                                active={orderBy === column.id}
+                                                direction={orderBy === column.id ? order : 'asc'}
+                                                onClick={() => handleSortChange(column.id)}
+                                            >
+                                                {column.label.toUpperCase()}
+                                            </TableSortLabel>
+                                        </TableCell>
+                                    ))}
+                                </TableRow>
+                            </TableHead>
+                            <TableBody>
+                                {filteredCustomers.length === 0 ? (
+                                    <EmptyRecordsCell columns={columns} />
+                                ) : (
+                                    (rowsPerPage > 0
+                                        ? sortedCustomers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                                        : sortedCustomers
+                                    ).map((customer, index) => (
+                                        <TableRow key={index}
+                                            sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                                            style={{
+                                                cursor: 'pointer',
+                                                transition: 'background-color 0.3s ease',
                                                 backgroundColor: hoveredRowIndex === index ? '#F6F6FA' : '#FFFFFF'
                                             }}
                                             onMouseEnter={() => setHoveredRowIndex(index)}
                                             onMouseLeave={() => setHoveredRowIndex(null)}
-                                            >
-                                                <TableCell>{customer.fields.name}</TableCell>
-                                                <TableCell>{customer.fields.email}</TableCell>
-                                                <TableCell>{customer.fields.phone}</TableCell>
-                                                <TableCell>{customer.fields.list_id}</TableCell>
-                                                <TableCell align="center">
-                                                    {renderForceSyncCheckbox(customer, isSelected(customer.fields.list_id))}
-                                                </TableCell>
-                                            </TableRow>
-                                ))
-                            )}
-                        </TableBody>
-                    </Table>
-                </TableContainer>
-                <TablePagination
-                    rowsPerPageOptions={[5, 10, 25, 50]}
-                    component="div"
-                    count={filteredCustomers.length}
-                    rowsPerPage={rowsPerPage}
-                    page={page}
-                    onPageChange={handleChangePage}
-                    onRowsPerPageChange={handleChangeRowsPerPage}
-                    sx={{ mt: 2 }}
-                />
+                                        >
+                                            <TableCell>{customer.fields.name}</TableCell>
+                                            <TableCell>{customer.fields.email}</TableCell>
+                                            <TableCell>{customer.fields.phone}</TableCell>
+                                            <TableCell>{customer.fields.list_id}</TableCell>
+                                            <TableCell align="center">
+                                                {renderForceSyncCheckbox(customer, isSelected(customer.fields.list_id))}
+                                            </TableCell>
+                                        </TableRow>
+                                    ))
+                                )}
+                                <TableCustomPagination
+                                    columnsLength={columns.length}
+                                    data={filteredCustomers}
+                                    page={page}
+                                    rowsPerPage={rowsPerPage}
+                                    handleChangePage={handleChangePage}
+                                    handleChangeRowsPerPage={handleChangeRowsPerPage}
+                                />
+                            </TableBody>
+                        </Table>
+                    </TableContainer>
+                </Grid>
             </Grid>
-        </Grid>
-    </Container>
-);
+        </Container>
+    );
 
 }
 

@@ -127,17 +127,18 @@ const Dashboard = () => {
         }}
       >
         <Topbar handleLogout={handleLogout} handleDoBackup={handleDoBackup}/>
-        <Box 
+        <Container 
           sx={{ 
             flexGrow: 1, 
-            overflow: 'auto', 
-            p: 3,
+            // overflow: 'auto', 
+            p: 0,
             display: 'flex',
-            flexDirection: 'column'
+            flexDirection: 'column',
+            // marginLeft: { sm: 0, md: 0, lg: 0, xl: 0 }
           }}
         >
           <Outlet />
-        </Box>
+        </Container>
         <Footer />
       </Box>
     </Container>

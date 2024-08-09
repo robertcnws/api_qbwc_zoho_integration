@@ -50,6 +50,7 @@ def match_one_customer_ajax(request):
                 qb_customer = get_object_or_404(QbCustomer, list_id=qb_list_id)
                 zoho_customer = get_object_or_404(ZohoCustomer, contact_id=zoho_customer_id)
                 zoho_customer.qb_list_id = qb_list_id if action == 'match' else ''
+                logger.info(f"Matched customer: {qb_customer.name} with {zoho_customer.contact_name}")
                 zoho_customer.save()
                 qb_customer.matched = True if action == 'match' else False
                 qb_customer.save()

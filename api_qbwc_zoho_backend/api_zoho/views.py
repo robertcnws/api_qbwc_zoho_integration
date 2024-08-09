@@ -605,3 +605,8 @@ def format_size(size_bytes):
         return f"{size_bytes / (1024 ** 2):.2f} MB"
     else:
         return f"{size_bytes / (1024 ** 3):.2f} GB"
+    
+
+def clean_phone_number(phone_number):
+    # Filtra solo los caracteres que son dígitos y une los resultados en una sola cadena
+    return ''.join([c for c in phone_number if c.isdigit()])

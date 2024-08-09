@@ -88,10 +88,15 @@ def create_customer_instance(data):
     customer.first_name = data.get('first_name')
     customer.last_name = data.get('last_name')
     customer.email = data.get('email')
+    customer.email = customer.email.lower() if customer.email else ''
     customer.phone = data.get('phone', '')
     customer.mobile = data.get('mobile', '')
+    customer.phone = api_zoho_views.clean_phone_number(customer.phone) if customer.phone else ''
+    customer.mobile = api_zoho_views.clean_phone_number(customer.mobile) if customer.mobile else ''
     customer.created_time = parse_datetime(data.get('created_time'))
     customer.created_time_formatted = data.get('created_time_formatted', '')
     customer.last_modified_time = parse_datetime(data.get('last_modified_time'))
     customer.last_modified_time_formatted = data.get('last_modified_time_formatted', '')
     return customer
+
+

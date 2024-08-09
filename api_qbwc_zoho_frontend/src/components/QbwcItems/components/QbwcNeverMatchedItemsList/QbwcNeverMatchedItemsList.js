@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { 
   Container, 
   Grid, 
@@ -26,6 +26,7 @@ import { Link } from 'react-router-dom';
 import { stableSort, getComparator, fetchWithToken } from '../../../../utils';
 import { EmptyRecordsCell } from '../../../Utils/components/EmptyRecordsCell/EmptyRecordsCell';
 import NavigationRightButton from '../../../Utils/components/NavigationRightButton/NavigationRightButton';
+import TableCustomPagination from '../../../Utils/components/TableCustomPagination/TableCustomPagination';
 
 const apiUrl = process.env.REACT_APP_ENVIRONMENT === 'DEV' ? process.env.REACT_APP_BACKEND_URL_DEV : process.env.REACT_APP_BACKEND_URL_PROD;
 
@@ -33,11 +34,21 @@ const QbwcNeverMatchedItemsList = ({ neverMatchedItems, onSyncComplete }) => {
 
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState(localStorage.getItem('searchTermGlobal') || '');
   const [selectedNeverMatchedItems, setSelectedNeverMatchedItems] = useState([]);
   const [orderBy, setOrderBy] = useState('');
   const [order, setOrder] = useState('asc');
   const [hoveredRowIndex, setHoveredRowIndex] = useState(null);
+
+  useEffect(() => {
+    const handleStorageChange = () => {
+        setSearchTerm(localStorage.getItem('searchTermGlobal') || '');
+    };
+    window.addEventListener('storage', handleStorageChange);
+    return () => {
+        window.removeEventListener('storage', handleStorageChange);
+    };
+}, [searchTerm]);
 
   const handleSortChange = (columnId) => {
       const isAsc = orderBy === columnId && order === 'asc';
@@ -54,10 +65,10 @@ const QbwcNeverMatchedItemsList = ({ neverMatchedItems, onSyncComplete }) => {
       setPage(0);
   };
 
-  const handleSearchChange = (event) => {
-      setSearchTerm(event.target.value);
-      setPage(0);
-  };
+//   const handleSearchChange = (event) => {
+//       setSearchTerm(event.target.value);
+//       setPage(0);
+//   };
 
   const isSelected = (itemId) => selectedNeverMatchedItems.indexOf(itemId) !== -1;
 
@@ -179,15 +190,18 @@ const QbwcNeverMatchedItemsList = ({ neverMatchedItems, onSyncComplete }) => {
     <Container
             maxWidth="xl"
             sx={{
-                marginLeft: '-9%',
-                marginTop: '-6%',
-                transition: 'margin-left 0.3s ease',
-                // minHeight: '100vh',
-                minWidth: '87vw',
-                padding: 1,
+                // marginLeft: '-9%',
+                // marginTop: '-6%',
+                // transition: 'margin-left 0.3s ease',
+                // // minHeight: '100vh',
+                // minWidth: '87vw',
+                // padding: 1,
+                marginLeft: '-28.8%',
+                minWidth: '88.2vw',
+                padding: '-1px',
             }}
         >
-        <Grid container spacing={2} alignItems="center" justifyContent="space-between" mb={3}>
+        <Grid container spacing={2} alignItems="center" justifyContent="space-between" mb={3} sx={{ mt: '-3%'}}>
             <Grid item xs={6}>
                 <Typography
                     variant="h6"
@@ -202,7 +216,7 @@ const QbwcNeverMatchedItemsList = ({ neverMatchedItems, onSyncComplete }) => {
                 </Typography>
             </Grid>
             <Grid item xs={6} container justifyContent="flex-end" spacing={1}>
-                <Grid item xs={4}>
+                {/* <Grid item xs={4}>
                     <TextField
                         label="Search"
                         variant="outlined"
@@ -211,7 +225,7 @@ const QbwcNeverMatchedItemsList = ({ neverMatchedItems, onSyncComplete }) => {
                         onChange={handleSearchChange}
                         sx={{ width: '100%', mb: 2 }}
                     />
-                </Grid>
+                </Grid> */}
                 <NavigationRightButton children={childrenNavigationRightButton} />
             </Grid>
             <Grid item xs={12} container justifyContent="flex-end" spacing={1}>
@@ -221,9 +235,9 @@ const QbwcNeverMatchedItemsList = ({ neverMatchedItems, onSyncComplete }) => {
                     </Alert>
                 </Grid>
             </Grid>
-            <Grid item xs={12}>
-                <TableContainer component={Paper} style={{ maxHeight: '585px' }}>
-                    <Table id="myTable" aria-label="items table" sx={{ minWidth: 650 }} stickyHeader>
+            <Grid item xs={12} sx={{ mt: '-1%'}}>
+                <TableContainer style={{ maxHeight: '760px', minWidth: 690 }}>
+                    <Table id="myTable" aria-label="items table" stickyHeader>
                         <TableHead sx={{ backgroundColor: '#e0e0e0' }}> 
                             <TableRow>
                                 {columns.map((column) => (
@@ -272,19 +286,17 @@ const QbwcNeverMatchedItemsList = ({ neverMatchedItems, onSyncComplete }) => {
                                     </TableRow>
                                 ))
                             )}
+                            <TableCustomPagination
+                                    columnsLength={columns.length}
+                                    data={filteredNeverMatchedItems}
+                                    page={page}
+                                    rowsPerPage={rowsPerPage}
+                                    handleChangePage={handleChangePage}
+                                    handleChangeRowsPerPage={handleChangeRowsPerPage}
+                                />
                         </TableBody>
                     </Table>
                 </TableContainer>
-                <TablePagination
-                    rowsPerPageOptions={[5, 10, 25, 50]}
-                    component="div"
-                    count={filteredNeverMatchedItems.length}
-                    rowsPerPage={rowsPerPage}
-                    page={page}
-                    onPageChange={handleChangePage}
-                    onRowsPerPageChange={handleChangeRowsPerPage}
-                    sx={{ mt: 2 }}
-                />
             </Grid>
         </Grid>
     </Container>

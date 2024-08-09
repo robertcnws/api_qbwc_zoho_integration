@@ -99,14 +99,13 @@ const ZohoLoading = () => {
         component="main" 
         maxWidth="md" 
         sx={{ 
-            mt: 0, 
-            p: 1, 
+            mt: '1%', 
             bgcolor: 'background.paper', 
             boxShadow: 3, 
             borderRadius: 2, 
-            minWidth:'60%', 
-            minHeight: '40%',
-            ml: 0,
+            minWidth:'67vw', 
+            minHeight: '33vh',
+            marginLeft: '-20%',
           }}
     >
             <Typography
@@ -118,7 +117,7 @@ const ZohoLoading = () => {
                     paddingBottom: '8px',
                     marginBottom: '20px',
                     textTransform: 'uppercase',
-                    color: '#2196F3',
+                    color: '#212529',
                     fontWeight: 'bold',
                 }}
             >

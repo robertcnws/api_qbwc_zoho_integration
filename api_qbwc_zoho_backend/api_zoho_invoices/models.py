@@ -78,7 +78,6 @@ class ZohoFullInvoice(models.Model):
         return f"{self.invoice_number} - {self.customer_name}"
     
     def save(self, *args, **kwargs):
-        # super(ZohoFullInvoice, self).save(*args, **kwargs)
         if self.pk:  
             super(ZohoFullInvoice, self).save(*args, **kwargs)
         else:
