@@ -109,7 +109,7 @@ const Dashboard = () => {
         // minHeight: '100vh', 
         // maxHeight: '100vh',
         minWidth: '100vw',
-        backgroundColor: 'white'
+        backgroundColor: 'white',
       }}
     >
       <Sidebar 
@@ -134,7 +134,7 @@ const Dashboard = () => {
             p: 0,
             display: 'flex',
             flexDirection: 'column',
-            // marginLeft: { sm: 0, md: 0, lg: 0, xl: 0 }
+            marginLeft: '460px',
           }}
         >
           <Outlet />

@@ -363,7 +363,7 @@ const ItemsDetails = () => {
                 marginTop: '3%',
                 marginBottom: '-5%',
                 transition: 'margin-left 0.3s ease',
-                minWidth: '88vw',
+                minWidth: '87.5vw',
                 minHeigth: '100vh',
             }}>
             {/* <Container component="main" maxWidth="md" sx={{ mt: 5, p: 3, bgcolor: '#FFFFFF', boxShadow: 3, borderRadius: 2 }}> */}
@@ -383,7 +383,7 @@ const ItemsDetails = () => {
                     <Grid item container xs={3} sx={{ borderRight: '1px solid #ddd' }}>
                         <Grid item container xs={12} spacing={1}>
                             <CustomFilter configCustomFilter={configCustomFilter} />
-                            <TableContainer sx={{ maxHeight: 777, minHeight: 777, borderTop: '1px solid #ddd' }}>
+                            <TableContainer sx={{ maxHeight: 755, minHeight: 755, borderTop: '1px solid #ddd' }}>
                                 <Table aria-label="filtered customers table">
                                     <TableBody>
                                         {filteredItems && filteredItems.length > 0 ? (
@@ -486,15 +486,14 @@ const ItemsDetails = () => {
                                     </Tooltip>
                                 </Grid>
                             </Grid>
-                            <Grid item container xs={12} spacing={1} sx={{ maxHeight: 780, minHeight: 780, mt: 2, marginLeft: '-1.4%' }}>
+                            <Grid item container xs={12} spacing={1} sx={{ maxHeight: 758, minHeight: 758, mt: 2, marginLeft: '-1.4%' }}>
                                 <TableContainer
                                     sx={{
-                                        maxHeight: 780,
-                                        minHeight: 780,
+                                        maxHeight: 758,
+                                        minHeight: 758,
                                         minWidth: '103.5%',
                                         maxWidth: '103.5%',
                                         borderTop: '1px solid #ddd',
-                                        borderBottom: '1px solid #ddd',
                                         borderLeft: '1px solid #ddd',
                                         borderRight: '1px solid #ddd'
                                     }}
@@ -612,12 +611,12 @@ const ItemsDetails = () => {
                                                         <TableCell
                                                             component="th"
                                                             scope="row"
-                                                            sx={{ width: '150px', maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis' }}
+                                                            sx={{ width: '150px', maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis', borderBottom: 'none' }}
                                                         >
                                                             Force Matching
                                                         </TableCell>
 
-                                                        <TableCell>
+                                                        <TableCell sx={{ borderBottom: 'none'}}>
                                                             <FormControl variant="outlined" size="small" style={{ width: '100%' }}>
                                                                 <TextField
                                                                     label={"Search QB Items (" + filteredQbItems.length + ")"}

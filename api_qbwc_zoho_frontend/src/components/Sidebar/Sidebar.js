@@ -35,6 +35,7 @@ const Sidebar = ({ expanded, toggleSubmenu, handleLogout, handleDoBackup }) => {
   return (
     
     <Container maxWidth="md" sx={{
+      position: 'fixed',
       width: 240,
       backgroundColor: '#21263c',
       color: '#fff',
@@ -44,6 +45,7 @@ const Sidebar = ({ expanded, toggleSubmenu, handleLogout, handleDoBackup }) => {
       minHeight: '100vh',
       display: 'flex',
       flexDirection: 'column',
+      zIndex: 1,
     }}>
       <Box sx={{ padding: 0, textAlign: 'center' }}>
         {/* <Typography variant="h5">Zoho - QBWC</Typography> */}

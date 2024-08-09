@@ -454,15 +454,8 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
         <Container
             maxWidth="xl"
             sx={{
-                // marginLeft: '-9%',
-                // marginTop: '-6%',
-                // transition: 'margin-left 0.3s ease',
-                // // minHeight: '100vh',
-                // minWidth: '87vw',
-                // padding: 1,
-                marginLeft: '-28.8%',
-                minWidth: '88.2vw',
-                padding: '-1px',
+                marginLeft: '-29.4%',
+                minWidth: '88.3vw',
             }}
         >
             <Grid container spacing={1} mb={3} sx={{ mt: '-2.5%' }}>
@@ -567,7 +560,7 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
                 </Grid> */}
             </Grid>
 
-            <TableContainer style={{ maxHeight: '752px', minWidth: 690 }} sx={{ mt: '-1%' }}>
+            <TableContainer style={{ maxHeight: '745px', mixHeight: '745px', minWidth: 690 }} sx={{ mt: '-1%' }}>
                 <Table stickyHeader>
                     <TableHead>
                         <TableRow sx={{ backgroundColor: '#f9f9fb' }}>

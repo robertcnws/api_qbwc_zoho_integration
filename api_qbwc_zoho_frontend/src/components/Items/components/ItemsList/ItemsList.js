@@ -154,13 +154,8 @@ const ItemsList = ({ items }) => {
         <Container
             maxWidth="xl"
             sx={{
-                // marginLeft: '-10%',
-                // marginTop: '-6%',
-                // transition: 'margin-left 0.2s ease',
-                // minHeight: '100vh',
-                marginLeft: '-28.8%',
-                minWidth: '88.2vw',
-                padding: '-1px',
+                marginLeft: '-29.4%',
+                minWidth: '88.3vw',
             }}
         >
             <Grid container spacing={2} alignItems="center" mb={3} justifyContent="space-between" sx={{ mt: '-3%' }}>
@@ -190,7 +185,7 @@ const ItemsList = ({ items }) => {
                     </Grid> */}
                 </Grid>
                 <Grid item xs={12} sx={{ mt: '-1%' }}>
-                    <TableContainer style={{ maxHeight: '760px', minWidth: 690 }}>
+                    <TableContainer style={{ maxHeight: '755px', minHeight: '755px', minWidth: 690 }}>
                         <Table id="myTable" aria-label="items table" stickyHeader>
                             <TableHead sx={{ backgroundColor: '#e0e0e0' }}>
                                 <TableRow>

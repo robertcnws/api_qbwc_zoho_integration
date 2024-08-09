@@ -139,7 +139,7 @@ const Topbar = ({ handleLogout }) => {
 
     return (
         <>
-            <Toolbar sx={{ bgcolor: '#f7f7fe', position: 'relative', border: '1px solid #ddd' }}>
+            <Toolbar sx={{ bgcolor: '#f7f7fe', position: 'relative', border: '1px solid #ddd', marginLeft: '225px' }}>
                 <Box sx={{ flexGrow: 1 }}>
                     {visibleSearch && (
                         <TextField

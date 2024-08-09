@@ -225,15 +225,8 @@ const QbwcItemsList = ({ items, onSyncComplete }) => {
         <Container
             maxWidth="xl"
             sx={{
-                // marginLeft: '-9%',
-                // marginTop: '-6%',
-                // transition: 'margin-left 0.3s ease',
-                // // minHeight: '100vh',
-                // minWidth: '87vw',
-                // padding: 1,
-                marginLeft: '-28.8%',
-                minWidth: '88.2vw',
-                padding: '-1px',
+                marginLeft: '-29.4%',
+                minWidth: '88.3vw',
             }}
         >
             <Grid container spacing={2} alignItems="center" justifyContent="space-between" mb={3} sx={{ mt: '-3%' }}>
@@ -264,7 +257,7 @@ const QbwcItemsList = ({ items, onSyncComplete }) => {
 
                 </Grid>
                 <Grid item xs={12} sx={{ mt: '-1%' }}>
-                    <TableContainer style={{ maxHeight: '760px', minWidth: 690 }}>
+                    <TableContainer style={{ maxHeight: '755px', minWidth: 690 }}>
                         <Table id="myTable" aria-label="items table" stickyHeader>
                             <TableHead sx={{ backgroundColor: '#e0e0e0' }}>
                                 <TableRow>

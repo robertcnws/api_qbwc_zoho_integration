@@ -332,8 +332,9 @@ const InvoicesDetails = () => {
             marginTop: '3%',
             marginBottom: '-5%',
             transition: 'margin-left 0.3s ease',
-            minWidth: '88vw',
+            minWidth: '87.5vw',
             minHeigth: '100vh',
+            maxHeigth: '100vh',
         }}>
             {/* <Container component="main" maxWidth="md" sx={{ mt: 5, p: 3, bgcolor: '#FFFFFF', boxShadow: 3, borderRadius: 2 }}> */}
             {!invoice ? (
@@ -352,7 +353,7 @@ const InvoicesDetails = () => {
                     <Grid item container xs={3} sx={{ borderRight: '1px solid #ddd' }}>
                         <Grid item container xs={12} spacing={1}>
                             <CustomFilter configCustomFilter={configCustomFilter} />
-                            <TableContainer sx={{ maxHeight: 777, minHeight: 777, borderTop: '1px solid #ddd' }}>
+                            <TableContainer sx={{ maxHeight: 767, minHeight: 767, borderTop: '1px solid #ddd' }}>
                                 <Table aria-label="filtered invoices table">
                                     <TableBody>
                                         {filteredInvoices && filteredInvoices.length > 0 ? (
@@ -428,16 +429,15 @@ const InvoicesDetails = () => {
                                 </Grid>
                             </Grid>
                         </Grid>
-                        <Grid item container xs={12} spacing={1} sx={{ minHeight: 780, maxHeight: 780, mt: 0, marginLeft: '-1.4%' }}>
+                        <Grid item container xs={12} spacing={1} sx={{ minHeight: 769, maxHeight: 769, mt: 0, marginLeft: '-1.4%' }}>
                             <TableContainer
                                 sx={{
-                                    minHeight: 780,
-                                    maxHeight: 780,
+                                    minHeight: 769,
+                                    maxHeight: 769,
                                     minWidth: '103.5%',
                                     maxWidth: '103.5%',
                                     borderLeft: '1px solid #ddd',
-                                    borderRight: '1px solid #ddd',
-                                    borderBottom: '1px solid #ddd',
+                                    borderRight: '1px solid #ddd'
                                 }}>
                                 <Table aria-label="invoice details table" stickyHeader>
                                     <TableHead>

@@ -3,10 +3,11 @@ import React from 'react';
 
 export const AlertError = ({isSmallScreen, error}) => {
   return <Alert severity="error" xs={12} sx={{
-              mt: 5,
-              p: 2,
-              marginLeft: isSmallScreen ? '0' : '3%',
+              mt: 3,
+              p: 1,
+              marginLeft: isSmallScreen ? '0' : '-19%',
               transition: 'margin-left 0.3s ease', 
+              minWidth: '83.5vw',
           }}>
               {error}
           </Alert>

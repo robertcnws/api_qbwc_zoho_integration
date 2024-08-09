@@ -124,25 +124,9 @@ const DownloadBackupList = () => {
     return (
         <Container
             maxWidth="xl"
-            // sx={{
-            //     marginLeft: -2,
-            //     marginTop: -2,
-            //     transition: 'margin-left 0.3s ease',
-            //     // minHeight: '100vh',
-            //     minWidth: '87vw',
-            //     padding: 1,
-            // }}
             sx={{
-                // marginLeft: '-2%',
-                // marginTop: '-1%',
-                // transition: 'margin-left 0.3s ease',
-                // // minHeight: '100vh',
-                // minWidth: '85vw',
-                // padding: 1,
                 marginLeft: '-23.2%',
-                minWidth: '88.9vw',
-                padding: '-1px',
-
+                minWidth: '88.4vw',
             }}
 
         >
@@ -155,6 +139,7 @@ const DownloadBackupList = () => {
                             textTransform: 'uppercase',
                             color: '#212529',
                             fontWeight: 'bold',
+                            marginLeft: '1%',
                         }}
                     >
                         DB BackUps
@@ -181,7 +166,7 @@ const DownloadBackupList = () => {
                     </Grid>
                 </Grid>
                 <Grid item xs={12} sx={{ mt: '-1%' }}>
-                    <TableContainer style={{ maxHeight: '685px', minWidth: 690 }}>
+                    <TableContainer style={{ maxHeight: '705px', minHeight: '705px', minWidth: 690 }}>
                         <Table id="myTable" aria-label="items table" stickyHeader>
                             <TableHead sx={{ backgroundColor: '#e0e0e0' }}>
                                 <TableRow>

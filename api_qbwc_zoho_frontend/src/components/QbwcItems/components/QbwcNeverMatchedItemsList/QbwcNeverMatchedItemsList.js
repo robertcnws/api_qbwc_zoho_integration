@@ -190,15 +190,8 @@ const QbwcNeverMatchedItemsList = ({ neverMatchedItems, onSyncComplete }) => {
     <Container
             maxWidth="xl"
             sx={{
-                // marginLeft: '-9%',
-                // marginTop: '-6%',
-                // transition: 'margin-left 0.3s ease',
-                // // minHeight: '100vh',
-                // minWidth: '87vw',
-                // padding: 1,
-                marginLeft: '-28.8%',
-                minWidth: '88.2vw',
-                padding: '-1px',
+                marginLeft: '-29.4%',
+                minWidth: '88.3vw',
             }}
         >
         <Grid container spacing={2} alignItems="center" justifyContent="space-between" mb={3} sx={{ mt: '-3%'}}>
@@ -210,6 +203,7 @@ const QbwcNeverMatchedItemsList = ({ neverMatchedItems, onSyncComplete }) => {
                         textTransform: 'uppercase',
                         color: '#212529',
                         fontWeight: 'bold',
+                        marginLeft: '1%',
                     }}
                 >
                     QB Never Matched Items List
