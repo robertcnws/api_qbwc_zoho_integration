@@ -159,33 +159,16 @@ const ItemsList = ({ items }) => {
             }}
         >
             <Grid container spacing={2} alignItems="center" mb={3} justifyContent="space-between" sx={{ mt: '-3%' }}>
-                <Grid item container xs={6} justifyContent="flex-start">
+                <Grid item container xs={6} justifyContent="flex-start" sx={{ marginTop: '-1%'}}>
                     <Grid item xs={3}>
                         <CustomFilter configCustomFilter={configCustomFilter} />
                     </Grid>
                 </Grid>
-                <Grid item xs={6} container justifyContent="flex-end" spacing={1}>
-                    {/* <Grid item xs={4}>
-                        <TextField
-                            label="Search"
-                            variant="outlined"
-                            size="small"
-                            value={searchTerm}
-                            onChange={handleSearchChange}
-                            sx={{ width: '100%', mb: 2 }}
-                        />
-                    </Grid> */}
+                <Grid item xs={6} container justifyContent="flex-end" spacing={1} sx={{ marginTop: '-2%'}}>
                     <HomeNavigationRightButton children={childrenNavigationRightButton} />
                 </Grid>
-                <Grid item xs={12} container justifyContent="flex-end" spacing={1}>
-                    {/* <Grid item xs={8}>
-                        <Alert severity="info" sx={{ mb: 2 }}>
-                            There are {filteredItems.length} items found.
-                        </Alert>
-                    </Grid> */}
-                </Grid>
                 <Grid item xs={12} sx={{ mt: '-1%' }}>
-                    <TableContainer style={{ maxHeight: '755px', minHeight: '755px', minWidth: 690 }}>
+                    <TableContainer style={{ maxHeight: '780px', minHeight: '780px', minWidth: 690 }}>
                         <Table id="myTable" aria-label="items table" stickyHeader>
                             <TableHead sx={{ backgroundColor: '#e0e0e0' }}>
                                 <TableRow>

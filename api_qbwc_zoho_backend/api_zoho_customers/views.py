@@ -117,8 +117,8 @@ def view_customer(request, customer_id):
 
         # Preparar arrays para comparación
         qb_customers_data = qb_df[['list_id', 'name', 'email', 'phone']].to_dict(orient='records')
-        zoho_email = zoho_customer.email
-        zoho_phone = zoho_customer.phone
+        zoho_email = zoho_customer.email if zoho_customer.email else ''
+        zoho_phone = zoho_customer.phone if zoho_customer.phone else ''
         dependences_list = []
         sorted_dependences_list = []
 

@@ -37,13 +37,13 @@ import ClearIcon from '@mui/icons-material/Clear';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
+import { styled } from '@mui/system';
 import { stableSort, fetchWithToken, getComparatorUndefined } from '../../../../utils';
 import { EmptyRecordsCell } from '../../../Utils/components/EmptyRecordsCell/EmptyRecordsCell';
 import SmallAlert from '../../../Utils/components/SmallAlert/SmallAlert';
 import HomeNavigationRightButton from '../../../Utils/components/NavigationRightButton/NavigationRightButton';
 import TableCustomPagination from '../../../Utils/components/TableCustomPagination/TableCustomPagination';
 import CustomFilter from '../../../Utils/components/CustomFilter/CustomFilter';
-
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
@@ -450,6 +450,15 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
         hasSearch: false
     };
 
+    const CustomDatePicker = styled(TextField)({
+        '& .MuiInputBase-root': {
+            height: '40px',
+        },
+        '& .MuiOutlinedInput-root': {
+            height: '40px',
+        },
+    });
+
     return (
         <Container
             maxWidth="xl"
@@ -465,29 +474,7 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
                     </Grid>
                 </Grid>
                 <Grid item xs={8} container justifyContent="flex-end" spacing={1} sx={{ display: 'flex' }}>
-                    {/* <Grid item xs={3} sx={{ display: 'flex', flexDirection: 'column' }}>
-                        <TextField
-                            label="Search"
-                            variant="outlined"
-                            size="small"
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            InputProps={{
-                                endAdornment: (
-                                    <IconButton onClick={() => setSearchTerm('')} size="small">
-                                        <ClearIcon />
-                                    </IconButton>
-                                )
-                            }}
-                            sx={{
-                                height: '100%',
-                                '& .MuiInputBase-root': {
-                                    height: '100%'
-                                }
-                            }}
-                        />
-                    </Grid> */}
-                    <Grid item xs={3} sx={{ display: 'flex', flexDirection: 'column', maxHeight: '40px' }}>
+                    <Grid item xs={3} sx={{ display: 'flex', flexDirection: 'column' }}>
                         <LocalizationProvider dateAdapter={AdapterDayjs}>
                             <DatePicker
                                 label="Filter by date"
@@ -497,67 +484,13 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
                                 minDate={oneYearAgo}
                                 maxDate={today}
                                 textField={(params) => (
-                                    <TextField
-                                        {...params}
-                                        InputProps={{
-                                            sx: {
-                                                maxHeight: '40px',
-                                                '& input': {
-                                                    padding: '10px 14px',
-                                                    maxHeight: '40px',
-                                                },
-                                            },
-                                        }}
-                                        sx={{
-                                            '& .MuiOutlinedInput-root': {
-                                                maxHeight: '40px',
-                                            },
-                                            '& .MuiOutlinedInput-input': {
-                                                padding: '10px 14px',
-                                                maxHeight: '40px',
-                                            },
-                                        }}
-                                    />
+                                    <CustomDatePicker variant="outlined" {...params} />
                                 )}
                             />
                         </LocalizationProvider>
                     </Grid>
-                    {/* <Grid item xs={2} sx={{ display: 'flex', flexDirection: 'column' }}>
-                        <Button
-                            variant="contained"
-                            color="info"
-                            size="small"
-                            onClick={handleForceToSync}
-                            disabled={filteredInvoices.length === 0}
-                        >
-                            Sync Selected
-                        </Button>
-                    </Grid> */}
                     <HomeNavigationRightButton children={childrenNavigationRightButton} />
                 </Grid>
-            </Grid>
-
-            <Grid container spacing={2} mb={3}>
-                {/* <Grid item xs={12}>
-                    <Alert severity={filter === 'all' ? 
-                        'info' : (filter === 'not_processed' ? 
-                        'warning' : (filter === 'synced' ? 
-                        'success' : (filter === 'forced_sync' || filter === 'not_forced_sync' ? 
-                        'info':  (filter === 'matched' ? 
-                        'success' : (filter === 'not_matched' ? 
-                        'warning' : 'error')))))
-                    } sx={{ fontSize: 'small' }}>
-                        <b>{filteredInvoices.length}</b> {filter === 'all' ? 
-                        'Total' : (filter === 'not_processed' ? 
-                        'Not Processed' : (filter === 'synced' ? 
-                        'Synced' : (filter === 'forced_sync' ? 
-                        'Forced to Sync' : (filter === 'not_forced_sync' ? 
-                        'Not Forced to Sync' : (filter === 'matched' ? 
-                        'Matched': (filter === 'not_matched' ? 
-                        'Not Matched':'Not Synced'))))))
-                    } invoices found
-                    </Alert>
-                </Grid> */}
             </Grid>
 
             <TableContainer style={{ maxHeight: '745px', mixHeight: '745px', minWidth: 690 }} sx={{ mt: '-1%' }}>

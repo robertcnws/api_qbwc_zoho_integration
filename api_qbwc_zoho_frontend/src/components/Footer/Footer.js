@@ -21,7 +21,7 @@ const Footer = () => {
             }}
         >
             <Container maxWidth="lg" sx={{ marginLeft: '0px' }}>
-                <Grid container xs={12} sx={{ marginLeft: '-30px'}}>
+                <Grid container item xs={12} sx={{ marginLeft: '-30px'}}>
                     <Grid item container xs={6} justifyContent="left" spacing={6}>
                         <Grid item>
                             <Link href="mailto:" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', color: 'inherit', textDecoration: 'none' }}>
