@@ -144,8 +144,10 @@ def manage_user(request):
             logged_username = data.get('logged_username')
             user = LoginUser.objects.filter(username=username).first()
             if not user:
-                user = LoginUser.objects.create_user(username=username, email=email, password=password, is_staff=is_staff)
-                action, message = 'create_user', 'Create user'
+                user = LoginUser.objects.create_user(
+                    username=username, email=email, password=password, is_staff=is_staff, first_name=first_name, last_name=last_name
+                )
+                action, message, msg_response = 'create_user', 'Create user', 'created'
             else:
                 if not is_new:
                     user.first_name = first_name
@@ -154,15 +156,59 @@ def manage_user(request):
                     user.is_staff = is_staff
                     user.set_password(password)
                     user.save()
-                    action, message = 'update_user', 'Update user'
+                    action, message, msg_response = 'update_user', 'Update user', 'updated'
                 else:
                     return JsonResponse({'error': 'User already exists'}, status=400)
         except LoginUser.DoesNotExist:
             return JsonResponse({'error': 'User not found or could not be created'}, status=404)
         user = model_to_dict(user)
-        logger.info(f'User {user["username"]} has been created/updated')
+        user['message'] = f'User {user["username"]} has been {msg_response}'
+        logger.info(f'User {user["username"]} has been {msg_response}')
         manage_api_tracking_log(logged_username, action, request.META.get('REMOTE_ADDR'), message)
         return JsonResponse(user, status=200)
+    return JsonResponse({'error': 'Invalid JWT Token'}, status=401)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def set_user_status(request, username):
+    valid_token = validateJWTTokenRequest(request)
+    if valid_token:
+        try:
+            data = json.loads(request.body) 
+            logged_username = data.get('logged_username')
+            user = LoginUser.objects.filter(username=username).first()
+            if not user:
+                return JsonResponse({'error': f'User {username} not found'}, status=404)
+            else:
+                user.is_active = not user.is_active
+                user.save()
+                action, message = 'set_user_status', 'Set user status'
+        except LoginUser.DoesNotExist:
+            return JsonResponse({'error': f'User {username} not found'}, status=404)
+        user = model_to_dict(user)
+        user['message'] = f'User {user["username"]} has been setted to {"active" if user["is_active"] else "inactive"}'
+        logger.info(f'User {user["username"]} has been settet to {"active" if user["is_active"] else "inactive"}')
+        manage_api_tracking_log(logged_username, action, request.META.get('REMOTE_ADDR'), message)
+        return JsonResponse(user, status=200)
+    return JsonResponse({'error': 'Invalid JWT Token'}, status=401)
+
+
+#############################################
+# Logging Fetch
+#############################################
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def list_loggings(request):
+    valid_token = validateJWTTokenRequest(request)
+    if valid_token:
+        loggings = ApiTrackingLogs.objects.all().order_by('-log_modified', 'log_user')
+        loggings_json = serializers.serialize('json', list(loggings)) 
+        loggings_data = json.loads(loggings_json)
+        
+        return JsonResponse([log['fields'] for log in loggings_data], safe=False, status=200)
+    
     return JsonResponse({'error': 'Invalid JWT Token'}, status=401)
 
 

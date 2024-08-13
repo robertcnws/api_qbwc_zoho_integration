@@ -166,7 +166,7 @@ const DownloadBackupList = () => {
                     </Grid>
                 </Grid>
                 <Grid item xs={12} sx={{ mt: '-1%' }}>
-                    <TableContainer style={{ maxHeight: '705px', minHeight: '705px', minWidth: 690 }}>
+                    <TableContainer style={{ maxHeight: '695px', minHeight: '695px', minWidth: 690 }}>
                         <Table id="myTable" aria-label="items table" stickyHeader>
                             <TableHead sx={{ backgroundColor: '#e0e0e0' }}>
                                 <TableRow>

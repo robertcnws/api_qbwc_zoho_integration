@@ -452,11 +452,37 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
 
     const CustomDatePicker = styled(TextField)({
         '& .MuiInputBase-root': {
-            height: '40px',
+            height: '20px', 
+            paddingTop: '0px', 
+            paddinBottom: '0px',
         },
         '& .MuiOutlinedInput-root': {
-            height: '40px',
+            height: '20px', 
+            paddingTop: '0px', 
+            paddinBottom: '0px',
         },
+        '& .MuiOutlinedInput-root': {
+            height: '20px', 
+            paddingTop: '0px', 
+            paddinBottom: '0px',
+        },
+        '& .MuiInputBase-inputAdornedEnd': {
+            height: '20px', 
+            paddingTop: '0px', 
+            paddinBottom: '0px',
+        },
+        '& .MuiInputBase-input': {
+            height: '20px', 
+            paddingTop: '0px', 
+            paddinBottom: '0px',
+        },
+        '& .MuiInputLabel-root': {
+            top: '-6px', 
+            fontSize: '12px', 
+            paddingTop: '0px', 
+            paddinBottom: '0px',
+        },
+
     });
 
     return (
@@ -473,7 +499,7 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
                         <CustomFilter configCustomFilter={configCustomFilter} />
                     </Grid>
                 </Grid>
-                <Grid item xs={8} container justifyContent="flex-end" spacing={1} sx={{ display: 'flex' }}>
+                <Grid item xs={8} container justifyContent="flex-end" spacing={1}>
                     <Grid item xs={3} sx={{ display: 'flex', flexDirection: 'column' }}>
                         <LocalizationProvider dateAdapter={AdapterDayjs}>
                             <DatePicker

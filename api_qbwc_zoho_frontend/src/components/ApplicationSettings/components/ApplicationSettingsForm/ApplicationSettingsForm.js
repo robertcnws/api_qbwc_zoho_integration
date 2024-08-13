@@ -70,6 +70,8 @@ const ApplicationSettingsForm = ({ formData, onSubmit, error, success }) => {
         }
     };
 
+    
+
     return (
         <Container 
             maxWidth="md" 
@@ -80,7 +82,8 @@ const ApplicationSettingsForm = ({ formData, onSubmit, error, success }) => {
                 borderRadius: 2, 
                 minWidth:'67vw', 
                 minHeight: '55vh',
-                marginLeft: '-21%',
+                marginLeft: '-20%',
+                paddingBottom: '20px',
               }}
         >
             <Typography

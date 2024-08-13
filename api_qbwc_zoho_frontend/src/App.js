@@ -25,6 +25,7 @@ import QbwcNeverMatchedCustomersListPage from './components/QbwcCustomers/compon
 import DownloadBackupList from './components/DownloadBackupList/DownloadBackupList';
 import UsersListPage from './components/Users/components/UsersListPage/UsersListPage';
 import UsersFormContainer from './components/Users/components/UsersFormContainer/UsersFormContainer';
+import LoggingListPage from './components/Logging/components/LoggingListPage/LoggingListPage';
 
 const HomeRedirect = () => {
   const { isAuthenticated } = useAuth();
@@ -99,6 +100,7 @@ const App = () => {
             <Route path="download_backup_db" element={<DownloadBackupList />} />
             <Route path="list_users" element={<UsersListPage />} />
             <Route path="view_user" element={<UsersFormContainer />} />
+            <Route path="list_logs" element={<LoggingListPage />} />
           </Route>
         </Routes>
   );

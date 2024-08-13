@@ -4,33 +4,25 @@ import {
     Grid,
     Typography,
     Alert,
-    Button,
     Table,
     TableBody,
     TableCell,
     TableContainer,
     TableHead,
     TableRow,
-    Paper,
-    TablePagination,
-    TextField,
     TableSortLabel,
     IconButton,
 } from '@mui/material';
-import DeleteIcon from '@mui/icons-material/Delete';
-import EditIcon from '@mui/icons-material/Edit';
-import AddIcon from '@mui/icons-material/Add';
 import HomeIcon from '@mui/icons-material/Home';
-import { Link, useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
-import { stableSort, getComparatorUndefined, fetchWithToken, formatDate } from '../../../../utils';
+import { stableSort, getComparatorUndefined, fetchWithToken } from '../../../../utils';
 import { EmptyRecordsCell } from '../../../Utils/components/EmptyRecordsCell/EmptyRecordsCell';
 import NavigationRightButton from '../../../Utils/components/NavigationRightButton/NavigationRightButton';
 import TableCustomPagination from '../../../Utils/components/TableCustomPagination/TableCustomPagination';
 
 const apiUrl = process.env.REACT_APP_ENVIRONMENT === 'DEV' ? process.env.REACT_APP_BACKEND_URL_DEV : process.env.REACT_APP_BACKEND_URL_PROD;
 
-const UsersList = ({ users, onSyncComplete }) => {
+const LoggingList = ({ logs, onSyncComplete }) => {
 
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -38,7 +30,6 @@ const UsersList = ({ users, onSyncComplete }) => {
     const [orderBy, setOrderBy] = useState('');
     const [order, setOrder] = useState('asc');
     const [hoveredRowIndex, setHoveredRowIndex] = useState(null);
-    const navigate = useNavigate();
 
     useEffect(() => {
         const handleStorageChange = () => {
@@ -70,17 +61,12 @@ const UsersList = ({ users, onSyncComplete }) => {
         setPage(0);
     };
 
-    const filteredUsers = users.filter(user =>
-        user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.role.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.first_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.last_name.toLowerCase().includes(searchTerm.toLowerCase())
+    const filteredLogs = logs.filter(log =>
+        log.log_user.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        log.action.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        log.log_pc_ip.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        log.log_message.toLowerCase().includes(searchTerm.toLowerCase())
     );
-
-    const viewUser = (user) => {
-        const state = { user: user };
-        navigate('/integration/view_user', { state: state });
-    };
 
     const setUserStatus =  (user) => {
         Swal.fire({
@@ -109,25 +95,17 @@ const UsersList = ({ users, onSyncComplete }) => {
         });
     };
 
-    const sortedUsers = stableSort(filteredUsers, getComparatorUndefined(order, orderBy));
+    const sortedLogs = stableSort(filteredLogs, getComparatorUndefined(order, orderBy));
 
     const columns = [
-        { id: 'username', label: 'Username' },
-        { id: 'role', label: 'Role' },
-        { id: 'first_name', label: 'First Name' },
-        { id: 'last_name', label: 'Last Name' },
-        { id: 'email', label: 'Email' },
-        { id: 'last_login', label: 'Last Login' },
-        { id: 'actions', label: 'Actions' }
+        { id: 'user', label: 'User' },
+        { id: 'action', label: 'Action' },
+        { id: 'pc_ip', label: 'IP PC' },
+        { id: 'message', label: 'Message' },
+        { id: 'last_date_modified', label: 'Last Date Action' },
     ];
 
     const childrenNavigationRightButton = [
-        {
-            label: 'Add New User',
-            icon: <AddIcon sx={{ marginRight: 1 }} />,
-            onClick: viewUser,
-            visibility: true
-        },
         {
             label: 'Back to Integration',
             icon: <HomeIcon sx={{ marginRight: 1 }} />,
@@ -156,26 +134,16 @@ const UsersList = ({ users, onSyncComplete }) => {
                             marginLeft: '1%',
                         }}
                     >
-                        Users List
+                        Logs List
                     </Typography>
                 </Grid>
                 <Grid item xs={6} container justifyContent="flex-end" spacing={1}>
-                    {/* <Grid item xs={4}>
-                        <TextField
-                            label="Search"
-                            variant="outlined"
-                            size="small"
-                            value={searchTerm}
-                            onChange={handleSearchChange}
-                            sx={{ width: '100%', mb: 2 }}
-                        />
-                    </Grid> */}
                     <NavigationRightButton children={childrenNavigationRightButton} />
                 </Grid>
                 <Grid item xs={12} container justifyContent="flex-end" spacing={1}>
                     <Grid item xs={12}>
                         <Alert severity="info" sx={{ mb: 2 }}>
-                            There are {filteredUsers.length} users found.
+                            There are {filteredLogs.length} logs found.
                         </Alert>
                     </Grid>
                 </Grid>
@@ -205,13 +173,13 @@ const UsersList = ({ users, onSyncComplete }) => {
                                 </TableRow>
                             </TableHead>
                             <TableBody>
-                                {filteredUsers.length === 0 ? (
+                                {filteredLogs.length === 0 ? (
                                     <EmptyRecordsCell columns={columns} />
                                 ) : (
                                     (rowsPerPage > 0
-                                        ? sortedUsers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                                        : sortedUsers
-                                    ).map((user, index) => (
+                                        ? sortedLogs.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                                        : sortedLogs
+                                    ).map((log, index) => (
                                         <TableRow key={index}
                                             sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                                             style={{
@@ -222,26 +190,17 @@ const UsersList = ({ users, onSyncComplete }) => {
                                             onMouseEnter={() => setHoveredRowIndex(index)}
                                             onMouseLeave={() => setHoveredRowIndex(null)}
                                         >
-                                            <TableCell>{user.username}</TableCell>
-                                            <TableCell>{user.role}</TableCell>
-                                            <TableCell>{user.first_name ? user.first_name : user.username}</TableCell>
-                                            <TableCell>{user.last_name ? user.last_name : user.username}</TableCell>
-                                            <TableCell>{user.email ? user.email : '---'}</TableCell>
-                                            <TableCell>{user.last_login ? formatDate(user.last_login) : '---'}</TableCell>
-                                            <TableCell className="text-center align-middle">
-                                                <IconButton color="info" aria-label="view" size='xx-large' onClick={() => viewUser(user)}>
-                                                    <EditIcon />
-                                                </IconButton>
-                                                <IconButton color="error" aria-label="view" size='xx-large' onClick={() => setUserStatus(user)}>
-                                                    <DeleteIcon />
-                                                </IconButton>
-                                            </TableCell>
+                                            <TableCell>{log.log_user}</TableCell>
+                                            <TableCell>{log.log_action}</TableCell>
+                                            <TableCell>{log.log_pc_ip}</TableCell>
+                                            <TableCell>{log.log_message}</TableCell>
+                                            <TableCell>{log.log_modified}</TableCell>
                                         </TableRow>
                                     ))
                                 )}
                                 <TableCustomPagination
                                     columnsLength={columns.length}
-                                    data={filteredUsers}
+                                    data={filteredLogs}
                                     page={page}
                                     rowsPerPage={rowsPerPage}
                                     handleChangePage={handleChangePage}
@@ -257,4 +216,4 @@ const UsersList = ({ users, onSyncComplete }) => {
 
 }
 
-export default UsersList;
+export default LoggingList;

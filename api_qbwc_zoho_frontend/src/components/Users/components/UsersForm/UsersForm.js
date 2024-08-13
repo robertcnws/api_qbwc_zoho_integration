@@ -28,7 +28,9 @@ const UsersForm = ({ formData, onSubmit, error, success, isNew }) => {
             data.first_name !== formData.first_name ||
             data.last_name !== formData.last_name ||
             role !== formData.is_staff ||
-            data.email !== formData.email;
+            data.email !== formData.email ||
+            data.password !== formData.password ||
+            data.confirm_password !== formData.comfirm_password;
         setFormChanged(isFormChanged);
     }, [data, formData]);
 
@@ -73,6 +75,7 @@ const UsersForm = ({ formData, onSubmit, error, success, isNew }) => {
 
     const validateForm = () => {
       const newErrors = {};
+      if (isNew && !data.username) newErrors.username = 'Username is required';
       if (!data.first_name) newErrors.first_name = 'First Name is required';
       if (!data.last_name) newErrors.last_name = 'Last Name is required';
       if (!data.email) {
@@ -117,6 +120,7 @@ const UsersForm = ({ formData, onSubmit, error, success, isNew }) => {
                 minWidth:'67vw', 
                 minHeight: '50vh',
                 marginLeft: '-20%',
+                paddingBottom: '20px',
               }}
         >
             <Typography
