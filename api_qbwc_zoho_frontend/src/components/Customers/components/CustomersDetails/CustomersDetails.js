@@ -391,7 +391,7 @@ const CustomersDetails = () => {
                     <Grid item container xs={3} sx={{ borderRight: '1px solid #ddd', marginLeft: '-10px' }}>
                         <Grid item container xs={12} spacing={1} sx={{ marginTop: '2px' }}>
                             <CustomFilter configCustomFilter={configCustomFilter} />
-                            <TableContainer sx={{ maxHeight: 778, minHeight: 778, borderTop: '1px solid #ddd' }}>
+                            <TableContainer sx={{ maxHeight: 776, minHeight: 776, borderTop: '1px solid #ddd' }}>
                                 <Table aria-label="filtered customers table">
                                     <TableBody>
                                         {filteredCustomers && filteredCustomers.length > 0 ? (

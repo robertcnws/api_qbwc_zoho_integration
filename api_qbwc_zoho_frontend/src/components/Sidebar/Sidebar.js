@@ -111,10 +111,10 @@ const Sidebar = ({ expanded, toggleSubmenu, handleLogout, handleDoBackup }) => {
           sx={{
             backgroundColor: isActive('/integration/zoho') || isActive('/integration/qbwc') || 
                               isActive('/integration/application_settings') || isActive('/integration/download_backup_db') ||
-                              isActive('/integration/list_users') || isActive('/integration/list_logs') ? '#00796b' : 'inherit',
+                              isActive('/integration/list_users') || isActive('/integration/list_logs') || isActive('/integration/view_user') ? '#00796b' : 'inherit',
             borderRadius: isActive('/integration/zoho') || isActive('/integration/qbwc') || 
                           isActive('/integration/application_settings') || isActive('/integration/download_backup_db') ||
-                          isActive('/integration/list_users') || isActive('/integration/list_logs') ? 3 : 0,
+                          isActive('/integration/list_users') || isActive('/integration/list_logs') || isActive('/integration/view_user') ? 3 : 0,
           }}>
           <ListItemIcon><Settings sx={{ color: '#fff', maxWidth: '20px', maxHeight: '20px', minHeight: '20px' }} /></ListItemIcon>
           <ListItemText primary="Settings" sx={{

@@ -117,6 +117,9 @@ const Topbar = ({ handleLogout }) => {
         } else if (currentPath.includes('download_backup_db')) {
             setLabelSearch('Search Back Up (/)');
             setVisibleSearch(true);
+        } else if (currentPath.includes('list_logs')) {
+            setLabelSearch('Search Logs (/)');
+            setVisibleSearch(true);
         } else {
             setLabelSearch('Search');
             setVisibleSearch(false);

@@ -54,8 +54,8 @@ const LoggingList = ({ logs }) => {
 
     const filteredLogs = logs.filter(log =>
         log.log_user.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        log.action.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        log.log_pc_ip.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        log.log_action.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        log.log_pc_ip.includes(searchTerm.toLowerCase()) ||
         log.log_message.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
