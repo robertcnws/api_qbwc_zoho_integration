@@ -33,13 +33,13 @@ const PieChartComponent = ({ data }) => {
 
   const options = {
     plugins: {
-      
+
       legend: {
         position: 'right', // Cambia la posición de la leyenda a la derecha
       },
       tooltip: {
         callbacks: {
-          label: function(context) {
+          label: function (context) {
             // Muestra el valor en el tooltip
             let label = context.label || '';
             if (context.parsed !== null) {
@@ -68,7 +68,7 @@ const PieChartComponent = ({ data }) => {
     },
   };
 
-  return <Pie data={newData} options={options}/>;
+  return <Pie data={newData} options={options} />;
 };
 
 export default PieChartComponent;

@@ -1,11 +1,9 @@
 import React from 'react';
-import { Container, Box, Typography, List, ListItemButton, ListItemIcon, ListItemText, Divider } from '@mui/material';
-import { Dashboard, People, Receipt, RocketLaunch, Settings, ExpandMore, ExpandLess, Download } from '@mui/icons-material';
+import { Container, Box, List, ListItemButton, ListItemIcon, ListItemText, Divider } from '@mui/material';
+import { Dashboard, People, Receipt, RocketLaunch, ExpandMore, ExpandLess, Download } from '@mui/icons-material';
 import BackupIcon from '@mui/icons-material/Backup';
 import InventoryIcon from '@mui/icons-material/Inventory';
 import AssignmentTurnedInIcon from '@mui/icons-material/AssignmentTurnedIn';
-import AppsIcon from '@mui/icons-material/Apps';
-import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
 import AccountCircle from '@mui/icons-material/AccountCircle';
 import { Link, useLocation } from 'react-router-dom';
 import './Sidebar.css';
@@ -30,8 +28,6 @@ const Sidebar = ({ expanded, toggleSubmenu, handleLogout, handleDoBackup }) => {
     }
     return false;
   };
-
-
 
   return (
 

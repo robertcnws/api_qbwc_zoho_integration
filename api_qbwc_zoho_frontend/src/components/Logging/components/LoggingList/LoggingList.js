@@ -11,18 +11,14 @@ import {
     TableHead,
     TableRow,
     TableSortLabel,
-    IconButton,
 } from '@mui/material';
 import HomeIcon from '@mui/icons-material/Home';
-import Swal from 'sweetalert2';
-import { stableSort, getComparatorUndefined, fetchWithToken } from '../../../../utils';
+import { stableSort, getComparatorUndefined } from '../../../../utils';
 import { EmptyRecordsCell } from '../../../Utils/components/EmptyRecordsCell/EmptyRecordsCell';
 import NavigationRightButton from '../../../Utils/components/NavigationRightButton/NavigationRightButton';
 import TableCustomPagination from '../../../Utils/components/TableCustomPagination/TableCustomPagination';
 
-const apiUrl = process.env.REACT_APP_ENVIRONMENT === 'DEV' ? process.env.REACT_APP_BACKEND_URL_DEV : process.env.REACT_APP_BACKEND_URL_PROD;
-
-const LoggingList = ({ logs, onSyncComplete }) => {
+const LoggingList = ({ logs }) => {
 
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -56,44 +52,12 @@ const LoggingList = ({ logs, onSyncComplete }) => {
         setPage(0);
     };
 
-    const handleSearchChange = (event) => {
-        setSearchTerm(event.target.value);
-        setPage(0);
-    };
-
     const filteredLogs = logs.filter(log =>
         log.log_user.toLowerCase().includes(searchTerm.toLowerCase()) ||
         log.action.toLowerCase().includes(searchTerm.toLowerCase()) ||
         log.log_pc_ip.toLowerCase().includes(searchTerm.toLowerCase()) ||
         log.log_message.toLowerCase().includes(searchTerm.toLowerCase())
     );
-
-    const setUserStatus =  (user) => {
-        Swal.fire({
-            title: 'Are you sure?',
-            text: `You are about to delete user ${user.username}. This action cannot be undone.`,
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonText: 'Yes, delete it!',
-            cancelButtonText: 'No, cancel!',
-            confirmButtonColor: '#dc3545',
-            cancelButtonColor: '#6c757d'
-        }).then(async(result) => {
-            if (result.isConfirmed) {
-                const data = JSON.stringify({ logged_username: localStorage.getItem('username') });
-                const response = await fetchWithToken(`${apiUrl}/set_user_status/${user.username}/`, 'POST', data, {}, apiUrl);
-                if (response.status === 200) {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Success',
-                        text: response.data.message
-                    }).then(() => {
-                        onSyncComplete();
-                    });
-                }
-            }
-        });
-    };
 
     const sortedLogs = stableSort(filteredLogs, getComparatorUndefined(order, orderBy));
 

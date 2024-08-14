@@ -15,39 +15,35 @@ const QbwcNeverMatchedCustomersListPage = () => {
     const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
 
     const fetchCustomers = async () => {
-            try {
-                const isNeverMatch = 'true';
-                const url = `${apiUrl}/api_quickbook_soap/qbwc_customers/${isNeverMatch}`;
-                const response = await fetchWithToken(url, 'GET', null, {}, apiUrl);
-                const jsonData = JSON.parse(response.data); 
-                setCustomers(jsonData);  
-            } catch (error) {
-                console.error('Error fetching qb customers:', error);
-                setError(`Failed to fetch qn customers: ${error}`);
-            } finally {
-                setLoading(false);
-            }
+        try {
+            const isNeverMatch = 'true';
+            const url = `${apiUrl}/api_quickbook_soap/qbwc_customers/${isNeverMatch}`;
+            const response = await fetchWithToken(url, 'GET', null, {}, apiUrl);
+            const jsonData = JSON.parse(response.data);
+            setCustomers(jsonData);
+        } catch (error) {
+            console.error('Error fetching qb customers:', error);
+            setError(`Failed to fetch qn customers: ${error}`);
+        } finally {
+            setLoading(false);
+        }
     };
 
     useEffect(() => {
         fetchCustomers();
     }, []);
 
-
-
     if (loading) {
         return (
-            <AlertLoading isSmallScreen={isSmallScreen} message='QBWC Never Matched Customers List'/>
+            <AlertLoading isSmallScreen={isSmallScreen} message='QBWC Never Matched Customers List' />
         );
     }
 
     if (error) {
         return (
-            <AlertError isSmallScreen={isSmallScreen} error={error}/>
+            <AlertError isSmallScreen={isSmallScreen} error={error} />
         );
     }
-
-    
 
     return (
         <Container maxWidth="lg"
@@ -55,13 +51,13 @@ const QbwcNeverMatchedCustomersListPage = () => {
                 mt: 5,
                 p: 2,
                 marginLeft: isSmallScreen ? '0' : '3%',
-                transition: 'margin-left 0.3s ease', 
+                transition: 'margin-left 0.3s ease',
             }}
         >
             {loading ? (
                 <CircularProgress />
             ) : (
-                <QbwcNeverMatchedCustomersList customers={customers} onSyncComplete={fetchCustomers}/>
+                <QbwcNeverMatchedCustomersList customers={customers} onSyncComplete={fetchCustomers} />
             )}
         </Container>
     );

@@ -15,21 +15,21 @@ const QbwcMatchedItemsListPage = () => {
     const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
 
     const fetchItems = async () => {
-      try {
-          const url = `${apiUrl}/api_quickbook_soap/matched_items/`;
-          const response = await fetchWithToken(url, 'GET', null, {}, apiUrl);
-          if (response.status === 200) {
-              setItems(response.data);
-          } else {
-              setError(`Failed to fetch items: ${response.statusText}`);
-          }
-      } catch (error) {
-          console.error('Error fetching items:', error);
-          setError(`Failed to fetch items: ${error}`);
-      }  finally {
-          setLoading(false);
-      }
-  };
+        try {
+            const url = `${apiUrl}/api_quickbook_soap/matched_items/`;
+            const response = await fetchWithToken(url, 'GET', null, {}, apiUrl);
+            if (response.status === 200) {
+                setItems(response.data);
+            } else {
+                setError(`Failed to fetch items: ${response.statusText}`);
+            }
+        } catch (error) {
+            console.error('Error fetching items:', error);
+            setError(`Failed to fetch items: ${error}`);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
         fetchItems();
@@ -37,16 +37,15 @@ const QbwcMatchedItemsListPage = () => {
 
     if (loading) {
         return (
-            <AlertLoading isSmallScreen={isSmallScreen} message='QBWC Matched Items List'/>
+            <AlertLoading isSmallScreen={isSmallScreen} message='QBWC Matched Items List' />
         );
     }
 
     if (error) {
         return (
-            <AlertError isSmallScreen={isSmallScreen} error={error}/>
+            <AlertError isSmallScreen={isSmallScreen} error={error} />
         );
     }
-
 
     return (
         <Container maxWidth="lg"
@@ -54,7 +53,7 @@ const QbwcMatchedItemsListPage = () => {
                 mt: 5,
                 p: 2,
                 marginLeft: isSmallScreen ? '0' : '3%',
-                transition: 'margin-left 0.3s ease', 
+                transition: 'margin-left 0.3s ease',
             }}
         >
             {loading ? (

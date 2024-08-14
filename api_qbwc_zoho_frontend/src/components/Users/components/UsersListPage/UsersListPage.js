@@ -32,17 +32,15 @@ const UsersListPage = () => {
 
     if (loading) {
         return (
-            <AlertLoading isSmallScreen={isSmallScreen} message='Users List'/>
+            <AlertLoading isSmallScreen={isSmallScreen} message='Users List' />
         );
     }
 
     if (error) {
         return (
-            <AlertError isSmallScreen={isSmallScreen} error={error}/>
+            <AlertError isSmallScreen={isSmallScreen} error={error} />
         );
     }
-
-    
 
     return (
         <Container maxWidth="lg"
@@ -50,13 +48,13 @@ const UsersListPage = () => {
                 mt: 5,
                 p: 2,
                 marginLeft: isSmallScreen ? '0' : '3%',
-                transition: 'margin-left 0.3s ease', 
+                transition: 'margin-left 0.3s ease',
             }}
         >
             {loading ? (
                 <CircularProgress />
             ) : (
-                <UsersList users={users} onSyncComplete={fetchUsers}/>
+                <UsersList users={users} onSyncComplete={fetchUsers} />
             )}
         </Container>
     );

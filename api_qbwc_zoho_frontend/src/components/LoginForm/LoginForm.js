@@ -45,7 +45,7 @@ const LoginForm = () => {
       const loginResponse = await axios.post(`${apiUrl}/login/`, body, {
         headers: {
           'Content-Type': 'application/json',
-          'X-CSRFToken': getCookie('csrftoken'), 
+          'X-CSRFToken': getCookie('csrftoken'),
         },
       });
 

@@ -2,34 +2,19 @@ import React, { useState, useEffect } from 'react';
 import {
     Container,
     Grid,
-    Typography,
-    Alert,
-    Button,
     Table,
     TableBody,
     TableCell,
     TableContainer,
     TableHead,
     TableRow,
-    Paper,
-    TablePagination,
-    TextField,
     TableSortLabel,
-    FormControl,
-    InputLabel,
-    Select,
-    MenuItem,
-    IconButton,
-    Menu
 } from '@mui/material';
-import VisibilityIcon from '@mui/icons-material/Visibility';
-import MoreVertIcon from '@mui/icons-material/MoreVert';
 import HomeIcon from '@mui/icons-material/Home';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { stableSort, getComparator } from '../../../../utils';
 import { EmptyRecordsCell } from '../../../Utils/components/EmptyRecordsCell/EmptyRecordsCell';
 import HomeNavigationRightButton from '../../../Utils/components/NavigationRightButton/NavigationRightButton';
-import SmallAlert from '../../../Utils/components/SmallAlert/SmallAlert';
 import TableCustomPagination from '../../../Utils/components/TableCustomPagination/TableCustomPagination';
 import CustomFilter from '../../../Utils/components/CustomFilter/CustomFilter';
 
@@ -102,7 +87,9 @@ const ItemsList = ({ items }) => {
     const filteredItems = items.filter(item => {
 
         const matchesSearchTerm = item.fields.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            item.fields.sku.toLowerCase().includes(searchTerm.toLowerCase());
+            item.fields.sku.toLowerCase().includes(searchTerm.toLowerCase()) || 
+            item.fields.rate.toString().includes(searchTerm.toLowerCase()) ||
+            item.fields.item_id.toLowerCase().includes(searchTerm.toLowerCase());
 
         if (filter === 'all') return matchesSearchTerm;
         if (filter === 'matched') return matchesSearchTerm && item.fields.qb_list_id && item.fields.qb_list_id !== "";
@@ -121,14 +108,6 @@ const ItemsList = ({ items }) => {
         { id: 'matched', label: 'Matched' },
         // { id: 'actions', label: 'Actions' }
     ];
-
-    const handleClick = (event) => {
-        setAnchorEl(event.currentTarget);
-    };
-
-    const handleClose = () => {
-        setAnchorEl(null);
-    };
 
     const childrenNavigationRightButton = [
         {

@@ -42,8 +42,6 @@ const LoggingListPage = () => {
         );
     }
 
-    
-
     return (
         <Container maxWidth="lg"
             sx={{

@@ -4,16 +4,12 @@ import {
   Grid, 
   Typography, 
   Alert, 
-  Button, 
   Table, 
   TableBody, 
   TableCell, 
   TableContainer, 
   TableHead, 
   TableRow,
-  Paper, 
-  TablePagination, 
-  TextField, 
   TableSortLabel,
   FormControl,
   FormControlLabel,
@@ -22,7 +18,6 @@ import {
 import UndoIcon from '@mui/icons-material/Undo';
 import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
 import Swal from 'sweetalert2';
-import { Link } from 'react-router-dom';
 import { stableSort, getComparator, fetchWithToken } from '../../../../utils';
 import { EmptyRecordsCell } from '../../../Utils/components/EmptyRecordsCell/EmptyRecordsCell';
 import NavigationRightButton from '../../../Utils/components/NavigationRightButton/NavigationRightButton';
@@ -210,16 +205,6 @@ const QbwcNeverMatchedItemsList = ({ neverMatchedItems, onSyncComplete }) => {
                 </Typography>
             </Grid>
             <Grid item xs={6} container justifyContent="flex-end" spacing={1}>
-                {/* <Grid item xs={4}>
-                    <TextField
-                        label="Search"
-                        variant="outlined"
-                        size="small"
-                        value={searchTerm}
-                        onChange={handleSearchChange}
-                        sx={{ width: '100%', mb: 2 }}
-                    />
-                </Grid> */}
                 <NavigationRightButton children={childrenNavigationRightButton} />
             </Grid>
             <Grid item xs={12} container justifyContent="flex-end" spacing={1}>

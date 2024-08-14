@@ -34,17 +34,15 @@ const QbwcNeverMatchedItemsListPage = () => {
 
     if (loading) {
         return (
-            <AlertLoading isSmallScreen={isSmallScreen} message='QBWC Never Matched Items List'/>
+            <AlertLoading isSmallScreen={isSmallScreen} message='QBWC Never Matched Items List' />
         );
     }
 
     if (error) {
         return (
-            <AlertError isSmallScreen={isSmallScreen} error={error}/>
+            <AlertError isSmallScreen={isSmallScreen} error={error} />
         );
     }
-
-    
 
     return (
         <Container maxWidth="lg"
@@ -52,13 +50,13 @@ const QbwcNeverMatchedItemsListPage = () => {
                 mt: 5,
                 p: 2,
                 marginLeft: isSmallScreen ? '0' : '3%',
-                transition: 'margin-left 0.3s ease', 
+                transition: 'margin-left 0.3s ease',
             }}
         >
             {loading ? (
                 <CircularProgress />
             ) : (
-                <QbwcNeverMatchedItemsList neverMatchedItems={neverMatchedItems} onSyncComplete={fetchNeverMatchedItems}/>
+                <QbwcNeverMatchedItemsList neverMatchedItems={neverMatchedItems} onSyncComplete={fetchNeverMatchedItems} />
             )}
         </Container>
     );

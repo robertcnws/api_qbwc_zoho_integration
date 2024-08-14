@@ -206,7 +206,7 @@ def load_items(request):
             'organization_id': app_config.zoho_org_id,
             'page': 1,       # Página inicial
             'per_page': 200,  # Cantidad de resultados por página
-            'status': 'active'  # Solo items activos
+            # 'status': 'active' 
         }
         
         url = f'{settings.ZOHO_URL_READ_ITEMS}'

@@ -1,5 +1,3 @@
-// src/components/ApplicationSettingsContainer.js
-
 import React, { useState, useEffect } from 'react';
 import { fetchWithToken } from '../../../../utils'
 import UsersForm from '../UsersForm/UsersForm';

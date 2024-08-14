@@ -2,9 +2,6 @@ import React, { useState, useEffect } from 'react';
 import {
     Container,
     Grid,
-    Typography,
-    Alert,
-    Button,
     Table,
     TableBody,
     TableCell,
@@ -12,21 +9,11 @@ import {
     TableHead,
     TableRow,
     TableSortLabel,
-    Paper,
-    TablePagination,
-    TextField,
-    FormControl,
-    InputLabel,
-    Select,
-    MenuItem,
-    IconButton
 } from '@mui/material';
-import VisibilityIcon from '@mui/icons-material/Visibility';
 import HomeIcon from '@mui/icons-material/Home';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { stableSort, getComparatorUndefined } from '../../../../utils';
 import { EmptyRecordsCell } from '../../../Utils/components/EmptyRecordsCell/EmptyRecordsCell';
-import SmallAlert from '../../../Utils/components/SmallAlert/SmallAlert';
 import HomeNavigationRightButton from '../../../Utils/components/NavigationRightButton/NavigationRightButton';
 import TableCustomPagination from '../../../Utils/components/TableCustomPagination/TableCustomPagination';
 import CustomFilter from '../../../Utils/components/CustomFilter/CustomFilter';

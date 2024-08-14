@@ -1,15 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { 
-  Grid, 
-  Box, 
-  Typography, 
-  Button, 
-  Alert, 
-  AlertTitle, 
+import {
+  Grid,
+  Box,
+  Typography,
+  Button,
+  Alert,
+  AlertTitle,
   Container,
   Paper,
-  useTheme, 
-  useMediaQuery 
+  useTheme,
+  useMediaQuery
 } from '@mui/material';
 import { Link } from 'react-router-dom';
 import { AlertLoading } from '../Utils/components/AlertLoading/AlertLoading';
@@ -55,7 +55,7 @@ const MainContent = () => {
         throw new Error('Failed to fetch authentication URL');
       }
       const data = await response.data;
-      window.location.href = data.auth_url; 
+      window.location.href = data.auth_url;
     } catch (err) {
       setError(err.message);
     } finally {
@@ -86,137 +86,123 @@ const MainContent = () => {
 
   }, []);
 
-  if (loading){
+  if (loading) {
     return (<AlertLoading isSmallScreen={isSmallScreen} />);
-  } 
+  }
   if (error) {
     return (<AlertError isSmallScreen={isSmallScreen} error={error} />);
   }
 
   return (
-    <Container 
-      component="main" 
-      maxWidth="lg" 
-      sx={{ 
-        mt: '1%', 
-        
-        bgcolor: 'white', 
-        minWidth:'87vw', 
-        minHeight: '45vh', 
+    <Container
+      component="main"
+      maxWidth="lg"
+      sx={{
+        mt: '1%',
+
+        bgcolor: 'white',
+        minWidth: '87vw',
+        minHeight: '45vh',
         maxHeight: '60vh',
         marginLeft: '-21%',
       }}
     >
       <Grid container spacing={2}>
-          <Grid item xs={12}>
-              <Typography
-                      variant="h6"
-                      align="center"
-                      gutterBottom
-                      sx={{
-                          borderBottom: '2px solid #2196F3',
-                          paddingBottom: '8px',
-                          marginBottom: '20px',
-                          textTransform: 'uppercase',
-                          color: '#212529',
-                          fontWeight: 'bold',
-                      }}
-            >
-              Zoho - QBWC Integration
-            </Typography>
-          </Grid>
-          <Grid item xs={12}>
-              {config.connected ? (
-              <Alert severity="success">
-                <AlertTitle>Zoho Connection</AlertTitle>
-                Zoho Connection: <strong>Connected</strong>
-              </Alert>
-            ) : (
+        <Grid item xs={12}>
+          <Typography
+            variant="h6"
+            align="center"
+            gutterBottom
+            sx={{
+              borderBottom: '2px solid #2196F3',
+              paddingBottom: '8px',
+              marginBottom: '20px',
+              textTransform: 'uppercase',
+              color: '#212529',
+              fontWeight: 'bold',
+            }}
+          >
+            Zoho - QBWC Integration
+          </Typography>
+        </Grid>
+        <Grid item xs={12}>
+          {config.connected ? (
+            <Alert severity="success">
+              <AlertTitle>Zoho Connection</AlertTitle>
+              Zoho Connection: <strong>Connected</strong>
+            </Alert>
+          ) : (
+            <Alert severity="warning">
+              <AlertTitle>Warning</AlertTitle>
+              You are currently not connected to Zoho.
+            </Alert>
+          )}
+          <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            {!config.connected && (
+              <Button
+                variant="contained"
+                color="success"
+                component={Link}
+                disabled={!config.zoho_connection_configured}
+                onClick={() => handleZohoOauth()}
+                // to={`${apiUrl}/generate_auth_url`}
+                sx={{ mb: 2 }}
+                size='small'
+              >
+                Connect to Zoho
+              </Button>
+            )}
+            {!config.zoho_connection_configured && (
               <Alert severity="warning">
                 <AlertTitle>Warning</AlertTitle>
-                You are currently not connected to Zoho.
+                You need to configure the application settings before connecting to Zoho (Go to SETTINGS button).
               </Alert>
             )}
-            <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-              {!config.connected && (
-                <Button
-                  variant="contained"
-                  color="success"
-                  component={Link}
-                  disabled={!config.zoho_connection_configured}
-                  onClick={() => handleZohoOauth()}
-                  // to={`${apiUrl}/generate_auth_url`}
-                  sx={{ mb: 2 }}
-                  size='small'
-                >
-                  Connect to Zoho
-                </Button>
-              )}
-              {!config.zoho_connection_configured && (
-                <Alert severity="warning">
-                  <AlertTitle>Warning</AlertTitle>
-                  You need to configure the application settings before connecting to Zoho (Go to SETTINGS button).
-                </Alert>
-              )}
-            </Box>        
-          </Grid>
-          <Grid item container> 
-            <Grid item>
-              <Typography
-                    sx={{
-                        borderBottom: '2px solid #2196F3',
-                        paddingBottom: '8px',
-                        marginBottom: '20px',
-                        color: '#2196F3',
-                        fontWeight: 'bold',
-                    }}
-                ></Typography>
-              </Grid>
-              {/* <Grid item container>
-                <Grid item>
-                  <Button
-                      variant="contained"
-                      color="primary"
-                      component={Link}
-                      to="/integration/application_settings" 
-                      size='small'
-                      sx={{ mb: 2 }}
-                    >
-                      Settings
-                  </Button>
-                </Grid>
-              </Grid> */}
+          </Box>
+        </Grid>
+        <Grid item container>
+          <Grid item>
+            <Typography
+              sx={{
+                borderBottom: '2px solid #2196F3',
+                paddingBottom: '8px',
+                marginBottom: '20px',
+                color: '#2196F3',
+                fontWeight: 'bold',
+              }}
+            ></Typography>
           </Grid>
         </Grid>
-        <Grid container spacing={1} style={{ height: '100%' }}>
-          <Grid item xs={12} md={5}>
-            <Paper elevation={3} style={{ padding: 5, height: '65%' }}>
-              <Typography variant="h6">Invoices Last 7 Days Statistics</Typography>
-              <LineChartComponent data={invoicesDailyStats} />
-            </Paper>
-          </Grid>
-          <Grid item xs={12} md={3}>
-            <Paper elevation={3} style={{ padding: 5, height: '65%' }}>
-              <Typography variant="h6">Invoices Historic Statistics</Typography>
-              <PieChartComponent data={invoicesHistoricStats}/>
-            </Paper>
-          </Grid>
-          <Grid item xs={12} md={4}>
-            <Paper elevation={3} style={{ padding: 5, height: '65%' }}>
-              <Typography variant="h6">Invoices Last 5 Months Statistics</Typography>
-              <BarChartComponent data={invoicesMonthlyStats} />
-            </Paper>
-          </Grid>
+      </Grid>
+      <Grid container spacing={1} style={{ height: '100%' }}>
+        <Grid item xs={12} md={5}>
+          <Paper elevation={3} style={{ padding: 5, height: '65%' }}>
+            <Typography variant="h6">Invoices Last 7 Days Statistics</Typography>
+            <LineChartComponent data={invoicesDailyStats} />
+          </Paper>
         </Grid>
-        <Typography
-                    sx={{
-                        borderBottom: '2px solid #2196F3',
-                        paddingBottom: '8px',
-                        marginBottom: '20px',
-                        color: '#2196F3',
-                        fontWeight: 'bold',
-                    }}
-                ></Typography>
+        <Grid item xs={12} md={3}>
+          <Paper elevation={3} style={{ padding: 5, height: '65%' }}>
+            <Typography variant="h6">Invoices Historic Statistics</Typography>
+            <PieChartComponent data={invoicesHistoricStats} />
+          </Paper>
+        </Grid>
+        <Grid item xs={12} md={4}>
+          <Paper elevation={3} style={{ padding: 5, height: '65%' }}>
+            <Typography variant="h6">Invoices Last 5 Months Statistics</Typography>
+            <BarChartComponent data={invoicesMonthlyStats} />
+          </Paper>
+        </Grid>
+      </Grid>
+      <Typography
+        sx={{
+          borderBottom: '2px solid #2196F3',
+          paddingBottom: '8px',
+          marginBottom: '20px',
+          color: '#2196F3',
+          fontWeight: 'bold',
+        }}
+      ></Typography>
     </Container>
   );
 };

@@ -4,16 +4,12 @@ import {
     Grid,
     Typography,
     Alert,
-    Button,
     Table,
     TableBody,
     TableCell,
     TableContainer,
     TableHead,
     TableRow,
-    Paper,
-    TablePagination,
-    TextField,
     TableSortLabel,
     IconButton,
 } from '@mui/material';
@@ -21,7 +17,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import AddIcon from '@mui/icons-material/Add';
 import HomeIcon from '@mui/icons-material/Home';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import { stableSort, getComparatorUndefined, fetchWithToken, formatDate } from '../../../../utils';
 import { EmptyRecordsCell } from '../../../Utils/components/EmptyRecordsCell/EmptyRecordsCell';
@@ -65,11 +61,6 @@ const UsersList = ({ users, onSyncComplete }) => {
         setPage(0);
     };
 
-    const handleSearchChange = (event) => {
-        setSearchTerm(event.target.value);
-        setPage(0);
-    };
-
     const filteredUsers = users.filter(user =>
         user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
         user.role.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -82,7 +73,7 @@ const UsersList = ({ users, onSyncComplete }) => {
         navigate('/integration/view_user', { state: state });
     };
 
-    const setUserStatus =  (user) => {
+    const setUserStatus = (user) => {
         Swal.fire({
             title: 'Are you sure?',
             text: `You are about to delete user ${user.username}. This action cannot be undone.`,
@@ -92,7 +83,7 @@ const UsersList = ({ users, onSyncComplete }) => {
             cancelButtonText: 'No, cancel!',
             confirmButtonColor: '#dc3545',
             cancelButtonColor: '#6c757d'
-        }).then(async(result) => {
+        }).then(async (result) => {
             if (result.isConfirmed) {
                 const data = JSON.stringify({ logged_username: localStorage.getItem('username') });
                 const response = await fetchWithToken(`${apiUrl}/set_user_status/${user.username}/`, 'POST', data, {}, apiUrl);
@@ -160,16 +151,6 @@ const UsersList = ({ users, onSyncComplete }) => {
                     </Typography>
                 </Grid>
                 <Grid item xs={6} container justifyContent="flex-end" spacing={1}>
-                    {/* <Grid item xs={4}>
-                        <TextField
-                            label="Search"
-                            variant="outlined"
-                            size="small"
-                            value={searchTerm}
-                            onChange={handleSearchChange}
-                            sx={{ width: '100%', mb: 2 }}
-                        />
-                    </Grid> */}
                     <NavigationRightButton children={childrenNavigationRightButton} />
                 </Grid>
                 <Grid item xs={12} container justifyContent="flex-end" spacing={1}>

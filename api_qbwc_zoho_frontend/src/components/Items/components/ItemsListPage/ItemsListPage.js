@@ -45,8 +45,6 @@ const ItemsListPage = () => {
         );
     }
 
-    
-
     return (
         <Container maxWidth="lg"
             sx={{

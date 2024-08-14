@@ -54,7 +54,8 @@ def load_customers_task(headers, params, username, pc_ip):
 
     for data in customers_to_get:
         new_customer = create_customer_instance(data)
-        if new_customer.contact_id not in existing_customers and new_customer.status == 'active':
+        # if new_customer.contact_id not in existing_customers and new_customer.status == 'active':
+        if new_customer.contact_id not in existing_customers:
             customers_to_save.append(new_customer)
 
     def save_customers_in_batches(customers, batch_size=100):

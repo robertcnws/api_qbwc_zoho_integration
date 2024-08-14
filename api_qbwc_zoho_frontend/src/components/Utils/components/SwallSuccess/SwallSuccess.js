@@ -4,7 +4,6 @@ import Swal from 'sweetalert2';
 
 import { useNavigate } from 'react-router-dom';
 
-
 const SwallSuccess = ({ message, navigateUrl }) => {
 
     const navigate = useNavigate()

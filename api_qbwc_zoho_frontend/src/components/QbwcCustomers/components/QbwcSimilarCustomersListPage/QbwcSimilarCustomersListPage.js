@@ -26,7 +26,7 @@ const QbwcSimilarCustomersListPage = () => {
         } catch (error) {
             console.error('Error fetching customers:', error);
             setError(`Failed to fetch customers: ${error}`);
-        }  finally {
+        } finally {
             setLoading(false);
         }
     };
@@ -37,16 +37,15 @@ const QbwcSimilarCustomersListPage = () => {
 
     if (loading) {
         return (
-            <AlertLoading isSmallScreen={isSmallScreen} message='QBWC Similar Customers List'/>
+            <AlertLoading isSmallScreen={isSmallScreen} message='QBWC Similar Customers List' />
         );
     }
 
     if (error) {
         return (
-            <AlertError isSmallScreen={isSmallScreen} error={error}/>
+            <AlertError isSmallScreen={isSmallScreen} error={error} />
         );
     }
-
 
     return (
         <Container maxWidth="lg"
@@ -54,13 +53,13 @@ const QbwcSimilarCustomersListPage = () => {
                 mt: 5,
                 p: 2,
                 marginLeft: isSmallScreen ? '0' : '3%',
-                transition: 'margin-left 0.3s ease', 
+                transition: 'margin-left 0.3s ease',
             }}
         >
             {loading ? (
                 <CircularProgress />
             ) : (
-                <QbwcSimilarCustomersList similarCustomers={customers} onSyncComplete={fetchCustomers}/>
+                <QbwcSimilarCustomersList similarCustomers={customers} onSyncComplete={fetchCustomers} />
             )}
         </Container>
     );

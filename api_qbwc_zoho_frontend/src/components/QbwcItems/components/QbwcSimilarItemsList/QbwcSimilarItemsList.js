@@ -29,7 +29,6 @@ const QbwcSimilarItemsList = ({ similarItems, onSyncComplete }) => {
   const [orderBy, setOrderBy] = useState('qb_item_name'); // Default orderBy column
   const [order, setOrder] = useState('asc');
   const [searchTerm, setSearchTerm] = useState('');
-  const [hoveredRowIndex, setHoveredRowIndex] = useState(null);
   const navigate = useNavigate();
 
   const handleSortChange = (columnId) => {
@@ -62,7 +61,7 @@ const QbwcSimilarItemsList = ({ similarItems, onSyncComplete }) => {
       cancelButtonColor: '#d33',
       confirmButtonText: 'Yes, match it!',
       cancelButtonText: 'Cancel'
-    }).then((result) => {
+    }).then(() => {
 
       const matchOneItemAjax = async () => {
         try {
@@ -99,7 +98,7 @@ const QbwcSimilarItemsList = ({ similarItems, onSyncComplete }) => {
 
   const filteredItems = similarItems.filter(item =>
     item.qb_item_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.coincidences_by_order.some(coincidence => 
+    item.coincidences_by_order.some(coincidence =>
       coincidence.zoho_item.toLowerCase().includes(searchTerm.toLowerCase()) ||
       coincidence.zoho_item_sku.toLowerCase().includes(searchTerm.toLowerCase())
     )
@@ -108,8 +107,8 @@ const QbwcSimilarItemsList = ({ similarItems, onSyncComplete }) => {
   const renderTableRows = (items) => {
     return items.map((item, index) => (
       item.coincidences_by_order ? item.coincidences_by_order.map((coincidence, subIndex) => (
-        <TableRow key={`${index}-${subIndex}`} 
-          style={{ 
+        <TableRow key={`${index}-${subIndex}`}
+          style={{
             cursor: 'pointer',
             transition: 'background-color 0.3s ease',
           }}
@@ -152,16 +151,16 @@ const QbwcSimilarItemsList = ({ similarItems, onSyncComplete }) => {
 
   return (
     <Container
-            maxWidth="xl"
-            sx={{
-              marginLeft: '-9%',
-              marginTop: '-6%',
-              transition: 'margin-left 0.3s ease',
-              // minHeight: '100vh',
-              minWidth: '87vw',
-              padding: 1,
-          }}
-      >
+      maxWidth="xl"
+      sx={{
+        marginLeft: '-9%',
+        marginTop: '-6%',
+        transition: 'margin-left 0.3s ease',
+        // minHeight: '100vh',
+        minWidth: '87vw',
+        padding: 1,
+      }}
+    >
       <Grid container spacing={2} alignItems="center" justifyContent="space-between" mb={3}>
         <Grid item xs={6}>
           <Typography
@@ -211,13 +210,14 @@ const QbwcSimilarItemsList = ({ similarItems, onSyncComplete }) => {
           <TableHead sx={{ backgroundColor: '#e0e0e0' }}>
             <TableRow>
               {columns.map((column) => (
-                <TableCell key={column.id} 
-                sx={{ 
-                  fontWeight: 'bold', 
-                  color: '#6c7184', 
-                  borderBottom: '1px solid #ddd', 
-                  borderTop: '1px solid #ddd',
-                  backgroundColor: '#f9f9fb'  }}
+                <TableCell key={column.id}
+                  sx={{
+                    fontWeight: 'bold',
+                    color: '#6c7184',
+                    borderBottom: '1px solid #ddd',
+                    borderTop: '1px solid #ddd',
+                    backgroundColor: '#f9f9fb'
+                  }}
                 >
                   <TableSortLabel
                     active={orderBy === column.id}
@@ -232,9 +232,9 @@ const QbwcSimilarItemsList = ({ similarItems, onSyncComplete }) => {
           </TableHead>
           <TableBody>
             {filteredItems.length === 0 ? (
-                <EmptyRecordsCell columns={columns} />
-              ) : (
-                renderTableRows(paginatedItems)
+              <EmptyRecordsCell columns={columns} />
+            ) : (
+              renderTableRows(paginatedItems)
             )}
           </TableBody>
         </Table>

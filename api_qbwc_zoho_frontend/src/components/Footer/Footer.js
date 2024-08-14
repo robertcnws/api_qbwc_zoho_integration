@@ -1,5 +1,5 @@
 import React from 'react';
-import { Container, Box, Typography, Link, Grid } from '@mui/material';
+import { Container, Typography, Link, Grid } from '@mui/material';
 import MessageIcon from '@mui/icons-material/Message';
 import RssFeedIcon from '@mui/icons-material/RssFeed';
 import ContactsIcon from '@mui/icons-material/Contacts';
@@ -15,7 +15,6 @@ const Footer = () => {
                 backgroundColor: '#f7f7fe',
                 padding: '10px 10px 10px 0',
                 boxShadow: '0 -2px 10px rgba(0, 0, 0, 0.1)',
-                // textAlign: 'left',
                 border: '1px solid #ccc',
                 zIndex: 1000,
             }}

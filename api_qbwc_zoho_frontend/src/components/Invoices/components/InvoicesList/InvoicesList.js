@@ -5,7 +5,6 @@ import {
     Box,
     Grid,
     Typography,
-    Button,
     TextField,
     Table,
     TableBody,
@@ -14,33 +13,23 @@ import {
     TableHead,
     TableRow,
     TableSortLabel,
-    Paper,
-    Alert,
     IconButton,
-    TablePagination,
     FormControl,
     FormControlLabel,
     Checkbox,
-    InputLabel,
-    Select,
-    MenuItem
 } from '@mui/material';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import VisibilityIcon from '@mui/icons-material/Visibility';
 import DeleteIcon from '@mui/icons-material/Delete';
 import FilterAltOffIcon from '@mui/icons-material/FilterAltOff';
 import HomeIcon from '@mui/icons-material/Home';
 import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import Swal from 'sweetalert2';
-import ClearIcon from '@mui/icons-material/Clear';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
-import { styled } from '@mui/system';
 import { stableSort, fetchWithToken, getComparatorUndefined } from '../../../../utils';
 import { EmptyRecordsCell } from '../../../Utils/components/EmptyRecordsCell/EmptyRecordsCell';
-import SmallAlert from '../../../Utils/components/SmallAlert/SmallAlert';
 import HomeNavigationRightButton from '../../../Utils/components/NavigationRightButton/NavigationRightButton';
 import TableCustomPagination from '../../../Utils/components/TableCustomPagination/TableCustomPagination';
 import CustomFilter from '../../../Utils/components/CustomFilter/CustomFilter';
@@ -450,41 +439,6 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
         hasSearch: false
     };
 
-    const CustomDatePicker = styled(TextField)({
-        '& .MuiInputBase-root': {
-            height: '20px', 
-            paddingTop: '0px', 
-            paddinBottom: '0px',
-        },
-        '& .MuiOutlinedInput-root': {
-            height: '20px', 
-            paddingTop: '0px', 
-            paddinBottom: '0px',
-        },
-        '& .MuiOutlinedInput-root': {
-            height: '20px', 
-            paddingTop: '0px', 
-            paddinBottom: '0px',
-        },
-        '& .MuiInputBase-inputAdornedEnd': {
-            height: '20px', 
-            paddingTop: '0px', 
-            paddinBottom: '0px',
-        },
-        '& .MuiInputBase-input': {
-            height: '20px', 
-            paddingTop: '0px', 
-            paddinBottom: '0px',
-        },
-        '& .MuiInputLabel-root': {
-            top: '-6px', 
-            fontSize: '12px', 
-            paddingTop: '0px', 
-            paddinBottom: '0px',
-        },
-
-    });
-
     return (
         <Container
             maxWidth="xl"
@@ -510,7 +464,7 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
                                 minDate={oneYearAgo}
                                 maxDate={today}
                                 textField={(params) => (
-                                    <CustomDatePicker variant="outlined" {...params} />
+                                    <TextField variant="outlined" {...params} style={{paddingTop: '9px'}}/>
                                 )}
                             />
                         </LocalizationProvider>
@@ -610,8 +564,8 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
                         )}
                         <TableCustomPagination
                             columnsLength={columns.length}
-                            data={data.invoices}
-                            page={Number.isFinite(page) && page >= 0 ? Math.min(page, Math.ceil(data.invoices.length / rowsPerPage) - 1) : 0}
+                            data={filteredInvoices}
+                            page={Number.isFinite(page) && page >= 0 ? Math.min(page, Math.ceil(filteredInvoices.length / rowsPerPage) - 1) : 0}
                             rowsPerPage={rowsPerPage}
                             handleChangePage={handleChangePage}
                             handleChangeRowsPerPage={handleChangeRowsPerPage}

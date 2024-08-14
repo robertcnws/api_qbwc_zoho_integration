@@ -3,7 +3,7 @@ import { Box, FormControl, ListSubheader, MenuItem, Select, TextField } from '@m
 
 const CustomFilter = ({ configCustomFilter }) => {
   return (
-    <FormControl variant="outlined" size="small" style={{ marginBottom: configCustomFilter.hasSearch ? configCustomFilter.marginBottomInDetails : '0'}}>
+    <FormControl variant="outlined" size="small" style={{ marginBottom: configCustomFilter.hasSearch ? configCustomFilter.marginBottomInDetails : '0' }}>
       {/* <InputLabel>{configCustomFilter.items.length}</InputLabel> */}
       <Select
         value={configCustomFilter.filter}

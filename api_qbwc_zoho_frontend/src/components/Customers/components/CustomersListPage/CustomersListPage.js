@@ -45,8 +45,6 @@ const CustomersListPage = () => {
         );
     }
 
-    
-
     return (
         <Container maxWidth="lg"
             sx={{

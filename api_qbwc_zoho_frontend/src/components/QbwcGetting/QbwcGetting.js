@@ -1,4 +1,3 @@
-// src/components/ZohoLoading.jsx
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button, Container, Grid, Typography, CircularProgress } from '@mui/material';
@@ -16,8 +15,8 @@ const QbwcGetting = () => {
 
   const handleListCustomers = () => gettingData('list', 'customers', setLoadingCustomers);
   const handleListItems = () => gettingData('list', 'items', setLoadingItems);
-  const handleSimilarCustomers = () => gettingData('similar', 'customers', setLoadingCustomers);
-  const handleSimilarItems = () => gettingData('similar', 'items', setLoadingItems);
+//   const handleSimilarCustomers = () => gettingData('similar', 'customers', setLoadingCustomers);
+//   const handleSimilarItems = () => gettingData('similar', 'items', setLoadingItems);
 //   const handleMatchedCustomers = () => gettingData('matched', 'customers', setLoadingCustomers);
 //   const handleMatchedItems = () => gettingData('matched', 'items', setLoadingItems);
   const handleNeverMatchCustomers = () => gettingData('never_match', 'customers', setLoadingCustomers);

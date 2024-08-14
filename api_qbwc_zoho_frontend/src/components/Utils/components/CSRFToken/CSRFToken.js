@@ -1,4 +1,4 @@
-import React, { useState, useEffect} from 'react'
+import React, { useState, useEffect } from 'react'
 import axios from 'axios'
 
 const apiUrl = process.env.REACT_APP_ENVIRONMENT === 'DEV' ? process.env.REACT_APP_BACKEND_URL_DEV : process.env.REACT_APP_BACKEND_URL_PROD;
@@ -32,12 +32,12 @@ const CSRFToken = () => {
             }
         }
         fetchData();
-        
+
     }, []);
-    
-  return (
-    <input type="hidden" name="csrfmiddlewaretoken" value={csrftoken} />
-  );
+
+    return (
+        <input type="hidden" name="csrfmiddlewaretoken" value={csrftoken} />
+    );
 }
 
 export default CSRFToken

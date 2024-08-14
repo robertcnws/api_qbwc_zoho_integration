@@ -26,7 +26,7 @@ const QbwcSimilarItemsListPage = () => {
         } catch (error) {
             console.error('Error fetching items:', error);
             setError(`Failed to fetch items: ${error}`);
-        }  finally {
+        } finally {
             setLoading(false);
         }
     };
@@ -37,16 +37,15 @@ const QbwcSimilarItemsListPage = () => {
 
     if (loading) {
         return (
-            <AlertLoading isSmallScreen={isSmallScreen} message='Similar Items List'/>
+            <AlertLoading isSmallScreen={isSmallScreen} message='Similar Items List' />
         );
     }
 
     if (error) {
         return (
-            <AlertError isSmallScreen={isSmallScreen} error={error}/>
+            <AlertError isSmallScreen={isSmallScreen} error={error} />
         );
     }
-
 
     return (
         <Container maxWidth="lg"
@@ -54,13 +53,13 @@ const QbwcSimilarItemsListPage = () => {
                 mt: 5,
                 p: 2,
                 marginLeft: isSmallScreen ? '0' : '3%',
-                transition: 'margin-left 0.3s ease', 
+                transition: 'margin-left 0.3s ease',
             }}
         >
             {loading ? (
                 <CircularProgress />
             ) : (
-                <QbwcSimilarItemsList similarItems={items} onSyncComplete={fetchItems}/>
+                <QbwcSimilarItemsList similarItems={items} onSyncComplete={fetchItems} />
             )}
         </Container>
     );

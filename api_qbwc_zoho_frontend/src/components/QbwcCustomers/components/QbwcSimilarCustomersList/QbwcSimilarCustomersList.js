@@ -16,7 +16,6 @@ import {
   TableSortLabel,
   TextField
 } from '@mui/material';
-import { Link, useNavigate } from 'react-router-dom';
 import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
 import GroupIcon from '@mui/icons-material/Group'
 import Swal from 'sweetalert2';
@@ -33,7 +32,6 @@ const QbwcSimilarCustomersList = ({ similarCustomers, onSyncComplete }) => {
   const [order, setOrder] = useState('asc');
   const [searchTerm, setSearchTerm] = useState('');
   const [hoveredRowIndex, setHoveredRowIndex] = useState(null);
-  const navigate = useNavigate();
 
   const handleSortChange = (columnId) => {
     const isAsc = orderBy === columnId && order === 'asc';

@@ -1,15 +1,27 @@
 import React, { useEffect, useState } from 'react';
-import { Toolbar, Button, IconButton, TextField, Box, InputAdornment, MenuItem, Select, Menu, ListItemIcon, Divider, Drawer, List, ListItem, ListItemText, Typography, Grid, Tooltip } from '@mui/material';
+import {
+    Toolbar,
+    IconButton,
+    TextField,
+    Box,
+    InputAdornment,
+    MenuItem,
+    Menu,
+    ListItemIcon,
+    Divider,
+    Drawer,
+    Typography,
+    Grid,
+    Tooltip
+} from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
-import ExitToAppIcon from '@mui/icons-material/ExitToApp';
 import LogoutIcon from '@mui/icons-material/Logout';
 import CheckIcon from '@mui/icons-material/Check';
 import SettingsIcon from '@mui/icons-material/Settings';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import BarChartIcon from '@mui/icons-material/BarChart';
-import ReceiptIcon from '@mui/icons-material/Receipt';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import CloseIcon from '@mui/icons-material/Close';
@@ -23,12 +35,9 @@ const Topbar = ({ handleLogout }) => {
 
     const navigate = useNavigate();
 
-    const [search, setSearch] = useState('');
     const [labelSearch, setLabelSearch] = useState('');
     const [visibleSearch, setVisibleSearch] = useState(false);
     const [searchTermGlobal, setSearchTermGlobal] = useState(localStorage.getItem('searchTermGlobal') || '');
-
-    const [selectOpen, setSelectOpen] = useState(false);
     const [selectedOption, setSelectedOption] = useState('');
     const [anchorEl, setAnchorEl] = useState(null);
 
@@ -78,22 +87,6 @@ const Topbar = ({ handleLogout }) => {
         }
     }, [location]);
 
-    const handleSearch = (e) => {
-        setSearch(e.target.value);
-    }
-
-    const handleSelectOpen = () => {
-        setSelectOpen(true);
-    };
-
-    const handleSelectClose = () => {
-        setSelectOpen(false);
-    };
-
-    const handleSelectChange = (event) => {
-        setSelectedOption(event.target.value);
-    };
-
     const handleMenuOpen = (event) => {
         setAnchorEl(event.currentTarget);
     };
@@ -106,23 +99,23 @@ const Topbar = ({ handleLogout }) => {
         setSelectedOption(option);
         handleMenuClose();
         if (option === 'Customers') {
-            navigate( '/integration/list_customers');
+            navigate('/integration/list_customers');
         } else if (option === 'Items') {
-            navigate( '/integration/list_items');
+            navigate('/integration/list_items');
         } else if (option === 'Invoices') {
-            navigate( '/integration/list_invoices');
+            navigate('/integration/list_invoices');
         } else if (option === 'QB Customers') {
-            navigate( '/integration/qbwc/customers/list');
+            navigate('/integration/qbwc/customers/list');
         } else if (option === 'QB Items') {
-            navigate( '/integration/qbwc/items/list');
+            navigate('/integration/qbwc/items/list');
         } else if (option === 'QB Never Match Customers') {
-            navigate( '/integration/qbwc/customers/never_match');
+            navigate('/integration/qbwc/customers/never_match');
         } else if (option === 'QB Never Match Items') {
-            navigate( '/integration/qbwc/items/never_match');
+            navigate('/integration/qbwc/items/never_match');
         } else if (option === 'Users') {
-            navigate( '/integration/list_users');
+            navigate('/integration/list_users');
         } else if (option === 'Back Ups') {
-            navigate( '/integration/download_backup_db');
+            navigate('/integration/download_backup_db');
         }
     };
 
@@ -195,14 +188,14 @@ const Topbar = ({ handleLogout }) => {
                         }}
                     >
                         {[
-                            'Customers', 
-                            'Items', 
-                            'Invoices', 
-                            'QB Customers', 
-                            'QB Items', 
-                            'QB Never Match Customers', 
-                            'QB Never Match Items', 
-                            'Users', 
+                            'Customers',
+                            'Items',
+                            'Invoices',
+                            'QB Customers',
+                            'QB Items',
+                            'QB Never Match Customers',
+                            'QB Never Match Items',
+                            'Users',
                             'Back Ups'
                         ].map((option) => (
                             <MenuItem

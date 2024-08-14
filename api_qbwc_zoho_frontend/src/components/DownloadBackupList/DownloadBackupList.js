@@ -4,21 +4,16 @@ import {
     Grid,
     Typography,
     Alert,
-    Button,
     Table,
     TableBody,
     TableCell,
     TableContainer,
     TableHead,
     TableRow,
-    Paper,
-    TablePagination,
     TableSortLabel,
-    TextField,
     IconButton,
 } from '@mui/material';
 import HomeIcon from '@mui/icons-material/Home';
-import { Link } from 'react-router-dom';
 import { EmptyRecordsCell } from '../Utils/components/EmptyRecordsCell/EmptyRecordsCell';
 import { Download } from '@mui/icons-material';
 import axios from 'axios';
@@ -146,16 +141,6 @@ const DownloadBackupList = () => {
                     </Typography>
                 </Grid>
                 <Grid item xs={6} container justifyContent="flex-end" spacing={1}>
-                    {/* <Grid item xs={4}>
-                        <TextField
-                            label="Search"
-                            variant="outlined"
-                            size="small"
-                            value={searchTerm}
-                            onChange={handleSearchChange}
-                            sx={{ width: '100%', mb: 2 }}
-                        />
-                    </Grid> */}
                     <NavigationRightButton children={childrenNavigationRightButton} />
                 </Grid>
                 <Grid item xs={12} container justifyContent="flex-end" spacing={1}>
