@@ -1,10 +1,11 @@
 import React from 'react';
 import { Container, Box, List, ListItemButton, ListItemIcon, ListItemText, Divider } from '@mui/material';
-import { Dashboard, People, Receipt, RocketLaunch, ExpandMore, ExpandLess, Download } from '@mui/icons-material';
+import { Dashboard, People, Receipt, RocketLaunch, ExpandMore, ExpandLess, Download, Settings } from '@mui/icons-material';
 import BackupIcon from '@mui/icons-material/Backup';
 import InventoryIcon from '@mui/icons-material/Inventory';
 import AssignmentTurnedInIcon from '@mui/icons-material/AssignmentTurnedIn';
 import AccountCircle from '@mui/icons-material/AccountCircle';
+import BuildIcon from '@mui/icons-material/Build';
 import { Link, useLocation } from 'react-router-dom';
 import './Sidebar.css';
 
@@ -108,11 +109,15 @@ const Sidebar = ({ expanded, toggleSubmenu, handleLogout, handleDoBackup }) => {
         </ListItemButton>
         <ListItemButton onClick={toggleSubmenu}
           sx={{
-            backgroundColor: isActive('/integration/zoho') || isActive('/integration/qbwc') || isActive('/integration/application_settings') ? '#00796b' : 'inherit',
-            borderRadius: isActive('/integration/zoho') || isActive('/integration/qbwc') || isActive('/integration/application_settings') ? 3 : 0
+            backgroundColor: isActive('/integration/zoho') || isActive('/integration/qbwc') || 
+                              isActive('/integration/application_settings') || isActive('/integration/download_backup_db') ||
+                              isActive('/integration/list_users') || isActive('/integration/list_logs') ? '#00796b' : 'inherit',
+            borderRadius: isActive('/integration/zoho') || isActive('/integration/qbwc') || 
+                          isActive('/integration/application_settings') || isActive('/integration/download_backup_db') ||
+                          isActive('/integration/list_users') || isActive('/integration/list_logs') ? 3 : 0,
           }}>
-          <ListItemIcon><RocketLaunch sx={{ color: '#fff', maxWidth: '20px', maxHeight: '20px', minHeight: '20px' }} /></ListItemIcon>
-          <ListItemText primary="Integration" sx={{
+          <ListItemIcon><Settings sx={{ color: '#fff', maxWidth: '20px', maxHeight: '20px', minHeight: '20px' }} /></ListItemIcon>
+          <ListItemText primary="Settings" sx={{
             '& .MuiListItemText-primary': {
               fontSize: '13px',
               fontFamily: 'Inter, Source Sans Pro, Helvetica, Arial, sans-serif',
@@ -166,7 +171,7 @@ const Sidebar = ({ expanded, toggleSubmenu, handleLogout, handleDoBackup }) => {
                   marginLeft: '-33px',
                 }}>
                 {/* <ListItemIcon><Settings sx={{ color: '#fff', maxWidth: '20px', maxHeight: '20px', minHeight: '20px' }} /></ListItemIcon> */}
-                <ListItemText primary="Settings" sx={{
+                <ListItemText primary="Configuration" sx={{
                   '& .MuiListItemText-primary': {
                     fontSize: '13px',
                     fontFamily: 'Inter, Source Sans Pro, Helvetica, Arial, sans-serif',
@@ -175,69 +180,79 @@ const Sidebar = ({ expanded, toggleSubmenu, handleLogout, handleDoBackup }) => {
                 }}
                 />
               </ListItemButton>
+              <ListItemButton onClick={handleDoBackup}
+                sx={{
+                  marginLeft: '-33px',
+                }}>
+                {/* <ListItemIcon><BackupIcon sx={{ color: '#fff', maxWidth: '20px', maxHeight: '20px', minHeight: '20px' }} /></ListItemIcon> */}
+                <ListItemText primary="Do BackUp" sx={{
+                  '& .MuiListItemText-primary': {
+                    fontSize: '13px',
+                    fontFamily: 'Inter, Source Sans Pro, Helvetica, Arial, sans-serif',
+                  },
+                  marginLeft: '27px',
+                }}
+
+                />
+              </ListItemButton>
+              <ListItemButton component={Link} to="/integration/download_backup_db"
+                sx={{
+                  backgroundColor: isActive('/integration/download_backup_db') ? '#00796b' : 'inherit',
+                  borderRadius: isActive('/integration/download_backup_db') ? 3 : 0,
+                  marginLeft: '-33px',
+                }}>
+                {/* <ListItemIcon><Download sx={{ color: '#fff', maxWidth: '20px', maxHeight: '20px', minHeight: '20px' }} /></ListItemIcon> */}
+                <ListItemText primary="BackUps" sx={{
+                  '& .MuiListItemText-primary': {
+                    fontSize: '13px',
+                    fontFamily: 'Inter, Source Sans Pro, Helvetica, Arial, sans-serif',
+                  },
+                  marginLeft: '27px',
+                }}
+                />
+              </ListItemButton>
+              {localStorage.getItem('isStaff') === 'admin' && (
+                <>
+                  <ListItemButton component={Link} to="/integration/list_users"
+                    sx={{
+                      backgroundColor: isActive('/integration/list_users') || isActive('/integration/view_user') ? '#00796b' : 'inherit',
+                      borderRadius: isActive('/integration/list_users') || isActive('/integration/view_user') ? 3 : 0,
+                      marginLeft: '-33px',
+                    }}>
+                    {/* <ListItemIcon><AccountCircle sx={{ color: '#fff', maxWidth: '20px', maxHeight: '20px', minHeight: '20px' }} /></ListItemIcon> */}
+                    <ListItemText primary="Users" sx={{
+                      '& .MuiListItemText-primary': {
+                        fontSize: '13px',
+                        fontFamily: 'Inter, Source Sans Pro, Helvetica, Arial, sans-serif',
+                      },
+                      marginLeft: '27px',
+                    }}
+                    />
+                  </ListItemButton>
+                  <ListItemButton component={Link} to="/integration/list_logs"
+                    sx={{
+                      backgroundColor: isActive('/integration/list_logs') ? '#00796b' : 'inherit',
+                      borderRadius: isActive('/integration/list_logs') ? 3 : 0,
+                      marginLeft: '-33px',
+                    }}>
+                    {/* <ListItemIcon><AssignmentTurnedInIcon sx={{ color: '#fff', maxWidth: '20px', maxHeight: '20px', minHeight: '20px' }} /></ListItemIcon> */}
+                    <ListItemText primary="Logs" sx={{
+                      '& .MuiListItemText-primary': {
+                        fontSize: '13px',
+                        fontFamily: 'Inter, Source Sans Pro, Helvetica, Arial, sans-serif',
+                      },
+                      marginLeft: '27px',
+                    }}
+                    />
+                  </ListItemButton>
+                </>
+              )
+
+              }
             </List>
           </>
         )}
-        <ListItemButton onClick={handleDoBackup}>
-          <ListItemIcon><BackupIcon sx={{ color: '#fff', maxWidth: '20px', maxHeight: '20px', minHeight: '20px' }} /></ListItemIcon>
-          <ListItemText primary="Do BackUp" sx={{
-            '& .MuiListItemText-primary': {
-              fontSize: '13px',
-              fontFamily: 'Inter, Source Sans Pro, Helvetica, Arial, sans-serif',
-            },
-            marginLeft: '-30px',
-          }}
 
-          />
-        </ListItemButton>
-        <ListItemButton component={Link} to="/integration/download_backup_db"
-          sx={{ backgroundColor: isActive('/integration/download_backup_db') ? '#00796b' : 'inherit', borderRadius: isActive('/integration/download_backup_db') ? 3 : 0 }}>
-          <ListItemIcon><Download sx={{ color: '#fff', maxWidth: '20px', maxHeight: '20px', minHeight: '20px' }} /></ListItemIcon>
-          <ListItemText primary="BackUps" sx={{
-            '& .MuiListItemText-primary': {
-              fontSize: '13px',
-              fontFamily: 'Inter, Source Sans Pro, Helvetica, Arial, sans-serif',
-            },
-            marginLeft: '-30px',
-          }}
-          />
-        </ListItemButton>
-        {localStorage.getItem('isStaff') === 'admin' && (
-          <>
-            <ListItemButton component={Link} to="/integration/list_users"
-              sx={{
-                backgroundColor: isActive('/integration/list_users') || isActive('/integration/view_user') ? '#00796b' : 'inherit',
-                borderRadius: isActive('/integration/list_users') || isActive('/integration/view_user') ? 3 : 0
-              }}>
-              <ListItemIcon><AccountCircle sx={{ color: '#fff', maxWidth: '20px', maxHeight: '20px', minHeight: '20px' }} /></ListItemIcon>
-              <ListItemText primary="Users" sx={{
-                '& .MuiListItemText-primary': {
-                  fontSize: '13px',
-                  fontFamily: 'Inter, Source Sans Pro, Helvetica, Arial, sans-serif',
-                },
-                marginLeft: '-30px',
-              }}
-              />
-            </ListItemButton>
-            <ListItemButton component={Link} to="/integration/list_logs"
-              sx={{
-                backgroundColor: isActive('/integration/list_logs') ? '#00796b' : 'inherit',
-                borderRadius: isActive('/integration/list_logs') ? 3 : 0
-              }}>
-              <ListItemIcon><AssignmentTurnedInIcon sx={{ color: '#fff', maxWidth: '20px', maxHeight: '20px', minHeight: '20px' }} /></ListItemIcon>
-              <ListItemText primary="Logs" sx={{
-                '& .MuiListItemText-primary': {
-                  fontSize: '13px',
-                  fontFamily: 'Inter, Source Sans Pro, Helvetica, Arial, sans-serif',
-                },
-                marginLeft: '-30px',
-              }}
-              />
-            </ListItemButton>
-          </>
-        )
-
-        }
       </List>
     </Container>
   );

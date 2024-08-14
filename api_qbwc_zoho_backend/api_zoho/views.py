@@ -18,7 +18,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import ensure_csrf_cookie
 from datetime import datetime, timezone, timedelta
-from .models import AppConfig, ZohoLoading, LoginUser, ApiTrackingLogs
+from .models import AppConfig, ZohoLoading, LoginUser, ApiTrackingLogs, Notification, UserNotification
 from .forms import AppConfigForm
 from .backup_db import create_backup
 from rest_framework_simplejwt.authentication import JWTAuthentication
@@ -48,23 +48,29 @@ def csrf_token_view(request):
 def login_view(request):
     if request.method == 'POST':
         try:
-            data = json.loads(request.body)  # Carga los datos JSON del cuerpo de la solicitud
-            username = data.get('username')  # Obtiene el nombre de usuario del JSON
-            password = data.get('password')  # Obtiene la contraseña del JSON
-
-            # Verifica si se recibieron los datos necesarios
+            data = json.loads(request.body)  
+            username = data.get('username')  
+            password = data.get('password') 
+            
             if not username or not password:
-                return JsonResponse({'error': 'Username and password required'}, status=400)
+                return JsonResponse({'error': 'Username and password required', 'description': 'Username and password required'}, status=400)
             user = authenticate(request, username=username, password=password)
             if user is not None:
                 login(request, user)
                 logger.info(f'User {username} logged in')
                 manage_api_tracking_log(username, 'login', request.META.get('REMOTE_ADDR'), 'User logged in')
                 return JsonResponse({'status': 'success', 'is_staff': 'admin' if user.is_staff else 'user', 'username': user.username}, status=200)
-            return JsonResponse({'error': 'Invalid credentials'}, status=400)
+            login_user = LoginUser.objects.filter(username=username).first()
+            if login_user:
+                manage_api_tracking_log(username, 'login', request.META.get('REMOTE_ADDR'), 'Invalid credentials - Incorrect Password')
+                return JsonResponse({'error': 'Invalid credentials', 'description' : 'Incorrect Password'}, status=400)
+            else:
+                manage_api_tracking_log(username, 'login', request.META.get('REMOTE_ADDR'), 'Invalid credentials - Username does not exist')
+                return JsonResponse({'error': 'Invalid credentials', 'description' : 'Username does not exist'}, status=400)
+        
         except json.JSONDecodeError:
-            return JsonResponse({'error': 'Invalid JSON'}, status=400)
-    return JsonResponse({'error': 'Method not allowed'}, status=405)
+            return JsonResponse({'error': 'Invalid JSON', 'description': 'Request is not in a valid format'}, status=400)
+    return JsonResponse({'error': 'Method not allowed', 'description': 'Method not allowed'}, status=405)
 
 
 #############################################
@@ -583,6 +589,88 @@ def manage_api_tracking_log(user, action, pc_ip, message):
         log.log_message = message
     log.log_modified = datetime.now(timezone.utc)
     log.save()
+    
+    
+#############################################
+# API Tracking Logs
+#############################################
+
+def manage_notifications(message):
+    date_t = datetime.now(timezone.utc)
+    date_str = date_t.strftime('%Y-%m-%d')
+    date = datetime.strptime(date_str, '%Y-%m-%d')  
+    notification = Notification.objects.filter(
+        notification_message=message, notification_created=date
+    ).first()
+    if not notification:
+        notification = Notification()
+        notification.notification_message = message
+        notification.notification_created = date
+        notification.notification_modified = date_t
+        notification.notification_module = 'invoices' if 'invoice' in message.lower() else \
+                                            'items' if 'item' in message.lower() else \
+                                            'customers' if 'customer' in message.lower() else \
+                                            'backup' if 'backup' in message.lower() else 'general'
+        notification.save()
+        
+        users = LoginUser.objects.filter(is_active=True)
+        
+        for user in users:
+            user_notification = UserNotification.objects.filter(user=user, notification=notification).first()
+            if not user_notification:
+                user_notification = UserNotification()
+                user_notification.user = user
+                user_notification.notification = notification
+                user_notification.save()
+                
+                
+#############################################
+# GET NOTIFICATIONS
+#############################################
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def list_notifications(request):
+    valid_token = validateJWTTokenRequest(request)
+    if valid_token:
+        username = request.GET.get('username')
+        user = LoginUser.objects.filter(username=username).first()
+        notifications = UserNotification.objects.filter(user=user).order_by('-notification__notification_modified') 
+        quantity_unread = notifications.filter(is_read=False).count()   
+        list_notifications = []
+        for notification in notifications:
+            value = {
+                'notification_id': notification.id,
+                'notification_message': notification.notification.notification_message,
+                'notification_created': notification.notification.notification_created.strftime('%Y-%m-%d'),
+                'notification_modified': notification.notification.notification_modified.strftime('%Y-%m-%d %H:%M:%S'),
+                'notification_module': notification.notification.notification_module,   
+                'notification_is_read': notification.is_read
+            }
+            list_notifications.append(value)
+        return JsonResponse({'data': list_notifications, 'quantity_unread': quantity_unread}, safe=False, status=200)
+    return JsonResponse({'error': 'Invalid JWT Token'}, status=401)
+
+
+#############################################
+# CHECK READ NOTIFICATIONS
+#############################################
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def check_read_notification(request, notification_id):
+    valid_token = validateJWTTokenRequest(request)
+    if valid_token:
+        data = json.loads(request.body)  
+        username = data.get('username') 
+        notification = UserNotification.objects.filter(id=notification_id).first()
+        if notification:
+            notification.is_read = True
+            notification.save()
+            manage_api_tracking_log(username, 'check_read_notification', request.META.get('REMOTE_ADDR'), 'Check read notification')
+            return JsonResponse({'message': 'Notification checked as read'}, status=200)
+        return JsonResponse({'error': 'Notification not found'}, status=404)
+    return JsonResponse({'error': 'Invalid JWT Token'}, status=401)
 
 
 #############################################
@@ -597,6 +685,7 @@ def do_backup_db(request):
         if create_backup():
             username = request.GET.get('username')
             manage_api_tracking_log(username, 'backup_db', request.META.get('REMOTE_ADDR'), 'Backup DB')
+            manage_notifications('Backup DB started successfully')
             return JsonResponse({'message': 'Backup DB started successfully.'}, status=200)
         return JsonResponse({'error': 'Error creating the backup.'}, status=500)
     return JsonResponse({'error': 'Invalid JWT Token'}, status=401)

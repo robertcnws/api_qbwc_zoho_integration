@@ -144,7 +144,7 @@ const CustomersList = ({ customers }) => {
                     <HomeNavigationRightButton children={childrenNavigationRightButton} />
                 </Grid>
                 <Grid item xs={12} sx={{ mt: '-1%' }}>
-                    <TableContainer style={{ maxHeight: '780px', minHeight: '780px', minWidth: 690 }}>
+                    <TableContainer style={{ maxHeight: '789px', minHeight: '789px', minWidth: 690 }}>
                         <Table id="myTable" aria-label="customers table" stickyHeader>
                             <TableHead sx={{ backgroundColor: '#F9F9FB' }}>
                                 <TableRow>

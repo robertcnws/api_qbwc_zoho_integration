@@ -261,6 +261,8 @@ def load_items(request):
             if created:
                 zoho_loading.save()
             api_zoho_views.manage_api_tracking_log(username, 'load_items', request.META.get('REMOTE_ADDR'), 'Loaded items from Zoho Books')
+            message_notification = f"Items have been loaded successfully from Zoho Books"
+            api_zoho_views.manage_notifications(message_notification)
                 
         return JsonResponse({'message': 'Items loaded successfully'}, status=200)
     

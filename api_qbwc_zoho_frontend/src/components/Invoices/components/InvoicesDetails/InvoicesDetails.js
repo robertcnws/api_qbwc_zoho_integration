@@ -345,7 +345,7 @@ const InvoicesDetails = () => {
                     <Grid item container xs={3} sx={{ borderRight: '1px solid #ddd' }}>
                         <Grid item container xs={12} spacing={1}>
                             <CustomFilter configCustomFilter={configCustomFilter} />
-                            <TableContainer sx={{ maxHeight: 767, minHeight: 767, borderTop: '1px solid #ddd' }}>
+                            <TableContainer sx={{ maxHeight: 776, minHeight: 776, borderTop: '1px solid #ddd' }}>
                                 <Table aria-label="filtered invoices table">
                                     <TableBody>
                                         {filteredInvoices && filteredInvoices.length > 0 ? (
@@ -421,11 +421,11 @@ const InvoicesDetails = () => {
                                 </Grid>
                             </Grid>
                         </Grid>
-                        <Grid item container xs={12} spacing={1} sx={{ minHeight: 769, maxHeight: 769, mt: 0, marginLeft: '-1.4%' }}>
+                        <Grid item container xs={12} spacing={1} sx={{ minHeight: 778, maxHeight: 778, mt: 0, marginLeft: '-1.4%' }}>
                             <TableContainer
                                 sx={{
-                                    minHeight: 769,
-                                    maxHeight: 769,
+                                    minHeight: 778,
+                                    maxHeight: 778,
                                     minWidth: '103.5%',
                                     maxWidth: '103.5%',
                                     borderLeft: '1px solid #ddd',

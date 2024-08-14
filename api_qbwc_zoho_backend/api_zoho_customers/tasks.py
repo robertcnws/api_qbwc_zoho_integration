@@ -75,6 +75,8 @@ def load_customers_task(headers, params, username, pc_ip):
             zoho_loading.zoho_record_updated = current_time_utc
         zoho_loading.save()
         api_zoho_views.manage_api_tracking_log(username, 'load_customers', pc_ip, 'Loaded customers from Zoho Books')
+        message_notification = f"Customers have been loaded successfully from Zoho Books"
+        api_zoho_views.manage_notifications(message_notification)
     
     return {'message': 'Customers loaded successfully', 'status': 200}
 

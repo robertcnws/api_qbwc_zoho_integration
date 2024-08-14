@@ -640,11 +640,15 @@ def start_qbwc_invoice_add_request(request):
         qb_loading = QbLoading.objects.filter(qb_module='invoices', qb_record_created=datetime.now(timezone.utc)).first()
         app_config = AppConfig.objects.first()
         api_zoho_views.manage_api_tracking_log(f'{app_config.qb_username} (From QBWC)', 'sync_invoices_to_qb', request.META.get('REMOTE_ADDR'), 'Sync invoices to QuickBooks')
+        
         if not qb_loading:
             qb_loading = create_qb_loading_instance('invoices')
         else:
             qb_loading.qb_record_updated = datetime.now(timezone.utc)
         qb_loading.save()
+        
+        message_notification = 'Invoices have been synced to QuickBooks'
+        api_zoho_views.manage_notifications(message_notification)
         
         return HttpResponse(response_xml, content_type='text/xml')
     else:
@@ -706,6 +710,9 @@ def start_qbwc_query_request(request, query_object_name, list_of_objects):
             api_zoho_views.manage_api_tracking_log(f'{app_config.qb_username} (From QBWC)', f'load_{module}_from_qb', request.META.get('REMOTE_ADDR'), f'Load {module} from QuickBooks')
             logger.info(f"QB Loading instance created/updated for module {module}")
             logger.info(f"Task done: {qb_loading}")
+            module_object = re.sub(r'([a-z])([A-Z])', r'\1 \2', query_object_name)
+            message_notification = f'All {module_object} have been loaded from QuickBooks'
+            api_zoho_views.manage_notifications(message_notification)
 
         response_xml = process_qbwc_query_request(xml_data, query_object_name)
         return HttpResponse(response_xml, content_type='text/xml')

@@ -13,7 +13,7 @@ const Footer = () => {
                 width: '100%',
                 minWidth: '100%',
                 backgroundColor: '#f7f7fe',
-                padding: '10px 10px 10px 0',
+                padding: '1px 1px 1px 0',
                 boxShadow: '0 -2px 10px rgba(0, 0, 0, 0.1)',
                 border: '1px solid #ccc',
                 zIndex: 1000,
@@ -25,7 +25,7 @@ const Footer = () => {
                         <Grid item>
                             <Link href="mailto:" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', color: 'inherit', textDecoration: 'none' }}>
                                 <MessageIcon fontSize="small" sx={{ fontSize: 16 }} />
-                                <Typography variant="caption" color="textSecondary" sx={{ mt: 0.1, mb: 0.1, fontSize: '0.55rem' }}>
+                                <Typography variant="caption" color="textSecondary" sx={{ mt: 0.1, mb: 0, fontSize: '0.50rem' }}>
                                     Contact Us
                                 </Typography>
                             </Link>
@@ -33,7 +33,7 @@ const Footer = () => {
                         <Grid item>
                             <Link href="#" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', color: 'inherit', textDecoration: 'none' }}>
                                 <RssFeedIcon fontSize="small" sx={{ fontSize: 16 }} />
-                                <Typography variant="caption" color="textSecondary" sx={{ mt: 0.1, mb: 0.1, fontSize: '0.55rem' }}>
+                                <Typography variant="caption" color="textSecondary" sx={{ mt: 0.1, mb: 0, fontSize: '0.50rem' }}>
                                     Feed
                                 </Typography>
                             </Link>
@@ -41,7 +41,7 @@ const Footer = () => {
                         <Grid item>
                             <Link href="#" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', color: 'inherit', textDecoration: 'none' }}>
                                 <ContactsIcon fontSize="small" sx={{ fontSize: 16 }} />
-                                <Typography variant="caption" color="textSecondary" sx={{ mt: 0.1, mb: 0.1, fontSize: '0.55rem' }}>
+                                <Typography variant="caption" color="textSecondary" sx={{ mt: 0.1, mb: 0, fontSize: '0.50rem' }}>
                                     Contacts
                                 </Typography>
                             </Link>

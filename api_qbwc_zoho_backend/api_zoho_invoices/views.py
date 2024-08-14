@@ -216,6 +216,9 @@ def load_invoices(request, task_job=False):
                     zoho_loading.zoho_record_updated = current_time_utc
                 zoho_loading.save()
                 api_zoho_views.manage_api_tracking_log(username, 'load_invoices', request.META.get('REMOTE_ADDR'), 'Loaded invoices from Zoho Books')
+                message_notification = f"Invoices have been loaded successfully from Zoho Books"
+                api_zoho_views.manage_notifications(message_notification)
+                
             
             return JsonResponse({'message': 'Invoices loaded successfully'}, status=200)
         

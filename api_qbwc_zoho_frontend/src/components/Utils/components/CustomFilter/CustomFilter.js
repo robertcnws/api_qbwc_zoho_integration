@@ -1,7 +1,7 @@
 import React from 'react';
 import { Box, FormControl, ListSubheader, MenuItem, Select, TextField } from '@mui/material';
 
-const CustomFilter = ({ configCustomFilter }) => {
+const CustomFilter = ({ configCustomFilter, fontSize }) => {
   return (
     <FormControl variant="outlined" size="small" style={{ marginBottom: configCustomFilter.hasSearch ? configCustomFilter.marginBottomInDetails : '0' }}>
       {/* <InputLabel>{configCustomFilter.items.length}</InputLabel> */}
@@ -10,7 +10,7 @@ const CustomFilter = ({ configCustomFilter }) => {
         onChange={configCustomFilter.handleFilterChange}
         label="Filter"
         sx={{
-          fontSize: '22px',
+          fontSize: fontSize ? fontSize : '22px',
           border: 'none',
           '& .MuiOutlinedInput-notchedOutline': {
             border: 'none',

@@ -473,7 +473,7 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
                 </Grid>
             </Grid>
 
-            <TableContainer style={{ maxHeight: '745px', mixHeight: '745px', minWidth: 690 }} sx={{ mt: '-1%' }}>
+            <TableContainer style={{ maxHeight: '763px', mixHeight: '763px', minWidth: 690 }} sx={{ mt: '-1%' }}>
                 <Table stickyHeader>
                     <TableHead>
                         <TableRow sx={{ backgroundColor: '#f9f9fb' }}>

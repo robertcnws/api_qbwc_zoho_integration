@@ -39,7 +39,6 @@ import CustomFilter from '../../../Utils/components/CustomFilter/CustomFilter';
 const apiUrl = process.env.REACT_APP_ENVIRONMENT === 'DEV' ? process.env.REACT_APP_BACKEND_URL_DEV : process.env.REACT_APP_BACKEND_URL_PROD;
 
 const StyledMenuItem = styled(MenuItem)({
-    // Estilos personalizados
     backgroundColor: '#f0f0f0',
     '&:hover': {
         backgroundColor: '#d0d0d0',
@@ -121,8 +120,18 @@ const ItemsDetails = () => {
                     setItem(response.data);
                     setCoincidences(response.data.coincidences);
                 } catch (error) {
-                    console.error('Error fetching item details:', error);
-                    setError(`Error fetching item details: ${error}`);
+                    if (error.response.status === 404) {
+                        setError('Error fetching item details: Item not found.');
+                    }
+                    else if (error.response.status === 500) {
+                        setError('Error fetching item details: Internal Server Error.');
+                    }
+                    else if (error.response.status === 401) {
+                        setError('Error fetching item details: Unauthorized.');
+                    }
+                    else {
+                        setError(`Error fetching item details: ${error}`);
+                    }
                 } finally {
                     setLoading(false);
                 }
@@ -346,7 +355,7 @@ const ItemsDetails = () => {
 
     if (error) {
         return (
-            <AlertError isSmallScreen={isSmallScreen} error={error} />
+            <AlertError isSmallScreen={isSmallScreen} error={error} redirect={handleBackNavigation}/>
         );
     }
 
@@ -378,7 +387,7 @@ const ItemsDetails = () => {
                     <Grid item container xs={3} sx={{ borderRight: '1px solid #ddd' }}>
                         <Grid item container xs={12} spacing={1}>
                             <CustomFilter configCustomFilter={configCustomFilter} />
-                            <TableContainer sx={{ maxHeight: 755, minHeight: 755, borderTop: '1px solid #ddd' }}>
+                            <TableContainer sx={{ maxHeight: 764, minHeight: 764, borderTop: '1px solid #ddd' }}>
                                 <Table aria-label="filtered customers table">
                                     <TableBody>
                                         {filteredItems && filteredItems.length > 0 ? (
@@ -481,11 +490,11 @@ const ItemsDetails = () => {
                                     </Tooltip>
                                 </Grid>
                             </Grid>
-                            <Grid item container xs={12} spacing={1} sx={{ maxHeight: 758, minHeight: 758, mt: 2, marginLeft: '-1.4%' }}>
+                            <Grid item container xs={12} spacing={1} sx={{ maxHeight: 767, minHeight: 767, mt: 2, marginLeft: '-1.4%' }}>
                                 <TableContainer
                                     sx={{
-                                        maxHeight: 758,
-                                        minHeight: 758,
+                                        maxHeight: 767,
+                                        minHeight: 767,
                                         minWidth: '103.5%',
                                         maxWidth: '103.5%',
                                         borderTop: '1px solid #ddd',
@@ -611,7 +620,7 @@ const ItemsDetails = () => {
                                                             Force Matching
                                                         </TableCell>
 
-                                                        <TableCell sx={{ borderBottom: 'none'}}>
+                                                        <TableCell sx={{ borderBottom: 'none' }}>
                                                             <FormControl variant="outlined" size="small" style={{ width: '100%' }}>
                                                                 <TextField
                                                                     label={"Search QB Items (" + filteredQbItems.length + ")"}

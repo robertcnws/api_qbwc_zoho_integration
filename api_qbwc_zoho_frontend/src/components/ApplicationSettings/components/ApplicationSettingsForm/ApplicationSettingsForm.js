@@ -99,7 +99,7 @@ const ApplicationSettingsForm = ({ formData, onSubmit, error, success }) => {
                     fontWeight: 'bold',
                 }}
             >
-                Application Settings
+                App Configuration
             </Typography>
             {success && <Alert severity="success">{success}<br/></Alert>}
             {error && <Alert severity="error">{error}<br/></Alert>}

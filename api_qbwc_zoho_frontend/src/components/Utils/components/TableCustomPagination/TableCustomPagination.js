@@ -5,7 +5,7 @@ const TableCustomPagination = ({ columnsLength, data, page, rowsPerPage, handleC
     const absPage = page < 0 ? 0 : page;
     return (
         <TableRow>
-            <TableCell colSpan={columnsLength} align="right">
+            <TableCell colSpan={columnsLength} align="right" sx={{ borderBottom: 'none'}}>
                 <TablePagination
                     rowsPerPageOptions={[5, 10, 25, 50]}
                     component="div"

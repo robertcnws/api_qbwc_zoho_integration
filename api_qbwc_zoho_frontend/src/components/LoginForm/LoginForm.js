@@ -29,38 +29,48 @@ const LoginForm = () => {
       return;
     }
 
+    let jwtResponse = null;
+
     try {
       const body_jwt = JSON.stringify({ username, password });
-      const jwtResponse = await axios.post(`${apiUrl}/api/token/`, body_jwt, {
+      jwtResponse = await axios.post(`${apiUrl}/api/token/`, body_jwt, {
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
         },
       });
 
-      localStorage.setItem('accessToken', jwtResponse.data.access);
-      localStorage.setItem('refreshToken', jwtResponse.data.refresh);
+      if (jwtResponse.status !== 200) {
+        setError(`Invalid Credentials : No active account found with the given credentials`);
+        throw new Error(`${error}`);
+      }
 
-      const body = JSON.stringify({ username, password });
-      const loginResponse = await axios.post(`${apiUrl}/login/`, body, {
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRFToken': getCookie('csrftoken'),
-        },
-      });
+      else {
+        localStorage.setItem('accessToken', jwtResponse.data.access);
+        localStorage.setItem('refreshToken', jwtResponse.data.refresh);
 
-      if (loginResponse.status === 200) {
-        setSuccess('Login successful');
-        localStorage.setItem('isStaff', loginResponse.data.is_staff);
-        localStorage.setItem('username', loginResponse.data.username);
-        login();
-        navigate('/integration');
-      } else {
-        setError(`Invalid credentials: ${loginResponse.message}`);
-        throw new Error('Invalid credentials');
+        const body = JSON.stringify({ username, password });
+        const loginResponse = await axios.post(`${apiUrl}/login/`, body, {
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken'),
+          },
+        });
+
+        if (loginResponse.status === 200) {
+          setSuccess('Login successful');
+          localStorage.setItem('isStaff', loginResponse.data.is_staff);
+          localStorage.setItem('username', loginResponse.data.username);
+          login();
+          navigate('/integration');
+        } else {
+          console.log(loginResponse);
+          setError(`${loginResponse.data.error} : ${loginResponse.data.description}`);
+          throw new Error(`${error}`);
+        }
       }
     } catch (error) {
-      setError(`Invalid credentials: ${error}`);
+      setError(`Invalid Credentials : No active account found with the given credentials`);
     } finally {
       setLoading(false);
     }
