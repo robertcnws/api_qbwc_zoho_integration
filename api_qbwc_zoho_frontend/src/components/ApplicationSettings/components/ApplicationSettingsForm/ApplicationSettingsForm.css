@@ -31,3 +31,35 @@
     transform: translateY(-50%);
     cursor: pointer;
 }
+
+.main-content {
+    margin-top: -15px; /* Altura del topbar del sitio */
+    margin-bottom: -4px; /* Altura del footer del sitio */
+    margin-left: -262px; /* Ancho del sidebar */
+    margin-right: -233px; /* Ancho del sidebar */
+    padding: 20px;
+    overflow-y: auto;
+}
+
+/* Header del Formulario */
+.form-header {
+    position: sticky;
+    top: 0;
+    background-color: #FFFFFF;
+    min-height: 60px;
+    /* z-index: 10; */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border-right: 1px solid #ddd;
+}
+
+/* Footer del Formulario */
+.form-footer {
+    position: sticky;
+    bottom: 0;
+    background-color: #fff;
+    /* z-index: 1000; */
+    box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
+    padding: 10px;
+    text-align: right;
+    min-height: 20px;
+}

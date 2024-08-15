@@ -59,7 +59,13 @@ def login_view(request):
                 login(request, user)
                 logger.info(f'User {username} logged in')
                 manage_api_tracking_log(username, 'login', request.META.get('REMOTE_ADDR'), 'User logged in')
-                return JsonResponse({'status': 'success', 'is_staff': 'admin' if user.is_staff else 'user', 'username': user.username}, status=200)
+                return JsonResponse({
+                    'status': 'success', 
+                    'is_staff': 'admin' if user.is_staff else 'user', 
+                    'username': user.username,
+                    'first_name': user.first_name,
+                    'last_name': user.last_name
+                }, status=200)
             login_user = LoginUser.objects.filter(username=username).first()
             if login_user:
                 manage_api_tracking_log(username, 'login', request.META.get('REMOTE_ADDR'), 'Invalid credentials - Incorrect Password')

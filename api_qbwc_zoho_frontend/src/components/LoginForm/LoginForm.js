@@ -61,6 +61,8 @@ const LoginForm = () => {
           setSuccess('Login successful');
           localStorage.setItem('isStaff', loginResponse.data.is_staff);
           localStorage.setItem('username', loginResponse.data.username);
+          localStorage.setItem('firstName', loginResponse.data.first_name);
+          localStorage.setItem('lastName', loginResponse.data.last_name);
           login();
           navigate('/integration');
         } else {
