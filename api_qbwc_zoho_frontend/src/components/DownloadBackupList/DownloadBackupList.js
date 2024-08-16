@@ -22,12 +22,13 @@ import NavigationRightButton from '../Utils/components/NavigationRightButton/Nav
 import TableCustomPagination from '../Utils/components/TableCustomPagination/TableCustomPagination';
 
 const apiUrl = process.env.REACT_APP_ENVIRONMENT === 'DEV' ? process.env.REACT_APP_BACKEND_URL_DEV : process.env.REACT_APP_BACKEND_URL_PROD;
+const numberRows = parseInt(process.env.REACT_APP_DEFAULT_ROWS_PER_PAGE);
 
 const DownloadBackupList = () => {
 
     const [backups, setBackups] = useState([]);
     const [page, setPage] = useState(0);
-    const [rowsPerPage, setRowsPerPage] = useState(10);
+    const [rowsPerPage, setRowsPerPage] = useState(numberRows);
     const [orderBy, setOrderBy] = useState('');
     const [order, setOrder] = useState('asc');
     const [searchTerm, setSearchTerm] = useState(localStorage.getItem('searchTermGlobal') || '');

@@ -18,9 +18,11 @@ import HomeNavigationRightButton from '../../../Utils/components/NavigationRight
 import TableCustomPagination from '../../../Utils/components/TableCustomPagination/TableCustomPagination';
 import CustomFilter from '../../../Utils/components/CustomFilter/CustomFilter';
 
+const numberRows = parseInt(process.env.REACT_APP_DEFAULT_ROWS_PER_PAGE);
+
 const CustomersList = ({ customers }) => {
     const [page, setPage] = useState(0);
-    const [rowsPerPage, setRowsPerPage] = useState(10);
+    const [rowsPerPage, setRowsPerPage] = useState(numberRows);
     const [searchTerm, setSearchTerm] = useState(localStorage.getItem('searchTermGlobal') || '');
     const [orderBy, setOrderBy] = useState('');
     const [order, setOrder] = useState('asc');

@@ -25,11 +25,12 @@ import NavigationRightButton from '../../../Utils/components/NavigationRightButt
 import TableCustomPagination from '../../../Utils/components/TableCustomPagination/TableCustomPagination';
 
 const apiUrl = process.env.REACT_APP_ENVIRONMENT === 'DEV' ? process.env.REACT_APP_BACKEND_URL_DEV : process.env.REACT_APP_BACKEND_URL_PROD;
+const numberRows = parseInt(process.env.REACT_APP_DEFAULT_ROWS_PER_PAGE);
 
 const UsersList = ({ users, onSyncComplete }) => {
 
     const [page, setPage] = useState(0);
-    const [rowsPerPage, setRowsPerPage] = useState(10);
+    const [rowsPerPage, setRowsPerPage] = useState(numberRows);
     const [searchTerm, setSearchTerm] = useState(localStorage.getItem('searchTermGlobal') || '');
     const [orderBy, setOrderBy] = useState('');
     const [order, setOrder] = useState('asc');
@@ -193,31 +194,33 @@ const UsersList = ({ users, onSyncComplete }) => {
                                         ? sortedUsers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                                         : sortedUsers
                                     ).map((user, index) => (
-                                        <TableRow key={index}
-                                            sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                                            style={{
-                                                cursor: 'pointer',
-                                                transition: 'background-color 0.3s ease',
-                                                backgroundColor: hoveredRowIndex === index ? '#F6F6FA' : '#FFFFFF'
-                                            }}
-                                            onMouseEnter={() => setHoveredRowIndex(index)}
-                                            onMouseLeave={() => setHoveredRowIndex(null)}
-                                        >
-                                            <TableCell>{user.username}</TableCell>
-                                            <TableCell>{user.role}</TableCell>
-                                            <TableCell>{user.first_name ? user.first_name : user.username}</TableCell>
-                                            <TableCell>{user.last_name ? user.last_name : user.username}</TableCell>
-                                            <TableCell>{user.email ? user.email : '---'}</TableCell>
-                                            <TableCell>{user.last_login ? formatDate(user.last_login) : '---'}</TableCell>
-                                            <TableCell className="text-center align-middle">
-                                                <IconButton color="info" aria-label="view" size='xx-large' onClick={() => viewUser(user)}>
-                                                    <EditIcon />
-                                                </IconButton>
-                                                <IconButton color="error" aria-label="view" size='xx-large' onClick={() => setUserStatus(user)}>
-                                                    <DeleteIcon />
-                                                </IconButton>
-                                            </TableCell>
-                                        </TableRow>
+                                        user.username !== localStorage.getItem('username') && (
+                                            <TableRow key={index}
+                                                sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                                                style={{
+                                                    cursor: 'pointer',
+                                                    transition: 'background-color 0.3s ease',
+                                                    backgroundColor: hoveredRowIndex === index ? '#F6F6FA' : '#FFFFFF'
+                                                }}
+                                                onMouseEnter={() => setHoveredRowIndex(index)}
+                                                onMouseLeave={() => setHoveredRowIndex(null)}
+                                            >
+                                                <TableCell>{user.username}</TableCell>
+                                                <TableCell>{user.role}</TableCell>
+                                                <TableCell>{user.first_name ? user.first_name : user.username}</TableCell>
+                                                <TableCell>{user.last_name ? user.last_name : user.username}</TableCell>
+                                                <TableCell>{user.email ? user.email : '---'}</TableCell>
+                                                <TableCell>{user.last_login ? formatDate(user.last_login) : '---'}</TableCell>
+                                                <TableCell className="text-center align-middle">
+                                                    <IconButton color="info" aria-label="view" size='xx-large' onClick={() => viewUser(user)}>
+                                                        <EditIcon />
+                                                    </IconButton>
+                                                    <IconButton color="error" aria-label="view" size='xx-large' onClick={() => setUserStatus(user)}>
+                                                        <DeleteIcon />
+                                                    </IconButton>
+                                                </TableCell>
+                                            </TableRow>
+                                        )
                                     ))
                                 )}
                                 <TableCustomPagination

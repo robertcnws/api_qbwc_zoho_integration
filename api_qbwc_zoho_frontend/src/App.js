@@ -1,6 +1,7 @@
 import React, { useEffect, useCallback, useRef } from 'react';
 import { Route, Routes, Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from './components/AuthContext/AuthContext';
+import { ToastContainer } from 'react-toastify';
 import ProtectedRoute from './components/ProtectedRoutes/ProtectedRoutes';
 import LoginForm from './components/LoginForm/LoginForm';
 import Dashboard from './components/Dashboard/Dashboard';
@@ -32,7 +33,7 @@ const HomeRedirect = () => {
 
   if (isAuthenticated) {
     const redirectPath = localStorage.getItem('redirectPath') || '/integration';
-    localStorage.removeItem('redirectPath'); 
+    localStorage.removeItem('redirectPath');
     return <Navigate to={redirectPath} />;
   }
 
@@ -76,33 +77,36 @@ const App = () => {
   useIdleTimer(navigate, 1800000);
 
   return (
-        <Routes>
-          <Route path="/" element={<HomeRedirect />} />
-          <Route path="/integration/*" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} >
-            <Route path="" element={<MainContent />} />
-            <Route path="application_settings" element={<ApplicationSettingsContainer />} />
-            <Route path="zoho" element={<ZohoLoading />} />
-            <Route path="list_items" element={<ItemsListPage />} />
-            <Route path="item_details" element={<ItemsDetails />} />
-            <Route path="list_customers" element={<CustomersListPage />} />
-            <Route path="customer_details" element={<CustomersDetails />} />
-            <Route path="list_invoices" element={<InvoicesListPage />} />
-            <Route path="invoice_details" element={<InvoicesDetails />} />
-            <Route path="qbwc" element={<QbwcGetting />} />
-            <Route path="qbwc/items/list" element={<QbwcItemsListPage />} />
-            <Route path="qbwc/customers/list" element={<QbwcCustomersListPage />} />
-            <Route path="qbwc/items/similar" element={<QbwcSimilarItemsListPage />} />
-            <Route path="qbwc/customers/similar" element={<QbwcSimilarCustomersListPage />} />
-            <Route path="qbwc/items/matched" element={<QbwcMatchedItemsListPage />} />
-            <Route path="qbwc/customers/matched" element={<QbwcMatchedCustomersListPage />} />
-            <Route path="qbwc/items/never_match" element={<QbwcNeverMatchedItemsListPage />} />
-            <Route path="qbwc/customers/never_match" element={<QbwcNeverMatchedCustomersListPage />} />
-            <Route path="download_backup_db" element={<DownloadBackupList />} />
-            <Route path="list_users" element={<UsersListPage />} />
-            <Route path="view_user" element={<UsersFormContainer />} />
-            <Route path="list_logs" element={<LoggingListPage />} />
-          </Route>
-        </Routes>
+    <>
+      <ToastContainer />
+      <Routes>
+        <Route path="/" element={<HomeRedirect />} />
+        <Route path="/integration/*" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} >
+          <Route path="" element={<MainContent />} />
+          <Route path="application_settings" element={<ApplicationSettingsContainer />} />
+          <Route path="zoho" element={<ZohoLoading />} />
+          <Route path="list_items" element={<ItemsListPage />} />
+          <Route path="item_details" element={<ItemsDetails />} />
+          <Route path="list_customers" element={<CustomersListPage />} />
+          <Route path="customer_details" element={<CustomersDetails />} />
+          <Route path="list_invoices" element={<InvoicesListPage />} />
+          <Route path="invoice_details" element={<InvoicesDetails />} />
+          <Route path="qbwc" element={<QbwcGetting />} />
+          <Route path="qbwc/items/list" element={<QbwcItemsListPage />} />
+          <Route path="qbwc/customers/list" element={<QbwcCustomersListPage />} />
+          <Route path="qbwc/items/similar" element={<QbwcSimilarItemsListPage />} />
+          <Route path="qbwc/customers/similar" element={<QbwcSimilarCustomersListPage />} />
+          <Route path="qbwc/items/matched" element={<QbwcMatchedItemsListPage />} />
+          <Route path="qbwc/customers/matched" element={<QbwcMatchedCustomersListPage />} />
+          <Route path="qbwc/items/never_match" element={<QbwcNeverMatchedItemsListPage />} />
+          <Route path="qbwc/customers/never_match" element={<QbwcNeverMatchedCustomersListPage />} />
+          <Route path="download_backup_db" element={<DownloadBackupList />} />
+          <Route path="list_users" element={<UsersListPage />} />
+          <Route path="view_user" element={<UsersFormContainer />} />
+          <Route path="list_logs" element={<LoggingListPage />} />
+        </Route>
+      </Routes>
+    </>
   );
 };
 

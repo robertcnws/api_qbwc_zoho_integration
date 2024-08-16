@@ -17,8 +17,11 @@ import {
     FormControl,
     FormControlLabel,
     Checkbox,
+    Tooltip,
 } from '@mui/material';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import ErrorIcon from '@mui/icons-material/Error';
+import RemoveCircleIcon from '@mui/icons-material/RemoveCircle';
 import DeleteIcon from '@mui/icons-material/Delete';
 import FilterAltOffIcon from '@mui/icons-material/FilterAltOff';
 import HomeIcon from '@mui/icons-material/Home';
@@ -36,14 +39,15 @@ import CustomFilter from '../../../Utils/components/CustomFilter/CustomFilter';
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-const apiUrl = process.env.REACT_APP_ENVIRONMENT === 'DEV' ? process.env.REACT_APP_BACKEND_URL_DEV : process.env.REACT_APP_BACKEND_URL_PROD;;
+const apiUrl = process.env.REACT_APP_ENVIRONMENT === 'DEV' ? process.env.REACT_APP_BACKEND_URL_DEV : process.env.REACT_APP_BACKEND_URL_PROD;
+const numberRows = parseInt(process.env.REACT_APP_DEFAULT_ROWS_PER_PAGE);
 
 const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterDate }) => {
 
     const [selectedInvoices, setSelectedInvoices] = useState([]);
     const [page, setPage] = useState(0);
     const [searchTerm, setSearchTerm] = useState(localStorage.getItem('searchTermGlobal') || '');
-    const [rowsPerPage, setRowsPerPage] = useState(10);
+    const [rowsPerPage, setRowsPerPage] = useState(numberRows);
     const [orderBy, setOrderBy] = useState('');
     const [order, setOrder] = useState('asc');
     const [filter, setFilter] = useState('all');
@@ -314,19 +318,89 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
 
     const renderSyncStatus = (invoice) => {
         if (invoice.fields.customer_unmatched.length > 0 || invoice.fields.items_unmatched.length > 0) {
-            return <Typography sx={{ color: 'error.main' }}><b>ERROR</b></Typography>;
+            return (
+                <Tooltip
+                    title="ERROR"
+                    arrow
+                    sx={{
+                        '& .MuiTooltip-tooltip': {
+                            backgroundColor: '#000000',
+                            color: 'white',
+                            fontSize: '0.875rem'
+                        }
+                    }}
+                >
+                    <ErrorIcon sx={{ color: 'error.main', fontSize: 'large' }} />
+                </Tooltip>
+            );
         } else if (!invoice.fields.inserted_in_qb && !invoice.fields.customer_unmatched.length > 0 && !invoice.fields.items_unmatched.length > 0) {
-            return <Typography sx={{ color: 'warning.main' }}><b>Not Processed</b></Typography>;
+            return (
+                <Tooltip
+                    title="NOT PROCESSED"
+                    arrow
+                    sx={{
+                        '& .MuiTooltip-tooltip': {
+                            backgroundColor: '#000000',
+                            color: 'white',
+                            fontSize: '0.875rem'
+                        }
+                    }}
+                >
+                    <RemoveCircleIcon sx={{ color: 'warning.main', fontSize: 'large' }} />
+                </Tooltip>
+            );
         } else {
-            return <Typography sx={{ color: 'success.main' }}><b>SUCCESS</b></Typography>;
+            return (
+                <Tooltip
+                    title="SUCCESS"
+                    arrow
+                    sx={{
+                        '& .MuiTooltip-tooltip': {
+                            backgroundColor: '#000000',
+                            color: 'white',
+                            fontSize: '0.875rem'
+                        }
+                    }}
+                >
+                    <CheckCircleIcon sx={{ color: 'success.main', fontSize: 'large' }} />
+                </Tooltip>
+            );
         }
     };
 
     const renderMatchStatus = (invoice) => {
         if (invoice.fields.all_items_matched && invoice.fields.all_customer_matched) {
-            return 'YES'
+            return (
+                <Tooltip
+                    title="MATCHED"
+                    arrow
+                    sx={{
+                        '& .MuiTooltip-tooltip': {
+                            backgroundColor: '#000000',
+                            color: 'white',
+                            fontSize: '0.875rem'
+                        }
+                    }}
+                >
+                    <CheckCircleIcon sx={{ color: 'success.main', fontSize: 'large' }} />
+                </Tooltip>
+            );
         } else {
-            return 'NO'
+            return (
+                <Tooltip
+                    title="NOT MATCHED"
+                    arrow
+                    sx={{
+                        '& .MuiTooltip-tooltip': {
+                            backgroundColor: '#000000',
+                            color: 'white',
+                            fontSize: '0.875rem'
+                        }
+                    }}
+                >
+                    <ErrorIcon sx={{ color: 'error.main', fontSize: 'large' }} />
+                </Tooltip>
+            );
         }
     };
 
@@ -346,7 +420,21 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
                 </FormControl>
             );
         } else {
-            return <b>Synced</b>;
+            return (
+                <Tooltip
+                    title="SYNCED"
+                    arrow
+                    sx={{
+                        '& .MuiTooltip-tooltip': {
+                            backgroundColor: '#000000',
+                            color: 'white',
+                            fontSize: '0.875rem'
+                        }
+                    }}
+                >
+                    <CheckCircleIcon sx={{ color: 'success.main', fontSize: 'large' }} />
+                </Tooltip>
+            );
         }
     };
 
@@ -464,7 +552,7 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
                                 minDate={oneYearAgo}
                                 maxDate={today}
                                 textField={(params) => (
-                                    <TextField variant="outlined" {...params} style={{paddingTop: '9px'}}/>
+                                    <TextField variant="outlined" {...params} style={{ paddingTop: '9px' }} />
                                 )}
                             />
                         </LocalizationProvider>

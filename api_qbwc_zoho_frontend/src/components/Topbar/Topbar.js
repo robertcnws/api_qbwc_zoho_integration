@@ -35,6 +35,8 @@ import BuildIcon from '@mui/icons-material/Build';
 import PeopleIcon from '@mui/icons-material/People';
 import InventoryIcon from '@mui/icons-material/Inventory';
 import ReceiptIcon from '@mui/icons-material/Receipt';
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { fetchWithToken } from '../../utils';
 import CustomFilter from '../Utils/components/CustomFilter/CustomFilter';
@@ -64,6 +66,7 @@ const Topbar = ({ handleLogout }) => {
     const [quantityUnreadNotifications, setQuantityUnreadNotifications] = useState(0);
     const [isDrawingUser, setIsDrawingUser] = useState(false);
     const [filter, setFilter] = useState('all');
+    const [lastToastTime, setLastToastTime] = useState(null);
 
     const [drawerOpen, setDrawerOpen] = useState(false);
 
@@ -88,6 +91,40 @@ const Topbar = ({ handleLogout }) => {
         const quantityUnread = response.data.quantity_unread;
         setNotifications(data);
         setQuantityUnreadNotifications(quantityUnread);
+
+        const currentTime = new Date().getTime();
+
+        if (quantityUnread >= 1 && (!lastToastTime || currentTime - lastToastTime >= 300000)) {
+            const notification_unread = data.filter(item => !item.notification_is_read);
+            if (quantityUnread === 1) {
+                toast.info(`${notification_unread[0].notification_message} on ${notification_unread[0].notification_modified}`, {
+                    position: "top-center",
+                    autoClose: 5000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    pauseOnHover: true,
+                    draggable: true,
+                    progress: undefined,
+                    style: {
+                        backgroundColor: notification_unread[0].notification_message.toLowerCase().includes('zoho') ? 'rgba(33, 150, 243, 0.4)' : 'rgba(76, 175, 80, 0.4)', 
+                        color: 'black',
+                    },
+                    onClick: () => handleCheckNotification(notification_unread[0]),
+                });
+            } else {
+                toast.info(`You have ${quantityUnread} new notifications`, {
+                    position: "top-center",
+                    autoClose: 5000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    pauseOnHover: true,
+                    draggable: true,
+                    progress: undefined,
+                    onClick: toggleDrawer(true, false),
+                });
+            }
+            setLastToastTime(currentTime);
+        }
     };
 
     useEffect(() => {
@@ -129,7 +166,7 @@ const Topbar = ({ handleLogout }) => {
             setVisibleSearch(false);
         }
         fetchNotifications();
-        const intervalId = setInterval(fetchNotifications, 5000);
+        const intervalId = setInterval(fetchNotifications, 300000);
         return () => clearInterval(intervalId);
     }, [location]);
 
@@ -178,7 +215,7 @@ const Topbar = ({ handleLogout }) => {
         handleLogout();
     }
 
-    const hangleCheckNotification = async (notification) => {
+    const handleCheckNotification = async (notification) => {
         const data = {
             'username': localStorage.getItem('username')
         };
@@ -461,7 +498,16 @@ const Topbar = ({ handleLogout }) => {
                                         </Grid>
                                     </Grid>
                                     <Grid container spacing={1}>
-                                        <Grid item container xs={12} justifyContent="flex-end">
+                                        <Grid item container xs={6} justifyContent="flex-end">
+                                            <Typography
+                                                variant="caption"
+                                                component={Link}
+                                                onClick={() => alert('Under Construction')}
+                                                sx={{ marginTop: '10px', color: '#f4f4f4' }}>
+                                                My Account
+                                            </Typography>
+                                        </Grid>
+                                        <Grid item container xs={6} justifyContent="flex-end">
                                             <IconButton onClick={() => logout()} sx={{ color: '#F48895' }}>
                                                 <LogoutIcon />
                                                 <Typography variant="caption">
@@ -514,7 +560,7 @@ const Topbar = ({ handleLogout }) => {
                                                     cursor: 'pointer',
                                                     backgroundColor: notification.notification_is_read ? 'inherit' : '#f0f0f0'
                                                 }}
-                                                onClick={() => hangleCheckNotification(notification)}
+                                                onClick={() => handleCheckNotification(notification)}
                                             >
                                                 <TableCell>
                                                     <IconButton size='small' sx={{
@@ -530,7 +576,7 @@ const Topbar = ({ handleLogout }) => {
                                                 </TableCell>
                                                 <TableCell component="th" scope="row">
                                                     {!notification.notification_is_read ?
-                                                        (<b>{notification.notification_message}</b>) : notification.notification_message 
+                                                        (<b>{notification.notification_message}</b>) : notification.notification_message
                                                     }
                                                     <br />
                                                     <span style={{ fontSize: '12px' }}>{notification.notification_modified}</span>

@@ -31,6 +31,7 @@ import {
 } from '@mui/material';
 import { grey } from '@mui/material/colors';
 import ClearIcon from '@mui/icons-material/Clear';
+import LinkIcon from '@mui/icons-material/Link';
 import CloseIcon from '@mui/icons-material/Close';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import Swal from 'sweetalert2';
@@ -43,6 +44,7 @@ import TableCustomPagination from '../../../Utils/components/TableCustomPaginati
 import CustomFilter from '../../../Utils/components/CustomFilter/CustomFilter';
 
 const apiUrl = process.env.REACT_APP_ENVIRONMENT === 'DEV' ? process.env.REACT_APP_BACKEND_URL_DEV : process.env.REACT_APP_BACKEND_URL_PROD;
+const numberRows = parseInt(process.env.REACT_APP_DEFAULT_ROWS_PER_PAGE);
 
 const StyledMenuItem = styled(MenuItem)({
     // Estilos personalizados
@@ -64,7 +66,7 @@ const CustomersDetails = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [page, setPage] = useState(0);
-    const [rowsPerPage, setRowsPerPage] = useState(10);
+    const [rowsPerPage, setRowsPerPage] = useState(numberRows);
     const [qbCustomers, setQbCustomers] = useState([]);
     const [loadingQbCustomers, setLoadingQbCustomers] = useState(true);
     const [qbSelectedCustomer, setQbSelectedCustomer] = useState(null);
@@ -156,6 +158,8 @@ const CustomersDetails = () => {
             }
         };
         fetchQbCustomers();
+        const intervalId = setInterval(fetchQbCustomers, 5000);
+        return () => clearInterval(intervalId);
     }, []);
 
 
@@ -630,13 +634,21 @@ const CustomersDetails = () => {
                                                                         <TableCell>{coincidence.coincidence_phone}</TableCell>
                                                                         <TableCell>{coincidence.company_name}</TableCell>
                                                                         <TableCell>
-                                                                            <Button
-                                                                                variant="contained"
-                                                                                color="info"
-                                                                                size="small"
-                                                                                onClick={() => handleMatchCustomer(customer.contact_id, coincidence.qb_customer_list_id, 'match')}>
-                                                                                Match
-                                                                            </Button>
+                                                                            <Tooltip
+                                                                                title="Do Match"
+                                                                                arrow
+                                                                                sx={{
+                                                                                    '& .MuiTooltip-tooltip': {
+                                                                                        backgroundColor: '#000000',
+                                                                                        color: 'white',
+                                                                                        fontSize: '0.875rem'
+                                                                                    }
+                                                                                }}
+                                                                            >
+                                                                                <IconButton onClick={() => handleMatchCustomer(customer.contact_id, coincidence.qb_customer_list_id, 'match')} color="info" aria-label="view" size='xx-large'>
+                                                                                    <LinkIcon />
+                                                                                </IconButton>
+                                                                            </Tooltip>
                                                                         </TableCell>
                                                                     </TableRow>
                                                                 ))}
@@ -698,12 +710,24 @@ const CustomersDetails = () => {
                                                                         <>
                                                                             {loading && <CircularProgress size={20} />}
                                                                             <InputAdornment position="end">
-                                                                                <IconButton
-                                                                                    onClick={handleClearSearch}
-                                                                                    edge="end"
+                                                                                <Tooltip
+                                                                                    title="Clear Search"
+                                                                                    arrow
+                                                                                    sx={{
+                                                                                        '& .MuiTooltip-tooltip': {
+                                                                                            backgroundColor: '#000000',
+                                                                                            color: 'white',
+                                                                                            fontSize: '0.875rem'
+                                                                                        }
+                                                                                    }}
                                                                                 >
-                                                                                    <ClearIcon />
-                                                                                </IconButton>
+                                                                                    <IconButton
+                                                                                        onClick={handleClearSearch}
+                                                                                        edge="end"
+                                                                                    >
+                                                                                        <ClearIcon />
+                                                                                    </IconButton>
+                                                                                </Tooltip>
                                                                             </InputAdornment>
                                                                         </>
                                                                     ),

@@ -18,10 +18,12 @@ import { EmptyRecordsCell } from '../../../Utils/components/EmptyRecordsCell/Emp
 import NavigationRightButton from '../../../Utils/components/NavigationRightButton/NavigationRightButton';
 import TableCustomPagination from '../../../Utils/components/TableCustomPagination/TableCustomPagination';
 
+const numberRows = parseInt(process.env.REACT_APP_DEFAULT_ROWS_PER_PAGE);
+
 const LoggingList = ({ logs }) => {
 
     const [page, setPage] = useState(0);
-    const [rowsPerPage, setRowsPerPage] = useState(10);
+    const [rowsPerPage, setRowsPerPage] = useState(numberRows);
     const [searchTerm, setSearchTerm] = useState(localStorage.getItem('searchTermGlobal') || '');
     const [orderBy, setOrderBy] = useState('');
     const [order, setOrder] = useState('asc');

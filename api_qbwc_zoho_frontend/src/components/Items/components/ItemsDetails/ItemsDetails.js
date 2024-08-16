@@ -28,6 +28,7 @@ import { List, AutoSizer } from 'react-virtualized';
 import { grey } from '@mui/material/colors';
 import ClearIcon from '@mui/icons-material/Clear';
 import CloseIcon from '@mui/icons-material/Close';
+import LinkIcon from '@mui/icons-material/Link';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import Swal from 'sweetalert2';
 import { fetchWithToken } from '../../../../utils';
@@ -37,6 +38,7 @@ import TableCustomPagination from '../../../Utils/components/TableCustomPaginati
 import CustomFilter from '../../../Utils/components/CustomFilter/CustomFilter';
 
 const apiUrl = process.env.REACT_APP_ENVIRONMENT === 'DEV' ? process.env.REACT_APP_BACKEND_URL_DEV : process.env.REACT_APP_BACKEND_URL_PROD;
+const numberRows = parseInt(process.env.REACT_APP_DEFAULT_ROWS_PER_PAGE);
 
 const StyledMenuItem = styled(MenuItem)({
     backgroundColor: '#f0f0f0',
@@ -57,7 +59,7 @@ const ItemsDetails = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [page, setPage] = useState(0);
-    const [rowsPerPage, setRowsPerPage] = useState(10);
+    const [rowsPerPage, setRowsPerPage] = useState(numberRows);
     const [qbItems, setQbItems] = useState([]);
     const [loadingQbItems, setLoadingQbItems] = useState(true);
     const [qbSelectedItem, setQbSelectedItem] = useState(null);
@@ -159,6 +161,8 @@ const ItemsDetails = () => {
             }
         };
         qbFetchItems();
+        const intervalId = setInterval(qbFetchItems, 5000);
+        return () => clearInterval(intervalId);
     }, []);
 
     useEffect(() => {
@@ -355,7 +359,7 @@ const ItemsDetails = () => {
 
     if (error) {
         return (
-            <AlertError isSmallScreen={isSmallScreen} error={error} redirect={handleBackNavigation}/>
+            <AlertError isSmallScreen={isSmallScreen} error={error} redirect={handleBackNavigation} />
         );
     }
 
@@ -565,13 +569,21 @@ const ItemsDetails = () => {
                                                                             <TableCell>{coincidence.qb_item_name}</TableCell>
                                                                             <TableCell>{coincidence.coincidence_name}</TableCell>
                                                                             <TableCell>
-                                                                                <Button
-                                                                                    variant="contained"
-                                                                                    color="info"
-                                                                                    size="small"
-                                                                                    onClick={() => handleMatchItem(item.item_id, coincidence.qb_item_list_id, 'match')}>
-                                                                                    Match
-                                                                                </Button>
+                                                                                <Tooltip
+                                                                                    title="Do Match"
+                                                                                    arrow
+                                                                                    sx={{
+                                                                                        '& .MuiTooltip-tooltip': {
+                                                                                            backgroundColor: '#000000',
+                                                                                            color: 'white',
+                                                                                            fontSize: '0.875rem'
+                                                                                        }
+                                                                                    }}
+                                                                                >
+                                                                                    <IconButton onClick={() => handleMatchItem(item.item_id, coincidence.qb_item_list_id, 'match')} color="info" aria-label="view" size='xx-large'>
+                                                                                        <LinkIcon />
+                                                                                    </IconButton>
+                                                                                </Tooltip>
                                                                             </TableCell>
                                                                         </TableRow>
                                                                     ))}
@@ -633,12 +645,24 @@ const ItemsDetails = () => {
                                                                             <>
                                                                                 {loading && <CircularProgress size={20} />}
                                                                                 <InputAdornment position="end">
-                                                                                    <IconButton
-                                                                                        onClick={handleClearSearch}
-                                                                                        edge="end"
+                                                                                    <Tooltip
+                                                                                        title="Clear Search"
+                                                                                        arrow
+                                                                                        sx={{
+                                                                                            '& .MuiTooltip-tooltip': {
+                                                                                                backgroundColor: '#000000',
+                                                                                                color: 'white',
+                                                                                                fontSize: '0.875rem'
+                                                                                            }
+                                                                                        }}
                                                                                     >
-                                                                                        <ClearIcon />
-                                                                                    </IconButton>
+                                                                                        <IconButton
+                                                                                            onClick={handleClearSearch}
+                                                                                            edge="end"
+                                                                                        >
+                                                                                            <ClearIcon />
+                                                                                        </IconButton>
+                                                                                    </Tooltip>
                                                                                 </InputAdornment>
                                                                             </>
                                                                         ),

@@ -19,7 +19,7 @@ import {
     Tooltip,
 } from '@mui/material';
 import { Sync } from '@mui/icons-material';
-import VisibilityIcon from '@mui/icons-material/Visibility';
+import LinkIcon from '@mui/icons-material/Link';
 import DeleteIcon from '@mui/icons-material/Delete';
 import CloseIcon from '@mui/icons-material/Close';
 import { grey } from '@mui/material/colors';
@@ -32,7 +32,8 @@ import TableCustomPagination from '../../../Utils/components/TableCustomPaginati
 import NavigationRightButton from '../../../Utils/components/NavigationRightButton/NavigationRightButton';
 import CustomFilter from '../../../Utils/components/CustomFilter/CustomFilter';
 
-const apiUrl = process.env.REACT_APP_ENVIRONMENT === 'DEV' ? process.env.REACT_APP_BACKEND_URL_DEV : process.env.REACT_APP_BACKEND_URL_PROD;;
+const apiUrl = process.env.REACT_APP_ENVIRONMENT === 'DEV' ? process.env.REACT_APP_BACKEND_URL_DEV : process.env.REACT_APP_BACKEND_URL_PROD;
+const numberRows = parseInt(process.env.REACT_APP_DEFAULT_ROWS_PER_PAGE);
 
 const InvoicesDetails = () => {
     const navigate = useNavigate();
@@ -45,8 +46,9 @@ const InvoicesDetails = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [page, setPage] = useState(0);
-    const [rowsPerPage, setRowsPerPage] = useState(10);
+    const [rowsPerPage, setRowsPerPage] = useState(numberRows);
     const [searchSelectTerm, setSearchSelectTerm] = useState('');
+    const [hovered, setHovered] = useState(false);
     const theme = useTheme();
     const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
 
@@ -460,20 +462,33 @@ const InvoicesDetails = () => {
                                                 <Table>
                                                     <TableBody>
                                                         <TableRow style={{
-                                                            backgroundColor: invoice.qb_customer_list_id ? 'rgba(102, 187, 106, 0.1)' : 'rgba(255, 167, 38, 0.1'
+                                                            backgroundColor: invoice.qb_customer_list_id ? 'rgba(102, 187, 106, 0.1)' : 'rgba(255, 167, 38, 0.1',
+                                                            cursor: !invoice.qb_customer_list_id ? 'pointer' : 'default',
                                                         }}
+                                                            onClick={() => !invoice.qb_customer_list_id ? handleViewCustomer(invoice.customer_id) : null}
+                                                            onMouseOver={() => !invoice.qb_customer_list_id ? setHovered(true) : null}
+                                                            onMouseOut={() => setHovered(false)}
                                                         >
-                                                            <TableCell sx={{ border: 'none' }}>
+                                                            <TableCell sx={{
+                                                                border: 'none',
+                                                                fontWeight: hovered && !invoice.qb_customer_list_id ? 'bold' : 'normal',
+                                                                color: hovered && !invoice.qb_customer_list_id ? 'error.main' : 'default'
+                                                            }}>
                                                                 <b>{invoice.customer_name}</b>
                                                             </TableCell>
-                                                            <TableCell sx={{ display: 'flex', justifyContent: 'flex-end', border: 'none' }}>
+                                                            <TableCell sx={{
+                                                                display: 'flex',
+                                                                justifyContent: 'flex-end',
+                                                                border: 'none'
+                                                            }}>
                                                                 {!invoice.qb_customer_list_id ? (
                                                                     // <Button variant="contained" color="info" size="small" onClick={() => handleViewCustomer(invoice.customer_id)} >
                                                                     //     View
                                                                     // </Button>
-                                                                    <IconButton onClick={() => handleViewCustomer(invoice.customer_id)} color="info" aria-label="view" size='xx-large'>
-                                                                        <VisibilityIcon />
-                                                                    </IconButton>
+                                                                    // <IconButton onClick={() => handleViewCustomer(invoice.customer_id)} color="warning" aria-label="view" size='xx-large'>
+                                                                    //     <LinkIcon />
+                                                                    // </IconButton>
+                                                                    <SmallAlert severity='warning' message='NOT MATCHED' />
                                                                 ) : (
                                                                     <SmallAlert severity='success' message='MATCHED' />
                                                                 )}
@@ -506,35 +521,86 @@ const InvoicesDetails = () => {
                                             <TableCell component="th" scope="row" sx={{ border: 'none', width: '150px', maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis' }}>Items</TableCell>
                                             <TableCell sx={{ border: 'none' }}>
                                                 {invoice.line_items.length > 0 ? (
-                                                    <TableContainer component={Paper} elevation={0}>
-                                                        <Table aria-label="coincidences table" size="small">
-                                                            <TableHead sx={{ backgroundColor: '#e0e0e0' }}>
-                                                                <TableRow>
-                                                                    <TableCell>Item Name</TableCell>
-                                                                    <TableCell>Item SKU</TableCell>
-                                                                    <TableCell>Quantity</TableCell>
-                                                                    <TableCell>Rate</TableCell>
-                                                                    <TableCell>Amount</TableCell>
-                                                                    <TableCell>Actions</TableCell>
+                                                    <TableContainer component={Paper} elevation={0} sx={{ maxHeight: '400px' }}>
+                                                        <Table aria-label="coincidences table" size="small" stickyHeader>
+                                                            <TableHead>
+                                                                <TableRow sx={{ border: '1px solid #ddd' }}>
+                                                                    <TableCell sx={{ backgroundColor: '#f9f9fb' }}>Item Name</TableCell>
+                                                                    <TableCell sx={{ backgroundColor: '#f9f9fb' }}>Item SKU</TableCell>
+                                                                    <TableCell sx={{ backgroundColor: '#f9f9fb' }}>Quantity</TableCell>
+                                                                    <TableCell sx={{ backgroundColor: '#f9f9fb' }}>Rate</TableCell>
+                                                                    <TableCell sx={{ backgroundColor: '#f9f9fb' }}>Amount</TableCell>
+                                                                    <TableCell sx={{ backgroundColor: '#f9f9fb' }}>Status</TableCell>
                                                                 </TableRow>
                                                             </TableHead>
                                                             <TableBody>
                                                                 {invoice.line_items.map((item, index) => (
                                                                     <TableRow key={index}
                                                                         style={{
-                                                                            backgroundColor: item.qb_list_id ? 'rgba(102, 187, 106, 0.1)' : 'rgba(255, 167, 38, 0.1)'
+                                                                            backgroundColor: item.qb_list_id ? 'rgba(102, 187, 106, 0.1)' : 'rgba(255, 167, 38, 0.1)',
+                                                                            cursor: !item.qb_list_id ? 'pointer' : 'default',
+                                                                            // fontWeight: hovered && !item.qb_list_id ? 'bold' : 'normal'
                                                                         }}
+                                                                        onClick={() => !item.qb_list_id ? handleViewItem(item) : null}
+                                                                        onMouseOver={() => !item.qb_list_id ? setHovered(true) : null}
+                                                                        onMouseOut={() => setHovered(false)}
                                                                     >
-                                                                        <TableCell sx={{ width: '30%', maxWidth: '40%', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.name ? item.name : '---'}</TableCell>
-                                                                        <TableCell sx={{ width: '30%', maxWidth: '20%', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.sku ? item.sku : '---'}</TableCell>
-                                                                        <TableCell sx={{ width: '5%', maxWidth: '10%', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.quantity ? item.quantity : '---'}</TableCell>
-                                                                        <TableCell sx={{ width: '15%', maxWidth: '10%', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.rate ? '$ ' + item.rate : '---'}</TableCell>
-                                                                        <TableCell sx={{ width: '20%', maxWidth: '10%', overflow: 'hidden', textOverflow: 'ellipsis' }}><b>$ {item.item_total}</b></TableCell>
+                                                                        <TableCell sx={{
+                                                                            width: '30%',
+                                                                            maxWidth: '40%',
+                                                                            overflow: 'hidden',
+                                                                            textOverflow: 'ellipsis',
+                                                                            fontWeight: hovered && !item.qb_list_id ? 'bold' : 'normal',
+                                                                            color: hovered && !item.qb_list_id ? 'error.main' : 'default'
+                                                                        }}>
+                                                                            {item.name ? item.name : '---'}
+                                                                        </TableCell>
+                                                                        <TableCell sx={{
+                                                                            width: '30%',
+                                                                            maxWidth: '20%',
+                                                                            overflow: 'hidden',
+                                                                            textOverflow: 'ellipsis',
+                                                                            fontWeight: hovered && !item.qb_list_id ? 'bold' : 'normal',
+                                                                            color: hovered && !item.qb_list_id ? 'error.main' : 'default'
+                                                                        }}>
+                                                                            {item.sku ? item.sku : '---'}
+                                                                        </TableCell>
+                                                                        <TableCell sx={{
+                                                                            width: '5%',
+                                                                            maxWidth: '10%',
+                                                                            overflow: 'hidden',
+                                                                            textOverflow: 'ellipsis',
+                                                                            fontWeight: hovered && !item.qb_list_id ? 'bold' : 'normal',
+                                                                            color: hovered && !item.qb_list_id ? 'error.main' : 'default'
+                                                                        }}>
+                                                                            {item.quantity ? item.quantity : '---'}
+                                                                        </TableCell>
+                                                                        <TableCell sx={{
+                                                                            width: '15%',
+                                                                            maxWidth: '10%',
+                                                                            overflow: 'hidden',
+                                                                            textOverflow: 'ellipsis',
+                                                                            fontWeight: hovered && !item.qb_list_id ? 'bold' : 'normal',
+                                                                            color: hovered && !item.qb_list_id ? 'error.main' : 'default'
+                                                                        }}>
+                                                                            {item.rate ? '$ ' + item.rate : '---'}
+                                                                        </TableCell>
+                                                                        <TableCell sx={{
+                                                                            width: '20%',
+                                                                            maxWidth: '10%',
+                                                                            overflow: 'hidden',
+                                                                            textOverflow: 'ellipsis',
+                                                                            fontWeight: hovered && !item.qb_list_id ? 'bold' : 'normal',
+                                                                            color: hovered && !item.qb_list_id ? 'error.main' : 'default'
+                                                                        }}>
+                                                                            <b>$ {item.item_total}</b>
+                                                                        </TableCell>
                                                                         <TableCell>
                                                                             {!item.qb_list_id ? (
-                                                                                <IconButton onClick={() => handleViewItem(item)} color="info" aria-label="view" size='xx-large'>
-                                                                                    <VisibilityIcon />
-                                                                                </IconButton>
+                                                                                // <IconButton onClick={() => handleViewItem(item)} color="warning" aria-label="view" size='xx-large'>
+                                                                                //     <VisibilityIcon />
+                                                                                // </IconButton>
+                                                                                <SmallAlert severity='warning' message='NOT MATCHED' />
                                                                             ) : (
                                                                                 <SmallAlert severity='success' message='MATCHED' />
                                                                             )}
@@ -558,16 +624,33 @@ const InvoicesDetails = () => {
                                         </TableRow>
                                         {invoice.inserted_in_qb || invoice.items_unmatched.length > 0 ? (
                                             <TableRow>
-                                                <TableCell component="th" scope="row" sx={{ border: 'none', width: '150px', maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis' }}>Errors sync Items</TableCell>
+                                                <TableCell component="th" scope="row" sx={{ border: 'none', width: '150px', maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                                    <b>{!invoice.inserted_in_qb ? 'ERRORS' : ''}</b> Sync Items
+                                                </TableCell>
                                                 <TableCell sx={{ border: 'none' }}>
                                                     {invoice.items_unmatched.length > 0 ? (
-                                                        <TableContainer component={Paper} elevation={0}>
-                                                            <Table aria-label="coincidences table" size="small">
+                                                        <TableContainer component={Paper} elevation={0} sx={{ maxHeight: '400px' }}>
+                                                            <Table aria-label="coincidences table" size="small" stickyHeader>
                                                                 <TableHead sx={{ backgroundColor: '#e0e0e0' }}>
                                                                     <TableRow>
-                                                                        <TableCell sx={{ width: '40%', maxWidth: '40%', overflow: 'hidden', textOverflow: 'ellipsis' }}>Item from Zoho</TableCell>
-                                                                        <TableCell sx={{ width: '50%', maxWidth: '50%', overflow: 'hidden', textOverflow: 'ellipsis' }}>Reason</TableCell>
-                                                                        <TableCell>Action</TableCell>
+                                                                        <TableCell sx={{
+                                                                            width: '40%',
+                                                                            maxWidth: '40%',
+                                                                            overflow: 'hidden',
+                                                                            textOverflow: 'ellipsis',
+                                                                            backgroundColor: '#f9f9fb'
+                                                                        }}>
+                                                                            Item from Zoho</TableCell>
+                                                                        <TableCell sx={{
+                                                                            width: '50%',
+                                                                            maxWidth: '50%',
+                                                                            overflow: 'hidden',
+                                                                            textOverflow: 'ellipsis',
+                                                                            backgroundColor: '#f9f9fb'
+                                                                        }}>Reason</TableCell>
+                                                                        <TableCell sx={{
+                                                                            backgroundColor: '#f9f9fb'
+                                                                        }}>Action</TableCell>
                                                                     </TableRow>
                                                                 </TableHead>
                                                                 <TableBody>
@@ -582,13 +665,30 @@ const InvoicesDetails = () => {
                                                                                         borderRadius: '4px',
                                                                                     }}>
                                                                                     <b>{item.reason}</b>
+                                                                                    {item.qb_list_id ?
+                                                                                        (<>
+                                                                                            <br />You can run QBWC Invoices again to update this item.
+                                                                                        </>) : null
+                                                                                    }
                                                                                 </Alert>
                                                                             </TableCell>
                                                                             <TableCell>
                                                                                 {!item.qb_list_id ? (
-                                                                                    <IconButton onClick={() => handleViewItem(item)} color="info" aria-label="view" size='xx-large'>
-                                                                                        <VisibilityIcon />
-                                                                                    </IconButton>
+                                                                                    <Tooltip
+                                                                                        title="Do Match"
+                                                                                        arrow
+                                                                                        sx={{
+                                                                                            '& .MuiTooltip-tooltip': {
+                                                                                                backgroundColor: '#000000',
+                                                                                                color: 'white',
+                                                                                                fontSize: '0.875rem'
+                                                                                            }
+                                                                                        }}
+                                                                                    >
+                                                                                        <IconButton onClick={() => handleViewItem(item)} color="warning" aria-label="view" size='xx-large'>
+                                                                                            <LinkIcon />
+                                                                                        </IconButton>
+                                                                                    </Tooltip>
                                                                                 ) : (
                                                                                     <SmallAlert severity='success' message='MATCHED' />
                                                                                 )}
@@ -618,16 +718,32 @@ const InvoicesDetails = () => {
                                         }
                                         {invoice.inserted_in_qb || invoice.customer_unmatched.length > 0 ? (
                                             <TableRow>
-                                                <TableCell component="th" scope="row" sx={{ border: 'none', width: '150px', maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis' }}>Errors sync Customer</TableCell>
+                                                <TableCell component="th" scope="row" sx={{ border: 'none', width: '150px', maxWidth: '150px', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                                    <b>{!invoice.inserted_in_qb ? 'ERRORS' : ''}</b> Sync Customer
+                                                </TableCell>
                                                 <TableCell sx={{ border: 'none' }}>
                                                     {invoice.customer_unmatched.length > 0 ? (
-                                                        <TableContainer component={Paper} elevation={0}>
-                                                            <Table aria-label="coincidences table" size="small">
+                                                        <TableContainer component={Paper} elevation={0} sx={{ maxHeight: '400px' }}>
+                                                            <Table aria-label="coincidences table" size="small" stickyHeader>
                                                                 <TableHead sx={{ backgroundColor: '#e0e0e0' }}>
                                                                     <TableRow>
-                                                                        <TableCell sx={{ width: '40%', maxWidth: '40%', overflow: 'hidden', textOverflow: 'ellipsis' }}>Customer from Zoho</TableCell>
-                                                                        <TableCell sx={{ width: '50%', maxWidth: '50%', overflow: 'hidden', textOverflow: 'ellipsis' }}>Reason</TableCell>
-                                                                        <TableCell>Action</TableCell>
+                                                                        <TableCell sx={{
+                                                                            width: '40%',
+                                                                            maxWidth: '40%',
+                                                                            overflow: 'hidden',
+                                                                            textOverflow: 'ellipsis',
+                                                                            backgroundColor: '#f9f9fb'
+                                                                        }}>Customer from Zoho</TableCell>
+                                                                        <TableCell sx={{
+                                                                            width: '50%',
+                                                                            maxWidth: '50%',
+                                                                            overflow: 'hidden',
+                                                                            textOverflow: 'ellipsis',
+                                                                            backgroundColor: '#f9f9fb'
+                                                                        }}>Reason</TableCell>
+                                                                        <TableCell sx={{
+                                                                            backgroundColor: '#f9f9fb'
+                                                                        }}>Action</TableCell>
                                                                     </TableRow>
                                                                 </TableHead>
                                                                 <TableBody>
@@ -642,13 +758,30 @@ const InvoicesDetails = () => {
                                                                                         borderRadius: '4px',
                                                                                     }}>
                                                                                     <b>{customer.reason}</b>
+                                                                                    {customer.qb_list_id ?
+                                                                                        (<>
+                                                                                            <br />You can run QBWC Invoices again to update this customer.
+                                                                                        </>) : null
+                                                                                    }
                                                                                 </Alert>
                                                                             </TableCell>
                                                                             <TableCell>
                                                                                 {!customer.qb_list_id ? (
-                                                                                    <IconButton onClick={() => handleViewCustomer(customer)} color="info" aria-label="view" size='xx-large'>
-                                                                                        <VisibilityIcon />
-                                                                                    </IconButton>
+                                                                                    <Tooltip
+                                                                                        title="Do Match"
+                                                                                        arrow
+                                                                                        sx={{
+                                                                                            '& .MuiTooltip-tooltip': {
+                                                                                                backgroundColor: '#000000',
+                                                                                                color: 'white',
+                                                                                                fontSize: '0.875rem'
+                                                                                            }
+                                                                                        }}
+                                                                                    >
+                                                                                        <IconButton onClick={() => handleViewCustomer(customer)} color="warning" aria-label="view" size='xx-large'>
+                                                                                            <LinkIcon />
+                                                                                        </IconButton>
+                                                                                    </Tooltip>
                                                                                 ) : (
                                                                                     <SmallAlert severity='success' message='MATCHED' />
                                                                                 )}

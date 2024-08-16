@@ -16,7 +16,6 @@ const UsersFormContainer = () => {
 
     useEffect(() => {
         const user = location.state.user;
-        console.log(user);
         if (user) {
             setFormData(user);
             setIsNew(false);
@@ -26,7 +25,12 @@ const UsersFormContainer = () => {
     const handleSubmit = async (data) => {
         try {
             data = { ...data, logged_username: localStorage.getItem('username') };
+            const isStaff = null
+            if (data.username === localStorage.getItem('username')) {
+                isStaff = data.is_staff;
+            }
             data = JSON.stringify(data)
+            console.log(data);
             const response = await fetchWithToken(`${apiUrl}/manage_user/`, 'POST', data, {}, apiUrl);
             setSuccess(response.data.message);
             if(response.status === 200) {
@@ -36,6 +40,9 @@ const UsersFormContainer = () => {
                     title: 'Success',
                     text: response.data.message
                 }).then(() => {
+                    if (isStaff !== null){
+                        localStorage.setItem('isStaff', isStaff);
+                    }
                     navigate('/integration/list_users');
                 });
             }
