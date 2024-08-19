@@ -23,6 +23,31 @@ const CustomFilter = ({ configCustomFilter, fontSize }) => {
           },
           color: '#212529',
         }}
+        MenuProps={{
+          PaperProps: {
+            sx: {
+              position: 'absolute',
+              top: '100%',  // Sitúa el menú justo debajo del select
+              left: 0,
+              width: 'auto',
+              // paddingLeft: '5px',
+              overflowX: 'auto',
+              boxShadow: '0px 8px 16px rgba(0, 0, 0, 0.15)',
+              zIndex: 1300,
+              // maxHeight: '200px',  // Ajusta la altura máxima si es necesario
+              display: 'flex',
+              flexDirection: 'column',
+            },
+          },
+          anchorOrigin: {
+            vertical: 'bottom',
+            horizontal: 'left',
+          },
+          transformOrigin: {
+            vertical: 'top',
+            horizontal: 'left',
+          },
+        }}
       >
         {configCustomFilter.listValues.map((item, index) => (
           <MenuItem key={index} value={item.value}>

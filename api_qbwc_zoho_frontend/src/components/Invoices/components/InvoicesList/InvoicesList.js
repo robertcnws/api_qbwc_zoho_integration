@@ -652,6 +652,13 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
                                                     minWidth: '160px',
                                                     maxHeight: '30px',
                                                 }}
+                                                MenuProps={{
+                                                    PaperProps: {
+                                                        sx: {
+                                                            marginLeft: '130px',  // Ajusta el valor según lo que necesites
+                                                        },
+                                                    },
+                                                }}
                                             >
                                                 <MenuItem value="select_clear">
                                                     <em>{column.label.toUpperCase()}</em>
@@ -718,12 +725,6 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
                                             }
                                         </TableCell>
                                         <TableCell align="center">
-                                            {/* <Button variant="contained" color="info" size="small" onClick={() => handleViewInvoice(invoice)} >
-                                                View
-                                            </Button> */}
-                                            {/* <IconButton onClick={() => handleViewInvoice(invoice)} color="info" aria-label="view" size='xx-large'>
-                                                <VisibilityIcon />
-                                            </IconButton> */}
                                             <IconButton onClick={() => handleDeleteInvoice(invoice)} color="error" aria-label="view" size='xx-large'>
                                                 <DeleteIcon />
                                             </IconButton>
