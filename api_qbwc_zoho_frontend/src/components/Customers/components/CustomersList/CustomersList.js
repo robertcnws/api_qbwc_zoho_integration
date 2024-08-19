@@ -10,6 +10,9 @@ import {
     TableRow,
     TableSortLabel,
 } from '@mui/material';
+import Tooltip from '@mui/material/Tooltip';
+import ErrorIcon from '@mui/icons-material/Error';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import HomeIcon from '@mui/icons-material/Home';
 import { useNavigate } from 'react-router-dom';
 import { stableSort, getComparatorUndefined } from '../../../../utils';
@@ -104,7 +107,7 @@ const CustomersList = ({ customers }) => {
         { id: 'email', label: 'Email' },
         { id: 'phone', label: 'Phone' },
         { id: 'company_name', label: 'Company Name' },
-        { id: 'matched', label: 'Matched' },
+        { id: 'status', label: 'Status' },
         // { id: 'actions', label: 'Actions' }
     ];
 
@@ -157,7 +160,8 @@ const CustomersList = ({ customers }) => {
                                                 color: '#6C7184',
                                                 borderBottom: '1px solid #ddd',
                                                 borderTop: '1px solid #ddd',
-                                                backgroundColor: '#F9F9FB'
+                                                backgroundColor: '#F9F9FB',
+                                                padding: '5px 16px',
                                             }}
                                         >
                                             <TableSortLabel
@@ -202,14 +206,33 @@ const CustomersList = ({ customers }) => {
                                                 maxWidth: '20px'
                                             })}>
                                                 <b>{!customer.fields.qb_list_id || customer.fields.qb_list_id === "" ?
-                                                    'NO' : 'YES'
+                                                    <Tooltip
+                                                        title="NOT MATCHED"
+                                                        arrow
+                                                        sx={{
+                                                            '& .MuiTooltip-tooltip': {
+                                                                backgroundColor: '#000000',
+                                                                color: 'white',
+                                                                fontSize: '0.875rem'
+                                                            }
+                                                        }}
+                                                    >
+                                                        <ErrorIcon sx={{ color: 'error.main', fontSize: 'large' }} />
+                                                    </Tooltip> : <Tooltip
+                                                                    title="MATCHED"
+                                                                    arrow
+                                                                    sx={{
+                                                                        '& .MuiTooltip-tooltip': {
+                                                                            backgroundColor: '#000000',
+                                                                            color: 'white',
+                                                                            fontSize: '0.875rem'
+                                                                        }
+                                                                    }}
+                                                                >
+                                                                    <CheckCircleIcon sx={{ color: 'success.main', fontSize: 'large' }} />
+                                                                </Tooltip>
                                                 }</b>
                                             </TableCell>
-                                            {/* <TableCell className="text-center align-middle">
-                                                        <IconButton onClick={() => handleViewCustomer(customer)} color="info" aria-label="view" size='large'>
-                                                            <VisibilityIcon />
-                                                        </IconButton>
-                                                </TableCell> */}
                                         </TableRow>
                                     ))
                                 )}

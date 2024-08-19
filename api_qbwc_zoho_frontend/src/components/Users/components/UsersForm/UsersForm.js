@@ -307,7 +307,7 @@ const UsersForm = ({ formData, onSubmit, error, success, isNew }) => {
 
             <Container sx={{
                 paddingTop: '20px',
-                backgroundColor: '#F1F4F7',
+                backgroundColor: '#F9F9FB',
                 minWidth: '85.7vw',
                 borderRight: '1px solid #ddd',
             }}>

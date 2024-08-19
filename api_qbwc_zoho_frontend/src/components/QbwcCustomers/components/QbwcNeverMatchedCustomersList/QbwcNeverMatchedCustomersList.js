@@ -164,11 +164,11 @@ const QbwcNeverMatchedCustomersList = ({ customers, onSyncComplete }) => {
     const sortedCustomers = stableSort(filteredCustomers, getComparator(order, orderBy));
 
     const columns = [
-        { id: 'qb_customer', label: 'QB Customer' },
-        { id: 'qb_email', label: 'QB Email' },
-        { id: 'qb_phone', label: 'QB Phone' },
-        { id: 'qb_list_id', label: 'QB List ID' },
-        { id: 'actions', label: 'Actions' }
+        { id: 'qb_customer', label: 'QB Customer', colspan: 1, textAlign: 'left' },
+        { id: 'qb_email', label: 'QB Email', colspan: 1, textAlign: 'left' },
+        { id: 'qb_phone', label: 'QB Phone', colspan: 1, textAlign: 'left' },
+        { id: 'qb_list_id', label: 'QB List ID', colspan: 1, textAlign: 'left' },
+        { id: 'actions', label: 'Actions', colspan: 1, textAlign: 'center' }
     ];
 
     const childrenNavigationRightButton = [
@@ -225,13 +225,15 @@ const QbwcNeverMatchedCustomersList = ({ customers, onSyncComplete }) => {
                             <TableHead sx={{ backgroundColor: '#e0e0e0' }}>
                                 <TableRow>
                                     {columns.map((column) => (
-                                        <TableCell key={column.id}
+                                        <TableCell key={column.id} colSpan={column.colspan}
                                             sx={{
                                                 fontWeight: 'bold',
                                                 color: '#6c7184',
                                                 borderBottom: '1px solid #ddd',
                                                 borderTop: '1px solid #ddd',
-                                                backgroundColor: '#f9f9fb'
+                                                backgroundColor: '#f9f9fb',
+                                                padding: '5px 16px',
+                                                textAlign: column.textAlign
                                             }}>
                                             <TableSortLabel
                                                 active={orderBy === column.id}

@@ -257,7 +257,7 @@ const ApplicationSettingsForm = ({ formData, onSubmit, error, success }) => {
             <Container sx={{
                 paddingTop: '20px',
                 // paddingBottom: '485px',
-                backgroundColor: '#F1F4F7',
+                backgroundColor: '#F9F9FB',
                 minWidth: '85.7vw',
                 borderRight: '1px solid #ddd',
                 // maxHeight: '25vh',

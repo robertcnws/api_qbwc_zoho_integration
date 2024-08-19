@@ -18,11 +18,14 @@ import {
     FormControlLabel,
     Checkbox,
     Tooltip,
+    MenuItem,
+    Select,
 } from '@mui/material';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ErrorIcon from '@mui/icons-material/Error';
 import RemoveCircleIcon from '@mui/icons-material/RemoveCircle';
 import DeleteIcon from '@mui/icons-material/Delete';
+import SyncIcon from '@mui/icons-material/Sync';
 import FilterAltOffIcon from '@mui/icons-material/FilterAltOff';
 import HomeIcon from '@mui/icons-material/Home';
 import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
@@ -36,11 +39,18 @@ import { EmptyRecordsCell } from '../../../Utils/components/EmptyRecordsCell/Emp
 import HomeNavigationRightButton from '../../../Utils/components/NavigationRightButton/NavigationRightButton';
 import TableCustomPagination from '../../../Utils/components/TableCustomPagination/TableCustomPagination';
 import CustomFilter from '../../../Utils/components/CustomFilter/CustomFilter';
+import './InvoicesList.css';
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
 const apiUrl = process.env.REACT_APP_ENVIRONMENT === 'DEV' ? process.env.REACT_APP_BACKEND_URL_DEV : process.env.REACT_APP_BACKEND_URL_PROD;
 const numberRows = parseInt(process.env.REACT_APP_DEFAULT_ROWS_PER_PAGE);
+
+document.addEventListener('DOMContentLoaded', () => {
+    const page = '1'; // Asegúrate de que este valor coincide con los checkboxes
+    const checkboxes = document.querySelectorAll(`input[type="checkbox"][data-page="${page}"]`);
+    console.log(checkboxes);
+});
 
 const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterDate }) => {
 
@@ -52,6 +62,8 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
     const [order, setOrder] = useState('asc');
     const [filter, setFilter] = useState('all');
     const [hoveredRowIndex, setHoveredRowIndex] = useState(null);
+    const [selectedOptionForceSync, setSelectedOptionForceSync] = useState('select_clear');
+    const [titleSelectForceSync, setTitleSelectForceSync] = useState('Force Sync?');
     const navigate = useNavigate();
 
     const today = dayjs();
@@ -130,6 +142,7 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
     const handleChangePage = useCallback((event, newPage) => {
         const maxPage = Math.max(0, Math.ceil(data.invoices.length / rowsPerPage) - 1);
         setPage(Math.min(newPage, maxPage));
+        // setSelectedOptionForceSync('select_clear');
         localStorage.setItem('invoicesListPage', Math.min(newPage, maxPage));
     }, [data.invoices.length, rowsPerPage]);
 
@@ -271,6 +284,41 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
         setSelectedInvoices(newSelected);
     };
 
+    const handleSelectForceSyncChange = (event) => {
+        setSelectedOptionForceSync(event.target.value);
+        if (event.target.value === 'select_page') {
+            setTitleSelectForceSync('Unselect?');
+            handleSelectAllForceSyncPage(rowsPerPage, page);
+        }
+        else if (event.target.value === 'select_all') {
+            setTitleSelectForceSync('Unselect?');
+            handleSelectAllForceSyncAll();
+        } else {
+            setTitleSelectForceSync('Force Sync?');
+            setSelectedInvoices([]);
+        }
+    };
+
+    const handleSelectAllForceSyncPage = (rowsPerPage, page) => {
+        setSelectedInvoices([]);
+        const startIndex = page * rowsPerPage;
+        const endIndex = Math.min(startIndex + rowsPerPage, filteredInvoices.length);
+        const newSelected = [...selectedInvoices];
+        console.log(filteredInvoices)
+        for (let i = startIndex; i < endIndex; i++) {
+            const invoiceId = filteredInvoices[i].fields.invoice_id;
+            if (!newSelected.includes(invoiceId)) {
+                newSelected.push(invoiceId);
+            }
+        }
+        setSelectedInvoices(newSelected);
+    };
+
+    const handleSelectAllForceSyncAll = () => {
+        setSelectedInvoices([]);
+        setSelectedInvoices([...filteredInvoices.map((invoice) => invoice.fields.invoice_id)]);
+    };
+
     const filterByDate = (invoice) => {
         if (!filterDate) return true;
 
@@ -404,7 +452,7 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
         }
     };
 
-    const renderForceSyncCheckbox = (invoice, isSelected) => {
+    const renderForceSyncCheckbox = (invoice, isSelected, page) => {
         if (!(invoice.fields.inserted_in_qb && !invoice.fields.customer_unmatched.length > 0 && !invoice.fields.items_unmatched.length > 0)) {
             return (
                 <FormControl sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -412,7 +460,9 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
                         control={
                             <Checkbox
                                 checked={isSelected}
+                                value={invoice.fields.invoice_id}
                                 onChange={(e) => handleCheckboxClick(e, invoice.fields.invoice_id)}
+                                data-page={page}
                             />
                         }
                         label="Force to sync?"
@@ -428,14 +478,16 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
                         '& .MuiTooltip-tooltip': {
                             backgroundColor: '#000000',
                             color: 'white',
-                            fontSize: '0.875rem'
+                            fontSize: '0.875rem',
                         }
                     }}
                 >
                     <CheckCircleIcon sx={{ color: 'success.main', fontSize: 'large' }} />
                 </Tooltip>
+
             );
         }
+
     };
 
     const handleChangeDate = useCallback((date) => {
@@ -480,14 +532,13 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
     }, [filteredInvoices, order, orderBy]);
 
     const columns = [
-        { id: 'invoice_number', label: 'Nr.' },
-        { id: 'customer_name', label: 'Customer' },
-        { id: 'date', label: 'Date' },
-        { id: 'total', label: 'Amount' },
-        { id: 'sync_status', label: 'Sync?' },
-        { id: 'matched', label: 'Matched' },
-        { id: 'force_sync', label: 'Force Sync?' },
-        { id: 'actions', label: 'Actions' }
+        { id: 'invoice_number', label: 'Invoice#', colspan: 1, textAlign: 'left' },
+        { id: 'customer_name', label: 'Customer', colspan: 1, textAlign: 'left' },
+        { id: 'date', label: 'Date', colspan: 1, textAlign: 'left' },
+        { id: 'total', label: 'Amount', colspan: 1, textAlign: 'left' },
+        { id: 'status', label: 'Sync & Matched?', colspan: 2, textAlign: 'right' },
+        { id: 'force_sync', label: titleSelectForceSync, colspan: 1, textAlign: 'center' },
+        { id: 'actions', label: 'Actions', colspan: 1, textAlign: 'center' }
     ];
 
     const childrenNavigationRightButton = [
@@ -535,7 +586,7 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
                 minWidth: '88.3vw',
             }}
         >
-            <Grid container spacing={1} mb={3} sx={{ mt: '-2.5%' }}>
+            <Grid container spacing={1} mb={3} sx={{ mt: '-3%' }}>
                 <Grid item container xs={4} justifyContent="flex-start">
                     <Grid item xs={5}>
                         <CustomFilter configCustomFilter={configCustomFilter} />
@@ -551,8 +602,12 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
                                 onChange={(date) => handleChangeDate(date)}
                                 minDate={oneYearAgo}
                                 maxDate={today}
+                                slotProps={{ textField: { size: 'small' } }}
                                 textField={(params) => (
-                                    <TextField variant="outlined" {...params} style={{ paddingTop: '9px' }} />
+                                    <TextField
+                                        variant="outlined"
+                                        {...params}
+                                    />
                                 )}
                             />
                         </LocalizationProvider>
@@ -561,34 +616,58 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
                 </Grid>
             </Grid>
 
-            <TableContainer style={{ maxHeight: '763px', mixHeight: '763px', minWidth: 690 }} sx={{ mt: '-1%' }}>
-                <Table stickyHeader>
+            <TableContainer style={{ maxHeight: '773px', mixHeight: '773px', minWidth: 690 }} sx={{ mt: '-1%' }}>
+                <Table id="myTable" aria-label="items table" stickyHeader>
                     <TableHead>
                         <TableRow sx={{ backgroundColor: '#f9f9fb' }}>
                             {columns.map((column) => (
-                                <TableCell key={column.id}
+                                <TableCell key={column.id} colSpan={column.colspan}
                                     sx={{
                                         fontWeight: 'bold',
                                         color: '#6c7184',
                                         borderBottom: '1px solid #ddd',
                                         borderTop: '1px solid #ddd',
-                                        backgroundColor: '#f9f9fb'
+                                        backgroundColor: '#f9f9fb',
+                                        padding: '5px 16px',
+                                        textAlign: { xs: 'center', sm: column.textAlign }
                                     }}
                                 >
-                                    <TableSortLabel
-                                        active={orderBy === column.id}
-                                        direction={orderBy === column.id ? order : 'asc'}
-                                        onClick={() => handleSortChange(column.id)}
-                                    >
-                                        {column.label.toUpperCase()}
-                                    </TableSortLabel>
+                                    {column.id !== 'force_sync' ? (
+                                        <TableSortLabel
+                                            active={orderBy === column.id}
+                                            direction={orderBy === column.id ? order : 'asc'}
+                                            onClick={() => handleSortChange(column.id)}
+                                        >
+                                            {column.label.toUpperCase()}
+                                        </TableSortLabel>
+                                    ) : (
+                                        <>
+                                            <Select
+                                                value={selectedOptionForceSync}  // Asume que `selectedOption` es un estado que manejas en tu componente
+                                                onChange={handleSelectForceSyncChange}  // Función para manejar el cambio de selección
+                                                displayEmpty
+                                                sx={{
+                                                    fontSize: '0.875rem',
+                                                    padding: '0px 0px',
+                                                    minWidth: '160px',
+                                                    maxHeight: '30px',
+                                                }}
+                                            >
+                                                <MenuItem value="select_clear">
+                                                    <em>{column.label.toUpperCase()}</em>
+                                                </MenuItem>
+                                                <MenuItem value="select_page" onClick={() => handleSelectAllForceSyncPage(rowsPerPage, page)}>Select All in Page</MenuItem>
+                                                <MenuItem value="select_all" onClick={() => handleSelectAllForceSyncAll()}>Select All in Table</MenuItem>
+                                            </Select>
+                                        </>
+                                    )}
                                 </TableCell>
                             ))}
                         </TableRow>
                     </TableHead>
                     <TableBody>
                         {filteredInvoices.length === 0 ? (
-                            <EmptyRecordsCell columns={columns} />
+                            <EmptyRecordsCell columns={columns} isColspanTable={true} />
                         ) : (
                             (rowsPerPage > 0
                                 ? sortedInvoices.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
@@ -606,6 +685,7 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
                                             transition: 'background-color 0.3s ease',
                                             backgroundColor: backgroundColor
                                         }}
+                                        data-page={page}
                                         onMouseEnter={() => setHoveredRowIndex(index)}
                                         onMouseLeave={() => setHoveredRowIndex(null)}
                                     >
@@ -625,13 +705,15 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
                                         })} onClick={() => handleViewInvoice(invoice)}>
                                             {renderMatchStatus(invoice)}
                                         </TableCell>
-                                        <TableCell align="center">
+                                        <TableCell align="center"
+                                            onClick={() => (invoice.fields.force_to_sync || invoice.fields.inserted_in_qb) && handleViewInvoice(invoice)}
+                                        >
                                             {
                                                 !invoice.fields.force_to_sync ?
-                                                    renderForceSyncCheckbox(invoice, isItemSelected) :
-                                                    (<Box sx={{ display: 'flex', gap: 1 }}>
-                                                        <CheckCircleIcon color="success" />
-                                                        <Typography sx={{ color: 'success.main' }}><b>Forced to sync</b></Typography>
+                                                    renderForceSyncCheckbox(invoice, isItemSelected, page) :
+                                                    (<Box sx={{ display: 'flex', gap: 1, marginLeft: '20%' }}>
+                                                        <SyncIcon color="warning" />
+                                                        <Typography sx={{ color: 'warning.main' }}><b>Forced to sync</b></Typography>
                                                     </Box>)
                                             }
                                         </TableCell>
@@ -651,7 +733,7 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
                             })
                         )}
                         <TableCustomPagination
-                            columnsLength={columns.length}
+                            columnsLength={columns.length + 1}
                             data={filteredInvoices}
                             page={Number.isFinite(page) && page >= 0 ? Math.min(page, Math.ceil(filteredInvoices.length / rowsPerPage) - 1) : 0}
                             rowsPerPage={rowsPerPage}

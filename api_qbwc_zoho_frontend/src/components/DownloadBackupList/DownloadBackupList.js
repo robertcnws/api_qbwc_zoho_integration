@@ -13,6 +13,7 @@ import {
     TableSortLabel,
     IconButton,
 } from '@mui/material';
+import Tooltip from '@mui/material/Tooltip';
 import HomeIcon from '@mui/icons-material/Home';
 import { EmptyRecordsCell } from '../Utils/components/EmptyRecordsCell/EmptyRecordsCell';
 import { Download } from '@mui/icons-material';
@@ -163,7 +164,8 @@ const DownloadBackupList = () => {
                                                 color: '#6c7184',
                                                 borderBottom: '1px solid #ddd',
                                                 borderTop: '1px solid #ddd',
-                                                backgroundColor: '#f9f9fb'
+                                                backgroundColor: '#f9f9fb',
+                                                padding: '5px 16px',
                                             }}>
                                             <TableSortLabel
                                                 active={orderBy === column.id}
@@ -194,13 +196,46 @@ const DownloadBackupList = () => {
                                             onMouseEnter={() => setHoveredRowIndex(index)}
                                             onMouseLeave={() => setHoveredRowIndex(null)}
                                         >
-                                            <TableCell>{item.date_time}</TableCell>
-                                            <TableCell>{item.file_type}</TableCell>
-                                            <TableCell>{item.size}</TableCell>
-                                            <TableCell>
-                                                <IconButton onClick={() => downloadBackup(item)} size='small'>
-                                                    <Download />
-                                                </IconButton>
+                                            <TableCell sx={{
+                                                width: '40%',
+                                                maxWidth: '30%',
+                                                overflow: 'hidden',
+                                                textOverflow: 'ellipsis'
+                                            }}>{item.date_time}</TableCell>
+                                            <TableCell sx={{
+                                                width: '30%',
+                                                maxWidth: '30%',
+                                                overflow: 'hidden',
+                                                textOverflow: 'ellipsis'
+                                            }}>{item.file_type}</TableCell>
+                                            <TableCell sx={{
+                                                width: '20%',
+                                                maxWidth: '20%',
+                                                overflow: 'hidden',
+                                                textOverflow: 'ellipsis'
+                                            }}>{item.size}</TableCell>
+                                            <TableCell sx={{
+                                                width: '10%',
+                                                maxWidth: '10%',
+                                                overflow: 'hidden',
+                                                textOverflow: 'ellipsis'
+                                            }}>
+                                                <Tooltip
+                                                    title={`DOWNLOAD BACKUP: ${item.date_time}`}
+                                                    arrow
+                                                    sx={{
+                                                        '& .MuiTooltip-tooltip': {
+                                                            backgroundColor: '#000000',
+                                                            color: 'white',
+                                                            fontSize: '0.875rem'
+                                                        }
+                                                    }}
+                                                >
+                                                    <IconButton onClick={() => downloadBackup(item)} size='small'>
+                                                        <Download />
+                                                    </IconButton>
+                                                </Tooltip>
+
                                             </TableCell>
                                         </TableRow>
                                     ))

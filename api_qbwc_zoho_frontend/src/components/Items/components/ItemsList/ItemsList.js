@@ -10,7 +10,12 @@ import {
     TableRow,
     TableSortLabel,
 } from '@mui/material';
+import Tooltip from '@mui/material/Tooltip';
 import HomeIcon from '@mui/icons-material/Home';
+import ErrorIcon from '@mui/icons-material/Error';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import ToggleOnIcon from '@mui/icons-material/ToggleOn';
+import { ToggleOff } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { stableSort, getComparator } from '../../../../utils';
 import { EmptyRecordsCell } from '../../../Utils/components/EmptyRecordsCell/EmptyRecordsCell';
@@ -89,7 +94,7 @@ const ItemsList = ({ items }) => {
     const filteredItems = items.filter(item => {
 
         const matchesSearchTerm = item.fields.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            item.fields.sku.toLowerCase().includes(searchTerm.toLowerCase()) || 
+            item.fields.sku.toLowerCase().includes(searchTerm.toLowerCase()) ||
             item.fields.rate.toString().includes(searchTerm.toLowerCase()) ||
             item.fields.item_id.toLowerCase().includes(searchTerm.toLowerCase());
 
@@ -103,11 +108,10 @@ const ItemsList = ({ items }) => {
     const sortedItems = stableSort(filteredItems, getComparator(order, orderBy));
 
     const columns = [
-        { id: 'name', label: 'Name' },
-        { id: 'status', label: 'Status' },
-        { id: 'rate', label: 'Rate' },
-        { id: 'sku', label: 'SKU' },
-        { id: 'matched', label: 'Matched' },
+        { id: 'name', label: 'Name', colspan: 1, textAlign: 'left' },
+        { id: 'rate', label: 'Rate', colspan: 1, textAlign: 'left' },
+        { id: 'sku', label: 'SKU', colspan: 1, textAlign: 'left' },
+        { id: 'status', label: 'Status', colspan: 2, textAlign: 'center' },
         // { id: 'actions', label: 'Actions' }
     ];
 
@@ -140,12 +144,12 @@ const ItemsList = ({ items }) => {
             }}
         >
             <Grid container spacing={2} alignItems="center" mb={3} justifyContent="space-between" sx={{ mt: '-3%' }}>
-                <Grid item container xs={6} justifyContent="flex-start" sx={{ marginTop: '-1%'}}>
+                <Grid item container xs={6} justifyContent="flex-start" sx={{ marginTop: '-1%' }}>
                     <Grid item xs={3}>
                         <CustomFilter configCustomFilter={configCustomFilter} />
                     </Grid>
                 </Grid>
-                <Grid item xs={6} container justifyContent="flex-end" spacing={1} sx={{ marginTop: '-2%'}}>
+                <Grid item xs={6} container justifyContent="flex-end" spacing={1} sx={{ marginTop: '-2%' }}>
                     <HomeNavigationRightButton children={childrenNavigationRightButton} />
                 </Grid>
                 <Grid item xs={12} sx={{ mt: '-1%' }}>
@@ -154,13 +158,15 @@ const ItemsList = ({ items }) => {
                             <TableHead sx={{ backgroundColor: '#e0e0e0' }}>
                                 <TableRow>
                                     {columns.map((column) => (
-                                        <TableCell key={column.id}
+                                        <TableCell key={column.id} colSpan={column.colspan} 
                                             sx={{
                                                 fontWeight: 'bold',
                                                 color: '#6C7184',
                                                 borderBottom: '1px solid #ddd',
                                                 borderTop: '1px solid #ddd',
-                                                backgroundColor: '#F9F9FB'
+                                                backgroundColor: '#F9F9FB',
+                                                padding: '5px 16px',
+                                                textAlign: column.textAlign
                                             }}
                                         >
                                             <TableSortLabel
@@ -195,9 +201,37 @@ const ItemsList = ({ items }) => {
                                             onClick={() => handleViewItem(item)}
                                         >
                                             <TableCell>{item.fields.name}</TableCell>
-                                            <TableCell>{item.fields.status}</TableCell>
                                             <TableCell>$ {item.fields.rate}</TableCell>
                                             <TableCell>{item.fields.sku}</TableCell>
+                                            <TableCell>
+                                                {item.fields.status === 'active' ?
+                                                    <Tooltip
+                                                        title="ACTIVE"
+                                                        arrow
+                                                        sx={{
+                                                            '& .MuiTooltip-tooltip': {
+                                                                backgroundColor: '#000000',
+                                                                color: 'white',
+                                                                fontSize: '0.875rem'
+                                                            }
+                                                        }}
+                                                    >
+                                                        <ToggleOnIcon sx={{ color: 'success.main', fontSize: '30px' }} />
+                                                    </Tooltip> : <Tooltip
+                                                        title="INACTIVE"
+                                                        arrow
+                                                        sx={{
+                                                            '& .MuiTooltip-tooltip': {
+                                                                backgroundColor: '#000000',
+                                                                color: 'white',
+                                                                fontSize: '0.875rem'
+                                                            }
+                                                        }}
+                                                    >
+                                                        <ToggleOff sx={{ color: 'error.main', fontSize: '30px' }} />
+                                                    </Tooltip>
+                                                }
+                                            </TableCell>
                                             <TableCell sx={(theme) => ({
                                                 color: !item.fields.qb_list_id || item.fields.qb_list_id === "" ? theme.palette.error.main : theme.palette.success.main,
                                                 fontWeight: 'bold',
@@ -207,19 +241,38 @@ const ItemsList = ({ items }) => {
                                             })}>
                                                 {/* <b>{!item.fields.qb_list_id || item.fields.qb_list_id === "" ? "NO" : "YES"}</b> */}
                                                 {!item.fields.qb_list_id || item.fields.qb_list_id === "" ?
-                                                    'NO' : 'YES'
+                                                    <Tooltip
+                                                        title="NOT MATCHED"
+                                                        arrow
+                                                        sx={{
+                                                            '& .MuiTooltip-tooltip': {
+                                                                backgroundColor: '#000000',
+                                                                color: 'white',
+                                                                fontSize: '0.875rem'
+                                                            }
+                                                        }}
+                                                    >
+                                                        <ErrorIcon sx={{ color: 'error.main', fontSize: 'large' }} />
+                                                    </Tooltip> : <Tooltip
+                                                        title="MATCHED"
+                                                        arrow
+                                                        sx={{
+                                                            '& .MuiTooltip-tooltip': {
+                                                                backgroundColor: '#000000',
+                                                                color: 'white',
+                                                                fontSize: '0.875rem'
+                                                            }
+                                                        }}
+                                                    >
+                                                        <CheckCircleIcon sx={{ color: 'success.main', fontSize: 'large' }} />
+                                                    </Tooltip>
                                                 }
                                             </TableCell>
-                                            {/* <TableCell className="text-center align-middle">
-                                                <IconButton onClick={() => handleViewItem(item)} color="info" aria-label="view" size='xx-large'>
-                                                    <VisibilityIcon />
-                                                </IconButton>
-                                            </TableCell> */}
                                         </TableRow>
                                     ))
                                 )}
                                 <TableCustomPagination
-                                    columnsLength={columns.length}
+                                    columnsLength={columns.length + 1}
                                     data={filteredItems}
                                     page={page}
                                     rowsPerPage={rowsPerPage}

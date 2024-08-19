@@ -173,7 +173,8 @@ const UsersList = ({ users, onSyncComplete }) => {
                                                 color: '#6c7184',
                                                 borderBottom: '1px solid #ddd',
                                                 borderTop: '1px solid #ddd',
-                                                backgroundColor: '#f9f9fb'
+                                                backgroundColor: '#f9f9fb',
+                                                padding: '5px 16px',
                                             }}>
                                             <TableSortLabel
                                                 active={orderBy === column.id}

@@ -162,9 +162,9 @@ const QbwcNeverMatchedItemsList = ({ neverMatchedItems, onSyncComplete }) => {
   const sortedNeverMatchedItems = stableSort(filteredNeverMatchedItems, getComparator(order, orderBy));
 
   const columns = [
-      { id: 'qb_item', label: 'QB Item' },
-      { id: 'qb_list_id', label: 'QB List ID' },
-      { id: 'actions', label: 'Actions' }
+      { id: 'qb_item', label: 'QB Item', colspan: 1, textAlign: 'left' },
+      { id: 'qb_list_id', label: 'QB List ID', colspan: 1, textAlign: 'left' },
+      { id: 'actions', label: 'Actions', colspan: 1, textAlign: 'center' }
   ];
 
   const childrenNavigationRightButton = [ 
@@ -221,13 +221,15 @@ const QbwcNeverMatchedItemsList = ({ neverMatchedItems, onSyncComplete }) => {
                         <TableHead sx={{ backgroundColor: '#e0e0e0' }}> 
                             <TableRow>
                                 {columns.map((column) => (
-                                    <TableCell key={column.id} 
+                                    <TableCell key={column.id} colSpan={column.colspan}
                                     sx={{ 
                                         fontWeight: 'bold', 
                                         color: '#6c7184', 
                                         borderBottom: '1px solid #ddd', 
                                         borderTop: '1px solid #ddd', 
-                                        backgroundColor: '#f9f9fb' 
+                                        backgroundColor: '#f9f9fb',
+                                        padding: '5px 16px', 
+                                        textAlign: column.textAlign
                                     }}>
                                         <TableSortLabel
                                             active={orderBy === column.id}

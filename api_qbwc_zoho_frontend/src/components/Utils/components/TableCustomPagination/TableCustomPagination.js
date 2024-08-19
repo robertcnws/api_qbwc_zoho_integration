@@ -58,6 +58,7 @@ const TableCustomPagination = ({ columnsLength, data, page, rowsPerPage, handleC
                         // borderRadius: '4px', 
                         padding: '0px', 
                         height: '48px',
+                        marginTop: '10px',
                         marginBottom: '15px', 
                         backgroundColor: '#f7f7fe'
                         }}>
@@ -88,6 +89,7 @@ const TableCustomPagination = ({ columnsLength, data, page, rowsPerPage, handleC
                         padding: '0px', 
                         height: '48px', 
                         marginLeft: '-10px',
+                        marginTop: '10px',
                         marginBottom: '15px',  
                         }}>
                         <TablePagination
