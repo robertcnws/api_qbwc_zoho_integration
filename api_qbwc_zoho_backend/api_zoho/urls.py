@@ -29,8 +29,5 @@ urlpatterns = [
     path("download_backup_db/", views.download_backup_db, name="download_backup_db"),
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-    path('data/data_invoice_historic_statistics/', views.data_invoice_historic_statistics, name='data_invoice_historic_statistics'),
-    path('data/data_invoice_monthly_statistics/', views.data_invoice_monthly_statistics, name='data_invoice_monthly_statistics'),
-    path('data/data_invoice_daily_statistics/', views.data_invoice_daily_statistics, name='data_invoice_daily_statistics'),
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

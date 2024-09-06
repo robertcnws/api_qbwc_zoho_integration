@@ -25,7 +25,6 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
-from api_zoho_invoices.models import ZohoFullInvoice
 
 #############################################
 # Configura el logging
@@ -471,113 +470,6 @@ def validateJWTTokenRequest(request):
     else:
         return False
     
-#############################################
-# QUERIES TO DATACHARTS
-#############################################
-
-@api_view(['GET', 'POST'])
-@permission_classes([IsAuthenticated])
-def data_invoice_historic_statistics(request):
-    valid_token = validateJWTTokenRequest(request)
-    if valid_token:
-        invoices = ZohoFullInvoice.objects.all()
-        stats = invoices.aggregate(
-                matched_number=Count('id', filter=Q(inserted_in_qb=True)),
-                total_items_unmatched=Count('id', filter=Q(items_unmatched__isnull=False, items_unmatched__gt=0)),
-                total_customers_unmatched=Count('id', filter=Q(customer_unmatched__isnull=False, customer_unmatched__gt=0)),
-                unprocessed_number=Count('id', filter=Q(inserted_in_qb=False))
-            )
-        matched_number = stats['matched_number']
-        total_items_unmatched = stats['total_items_unmatched']
-        total_customers_unmatched = stats['total_customers_unmatched']
-        unmatched_number = max(total_items_unmatched, total_customers_unmatched)
-        unprocessed_number = stats['unprocessed_number'] - unmatched_number
-        total_number = invoices.count()
-        
-        return JsonResponse({
-            'matched_per_cent': matched_number / total_number if total_number > 0 else 0,
-            'unmatched_per_cent': unmatched_number / total_number if total_number > 0 else 0,
-            'unprocessed_per_cent': unprocessed_number / total_number if total_number > 0 else 0,
-        }, status=200)
-    return JsonResponse({'error': 'Invalid JWT Token'}, status=401)
-
-
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def data_invoice_monthly_statistics(request):
-    valid_token = validateJWTTokenRequest(request)
-    if valid_token:
-        five_months_ago = datetime.now() - timedelta(days=5*30)
-        invoices = ZohoFullInvoice.objects.filter(date__gte=five_months_ago)
-        
-        stats = invoices.annotate(month=TruncMonth('date')).values('month').annotate(
-            matched_number=Count('id', filter=Q(inserted_in_qb=True)),
-            total_items_unmatched=Count('id', filter=Q(items_unmatched__isnull=False, items_unmatched__gt=0)),
-            total_customers_unmatched=Count('id', filter=Q(customer_unmatched__isnull=False, customer_unmatched__gt=0)),
-            unprocessed_number=Count('id', filter=Q(inserted_in_qb=False))
-        ).order_by('month')
-        
-        response_data = []
-        for stat in stats:
-            month = stat['month'].strftime('%Y-%m') 
-            total_number = invoices.filter(date__month=stat['month'].month, date__year=stat['month'].year).count()
-            matched_number = stat['matched_number']
-            total_items_unmatched = stat['total_items_unmatched']
-            total_customers_unmatched = stat['total_customers_unmatched']
-            unmatched_number = max(total_items_unmatched, total_customers_unmatched)
-            unprocessed_number = stat['unprocessed_number'] - unmatched_number
-            
-            response_data.append({
-                'month': month,
-                'matched_number': matched_number,
-                'unmatched_number': unmatched_number,
-                'unprocessed_number': unprocessed_number,
-                'total_number': total_number,
-            })
-        
-        return JsonResponse(response_data, safe=False, status=200)
-    
-    return JsonResponse({'error': 'Invalid JWT Token'}, status=401)
-
-
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def data_invoice_daily_statistics(request):
-    valid_token = validateJWTTokenRequest(request)
-    if valid_token:
-        seven_days_ago = datetime.now() - timedelta(days=7)
-        
-        invoices = ZohoFullInvoice.objects.filter(date__gte=seven_days_ago)
-        
-        stats = invoices.annotate(day=TruncDate('date')).values('day').annotate(
-            matched_number=Count('id', filter=Q(inserted_in_qb=True)),
-            total_items_unmatched=Count('id', filter=Q(items_unmatched__isnull=False, items_unmatched__gt=0)),
-            total_customers_unmatched=Count('id', filter=Q(customer_unmatched__isnull=False, customer_unmatched__gt=0)),
-            unprocessed_number=Count('id', filter=Q(inserted_in_qb=False))
-        ).order_by('day')
-        
-        response_data = []
-        for stat in stats:
-            day = stat['day'].strftime('%Y-%m-%d')
-            total_number = invoices.annotate(day=TruncDate('date')).filter(day=stat['day']).count()
-            
-            matched_number = stat['matched_number']
-            total_items_unmatched = stat['total_items_unmatched']
-            total_customers_unmatched = stat['total_customers_unmatched']
-            unmatched_number = max(total_items_unmatched, total_customers_unmatched)
-            unprocessed_number = stat['unprocessed_number'] - unmatched_number
-            
-            response_data.append({
-                'day': day,
-                'matched_number': matched_number,
-                'unmatched_number': unmatched_number,
-                'unprocessed_number': unprocessed_number,
-                'total_number': total_number,
-            })
-        
-        return JsonResponse(response_data, safe=False, status=200)
-    
-    return JsonResponse({'error': 'Invalid JWT Token'}, status=401)
 
 
 #############################################

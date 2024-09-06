@@ -72,13 +72,13 @@ const useIdleTimer = (navigate, timeout = 60000) => {
 
 
 const App = () => {
-
+  const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
   useIdleTimer(navigate, 1800000);
 
   return (
     <>
-      <ToastContainer />
+      {isAuthenticated && <ToastContainer />}
       <Routes>
         <Route path="/" element={<HomeRedirect />} />
         <Route path="/integration/*" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} >

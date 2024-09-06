@@ -94,7 +94,7 @@ const Topbar = ({ handleLogout }) => {
 
         const currentTime = new Date().getTime();
 
-        if (quantityUnread >= 1 && (!lastToastTime || currentTime - lastToastTime >= 300000)) {
+        if (quantityUnread >= 1 && (!lastToastTime || currentTime - lastToastTime >= 600000)) {
             const notification_unread = data.filter(item => !item.notification_is_read);
             if (quantityUnread === 1) {
                 toast.info(`${notification_unread[0].notification_message} on ${notification_unread[0].notification_modified}`, {
@@ -106,7 +106,7 @@ const Topbar = ({ handleLogout }) => {
                     draggable: true,
                     progress: undefined,
                     style: {
-                        backgroundColor: notification_unread[0].notification_message.toLowerCase().includes('zoho') ? 'rgba(33, 150, 243, 0.4)' : 'rgba(76, 175, 80, 0.4)', 
+                        backgroundColor: notification_unread[0].notification_message.toLowerCase().includes('zoho') ? 'rgba(33, 150, 243, 0.4)' : 'rgba(76, 175, 80, 0.4)',
                         color: 'black',
                     },
                     onClick: () => handleCheckNotification(notification_unread[0]),
@@ -254,7 +254,10 @@ const Topbar = ({ handleLogout }) => {
 
     return (
         <>
-            <Toolbar sx={{ bgcolor: '#f7f7fe', position: 'relative', border: '1px solid #ddd', marginLeft: '225px' }}>
+            <Toolbar
+                sx={{
+                    bgcolor: '#f7f7fe', position: 'relative', border: '1px solid #ddd', marginLeft: '225px', maxWidth: 'calc(96vw - 225px)',
+                }}>
                 <Box sx={{ flexGrow: 1 }}>
                     {visibleSearch && (
                         <TextField

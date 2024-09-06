@@ -1,8 +1,8 @@
 bind = '0.0.0.0:8000'
 workers = 3
 threads = 2
-timeout = 512
-graceful_timeout = 512
+timeout = 1024
+graceful_timeout = 1024
 keepalive = 5
 accesslog = '-'
 errorlog = '-'

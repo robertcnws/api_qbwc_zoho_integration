@@ -165,6 +165,7 @@ INSTALLED_APPS = [
     'api_zoho_items',
     'api_zoho_invoices',
     'api_quickbook_soap',
+    'api_zoho_statistics',
 ]
 
 REST_FRAMEWORK = {

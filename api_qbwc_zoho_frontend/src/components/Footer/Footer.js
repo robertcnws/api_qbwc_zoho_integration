@@ -10,8 +10,8 @@ const Footer = () => {
             sx={{
                 position: 'fixed',
                 bottom: 0,
-                width: '100%',
-                minWidth: '100%',
+                minWidth: 'calc(100vw - 30px)',
+                maxWidth: 'calc(100vw - 30px)',
                 backgroundColor: '#f7f7fe',
                 padding: '1px 1px 1px 0',
                 boxShadow: '0 -2px 10px rgba(0, 0, 0, 0.1)',

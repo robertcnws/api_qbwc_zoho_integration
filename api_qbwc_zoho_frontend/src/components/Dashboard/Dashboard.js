@@ -1,5 +1,5 @@
 import React from 'react';
-import { Outlet , useNavigate } from 'react-router-dom';
+import { Outlet, useNavigate } from 'react-router-dom';
 import { Container, Box } from '@mui/material';
 import Swal from 'sweetalert2';
 import Sidebar from '../Sidebar/Sidebar';
@@ -31,38 +31,38 @@ const Dashboard = () => {
       if (result.isConfirmed) {
         const fetchData = async () => {
           try {
-              const url = `${apiUrl}/do_backup_db/`
-              const data = {
-                username: localStorage.getItem('username')
-              }
-              const response = await fetchWithToken(url, 'GET', data, {}, apiUrl);
-              if (response.status === 200) {
-                Swal.fire({
-                  title: 'Success!',
-                  text: 'DB Backup was successful!',
-                  icon: 'success',
-                  willClose: () => { navigate('/integration/download_backup_db') }
+            const url = `${apiUrl}/do_backup_db/`
+            const data = {
+              username: localStorage.getItem('username')
+            }
+            const response = await fetchWithToken(url, 'GET', data, {}, apiUrl);
+            if (response.status === 200) {
+              Swal.fire({
+                title: 'Success!',
+                text: 'DB Backup was successful!',
+                icon: 'success',
+                willClose: () => { navigate('/integration/download_backup_db') }
 
-                })
-              } else {
-                Swal.fire({
-                  title: 'Error!',
-                  text: 'DB Backup failed!',
-                  icon: 'error',
-                  willClose: () => { navigate('/integration') }
-                })
-              }
-          } catch (error) {
-              console.error('Error doing Backup:', error);
+              })
+            } else {
               Swal.fire({
                 title: 'Error!',
-                text: `Error doing Backup: ${error}`,
+                text: 'DB Backup failed!',
                 icon: 'error',
                 willClose: () => { navigate('/integration') }
               })
-          } 
-      };
-      fetchData();
+            }
+          } catch (error) {
+            console.error('Error doing Backup:', error);
+            Swal.fire({
+              title: 'Error!',
+              text: `Error doing Backup: ${error}`,
+              icon: 'error',
+              willClose: () => { navigate('/integration') }
+            })
+          }
+        };
+        fetchData();
       }
     });
   }
@@ -81,14 +81,14 @@ const Dashboard = () => {
       if (result.isConfirmed) {
         const fetchData = async () => {
           try {
-              const data = {
-                username: localStorage.getItem('username')
-              }
-              await fetchWithToken(`${apiUrl}/logout/`, 'GET', data, {}, apiUrl);
-              logout()
-              navigate('/integration') 
+            const data = {
+              username: localStorage.getItem('username')
+            }
+            await fetchWithToken(`${apiUrl}/logout/`, 'GET', data, {}, apiUrl);
+            logout()
+            navigate('/integration')
           } catch (error) {
-              console.error('Error loging out:', error);
+            console.error('Error loging out:', error);
           }
         };
         fetchData();
@@ -101,40 +101,45 @@ const Dashboard = () => {
   };
 
   return (
-    <Container 
+    <Container
       maxWidth={false}
       disableGutters
-      sx={{ 
-        display: 'flex', 
-        // minHeight: '100vh', 
-        // maxHeight: '100vh',
+      sx={{
+        display: 'flex',
+        // minHeight: '50vh',
+        // maxHeight: '50vh',
         minWidth: '100vw',
+        maxWidth: '100vw',
         backgroundColor: 'white',
       }}
     >
-      <Sidebar 
-        expanded={expanded} 
-        toggleSubmenu={toggleSubmenu} 
-        handleLogout={handleLogout} 
+      <Sidebar
+        expanded={expanded}
+        toggleSubmenu={toggleSubmenu}
+        handleLogout={handleLogout}
         handleDoBackup={handleDoBackup}
       />
-      <Box 
-        sx={{ 
-          display: 'flex', 
-          flexDirection: 'column', 
-          flexGrow: 1, 
-          width: '100%' 
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          flexGrow: 1,
+          // width: '100%'
         }}
       >
-        <Topbar handleLogout={handleLogout} handleDoBackup={handleDoBackup}/>
-        <Container 
-          sx={{ 
-            flexGrow: 1, 
+        <Topbar handleLogout={handleLogout} handleDoBackup={handleDoBackup} />
+        <Container
+          sx={{
+            flexGrow: 1,
             // overflow: 'auto', 
             p: 0,
             display: 'flex',
-            flexDirection: 'column',
+            // flexDirection: 'column',
             marginLeft: '460px',
+            // minWidth: '70%',
+            maxWidth: '70%',
+            // minHeight: '70%',
+            maxHeight: '70%',
           }}
         >
           <Outlet />
