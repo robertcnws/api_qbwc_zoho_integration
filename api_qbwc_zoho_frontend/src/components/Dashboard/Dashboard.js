@@ -136,10 +136,10 @@ const Dashboard = () => {
             display: 'flex',
             // flexDirection: 'column',
             marginLeft: '460px',
-            // minWidth: '70%',
+            // minWidth: '80%',
             maxWidth: '70%',
             // minHeight: '70%',
-            maxHeight: '70%',
+            maxHeight: '85%',
           }}
         >
           <Outlet />

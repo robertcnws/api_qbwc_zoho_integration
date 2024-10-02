@@ -121,7 +121,7 @@ const MainContent = () => {
         <Typography variant="h6" sx={{ paddingTop: '10px', paddingLeft: '10px' }}>Zoho - QBWC Integration</Typography>
       </Box>
 
-      <Container sx={{
+      <Box sx={{
         paddingTop: '10px',
         backgroundColor: '#F9F9FB',
         minWidth: '100%',
@@ -296,7 +296,7 @@ const MainContent = () => {
             marginBottom: '20px',
           }}
         ></Typography>
-      </Container>
+      </Box>
     </Box>
   );
 };

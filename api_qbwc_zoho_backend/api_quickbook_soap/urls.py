@@ -19,6 +19,7 @@ urlpatterns = [
     path("never_match_items_ajax/", views.never_match_items_ajax, name="never_match_items_ajax"),
     path("never_match_customers_ajax/", views.never_match_customers_ajax, name="never_match_customers_ajax"),
     path("force_to_sync_invoices_ajax/", views.force_to_sync_invoices_ajax, name="force_to_sync_invoices_ajax"),
+    path("unsync_invoices_ajax/", views.unsync_invoices_ajax, name="unsync_invoices_ajax"),
     path("matched_items/", views.matched_items, name="matched_items"),
     path("matched_customers/", views.matched_customers, name="matched_customers"),
     path("matched_invoices/", views.matched_invoices, name="matched_invoices"),

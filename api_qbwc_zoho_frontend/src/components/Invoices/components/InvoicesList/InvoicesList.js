@@ -40,6 +40,7 @@ import HomeNavigationRightButton from '../../../Utils/components/NavigationRight
 import TableCustomPagination from '../../../Utils/components/TableCustomPagination/TableCustomPagination';
 import CustomFilter from '../../../Utils/components/CustomFilter/CustomFilter';
 import './InvoicesList.css';
+import { RadioButtonCheckedOutlined, RadioButtonUncheckedOutlined, UndoRounded } from '@mui/icons-material';
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
@@ -64,6 +65,8 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
     const [hoveredRowIndex, setHoveredRowIndex] = useState(null);
     const [selectedOptionForceSync, setSelectedOptionForceSync] = useState('select_clear');
     const [titleSelectForceSync, setTitleSelectForceSync] = useState('Force Sync?');
+    const [selectedOptionUnsync, setSelectedOptionUnsync] = useState('select_clear_unsync');
+    const [titleSelectUnsync, setTitleSelectUnsync] = useState('Unsync?');
     const navigate = useNavigate();
 
     const today = dayjs();
@@ -269,6 +272,68 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
         });
     }, [selectedInvoices, apiUrl, onSyncComplete]);
 
+    const handleUnsync = useCallback(() => {
+        if (selectedInvoices.length === 0) {
+            Swal.fire({
+                title: 'Error!',
+                text: 'Please select at least one invoice to unsync.',
+                icon: 'error',
+                confirmButtonText: 'OK'
+            });
+            return;
+        }
+
+        Swal.fire({
+            title: 'Are you sure?',
+            text: 'Do you want to unsync selected invoices?',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, unsync!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const fetchData = async () => {
+                    try {
+                        const url = `${apiUrl}/api_quickbook_soap/unsync_invoices_ajax/`
+                        const params = {
+                            invoices: selectedInvoices,
+                            username: localStorage.getItem('username'),
+                        }
+                        const response = await fetchWithToken(url, 'POST', params, {}, apiUrl);
+                        if (response.data.status === 'success') {
+                            Swal.fire({
+                                title: 'Success!',
+                                text: 'Selected invoices have been unsynced.',
+                                icon: 'success',
+                                confirmButtonText: 'OK'
+                            }).then(() => {
+                                setSelectedInvoices([]);
+                                onSyncComplete(); 
+                            });
+                        } else {
+                            Swal.fire({
+                                title: 'Error!',
+                                text: `An error occurred while unsyncing invoices: ${response.data.message}`,
+                                icon: 'error',
+                                confirmButtonText: 'OK'
+                            });
+                        }
+                    } catch (error) {
+                        console.error('An error occurred while syncing invoices:', error);
+                        Swal.fire({
+                            title: 'Error!',
+                            text: `An error occurred while syncing invoices: ${error}`,
+                            icon: 'error',
+                            confirmButtonText: 'OK'
+                        });
+                    }
+                };
+                fetchData();
+            }
+        });
+    }, [selectedInvoices, apiUrl, onSyncComplete]);
+
     const isSelected = (invoiceId) => selectedInvoices.indexOf(invoiceId) !== -1;
 
     const handleCheckboxClick = (event, invoiceId) => {
@@ -284,39 +349,82 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
         setSelectedInvoices(newSelected);
     };
 
-    const handleSelectForceSyncChange = (event) => {
+    const handleSelectSyncChange = (event) => {
         setSelectedOptionForceSync(event.target.value);
+        setSelectedInvoices([]);
         if (event.target.value === 'select_page') {
             setTitleSelectForceSync('Unselect?');
-            handleSelectAllForceSyncPage(rowsPerPage, page);
+            handleSelectAllSyncPage(rowsPerPage, page, 'force_sync');
         }
         else if (event.target.value === 'select_all') {
             setTitleSelectForceSync('Unselect?');
-            handleSelectAllForceSyncAll();
+            handleSelectAllSyncAll('force_sync');
         } else {
             setTitleSelectForceSync('Force Sync?');
             setSelectedInvoices([]);
         }
     };
 
-    const handleSelectAllForceSyncPage = (rowsPerPage, page) => {
+    const handleSelectUnsyncChange = (event) => {
+        setSelectedInvoices([]);
+        setSelectedOptionUnsync(event.target.value);
+        if (event.target.value === 'select_page_unsync') {
+            setTitleSelectUnsync('Unselect?');
+            handleSelectAllSyncPage(rowsPerPage, page, 'unsync');
+        }
+        else if (event.target.value === 'select_all_unsync') {
+            setTitleSelectUnsync('Unselect?');
+            handleSelectAllSyncAll('unsync');
+        } else {
+            setTitleSelectUnsync('Unsync?');
+            setSelectedInvoices([]);
+        }
+    };
+
+    const handleSelectAllSyncPage = (rowsPerPage, page, type) => {
         setSelectedInvoices([]);
         const startIndex = page * rowsPerPage;
         const endIndex = Math.min(startIndex + rowsPerPage, filteredInvoices.length);
         const newSelected = [...selectedInvoices];
-        console.log(filteredInvoices)
-        for (let i = startIndex; i < endIndex; i++) {
-            const invoiceId = filteredInvoices[i].fields.invoice_id;
-            if (!newSelected.includes(invoiceId)) {
-                newSelected.push(invoiceId);
+        let invoiceId = '';
+        if (type) {
+            for (let i = startIndex; i < endIndex; i++) {
+                if (type === 'force_sync') {
+                    if (!filteredInvoices[i].fields.inserted_in_qb) {
+                        invoiceId = filteredInvoices[i].fields.invoice_id;
+                    }
+                }
+                else if (type === 'unsync') {
+                    if (filteredInvoices[i].fields.inserted_in_qb) {
+                        invoiceId = filteredInvoices[i].fields.invoice_id;
+                    }
+                }
+                if (!newSelected.includes(invoiceId)) {
+                    newSelected.push(invoiceId);
+                }
             }
         }
         setSelectedInvoices(newSelected);
     };
 
-    const handleSelectAllForceSyncAll = () => {
+    const handleSelectAllSyncAll = (type) => {
         setSelectedInvoices([]);
-        setSelectedInvoices([...filteredInvoices.map((invoice) => invoice.fields.invoice_id)]);
+        setSelectedInvoices([...filteredInvoices.map(
+            (invoice) => {
+                if (type) {
+                    if (type === 'force_sync') {
+                        if (!invoice.fields.inserted_in_qb) {
+                            return invoice.fields.invoice_id;
+                        }
+                    }
+                    else if (type === 'unsync') {
+                        if (invoice.fields.inserted_in_qb) {
+                            return invoice.fields.invoice_id;
+                        }
+                    }
+                }
+            })
+        ]);
     };
 
     const filterByDate = (invoice) => {
@@ -490,6 +598,46 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
 
     };
 
+
+    const renderUnsyncCheckbox = (invoice, isSelected, page) => {
+        if (invoice.fields.inserted_in_qb) {
+            return (
+                <FormControl sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <FormControlLabel
+                        control={
+                            <Checkbox
+                                checked={isSelected}
+                                value={invoice.fields.invoice_id}
+                                onChange={(e) => handleCheckboxClick(e, invoice.fields.invoice_id)}
+                                data-page={page}
+                            />
+                        }
+                        label="Unsync?"
+                    />
+                </FormControl>
+            );
+        } else {
+            return (
+                <Tooltip
+                    title="Not synced yet"
+                    arrow
+                    sx={{
+                        '& .MuiTooltip-tooltip': {
+                            backgroundColor: '#000000',
+                            color: 'white',
+                            fontSize: '0.875rem',
+                        }
+                    }}
+                >
+                    <RadioButtonCheckedOutlined sx={{ color: 'warning.main', fontSize: 'large' }} />
+                </Tooltip>
+
+            );
+        }
+
+    };
+
+
     const handleChangeDate = useCallback((date) => {
         if (date && date.isValid()) {
             setFilterDate(date);
@@ -538,6 +686,7 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
         { id: 'total', label: 'Amount', colspan: 1, textAlign: 'left' },
         { id: 'status', label: 'Sync & Matched?', colspan: 2, textAlign: 'right' },
         { id: 'force_sync', label: titleSelectForceSync, colspan: 1, textAlign: 'center' },
+        { id: 'unsync', label: titleSelectUnsync, colspan: 1, textAlign: 'center' },
         { id: 'actions', label: 'Actions', colspan: 1, textAlign: 'center' }
     ];
 
@@ -632,7 +781,7 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
                                         textAlign: { xs: 'center', sm: column.textAlign }
                                     }}
                                 >
-                                    {column.id !== 'force_sync' ? (
+                                    {column.id !== 'force_sync' && column.id !== 'unsync' ? (
                                         <TableSortLabel
                                             active={orderBy === column.id}
                                             direction={orderBy === column.id ? order : 'asc'}
@@ -643,8 +792,12 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
                                     ) : (
                                         <>
                                             <Select
-                                                value={selectedOptionForceSync}  // Asume que `selectedOption` es un estado que manejas en tu componente
-                                                onChange={handleSelectForceSyncChange}  // Función para manejar el cambio de selección
+                                                value={column.id === 'force_sync' ? selectedOptionForceSync : selectedOptionUnsync}
+                                                onChange={
+                                                    (e) => column.id === 'force_sync' ?
+                                                        handleSelectSyncChange(e) :
+                                                        handleSelectUnsyncChange(e)
+                                                }
                                                 displayEmpty
                                                 sx={{
                                                     fontSize: '0.875rem',
@@ -660,11 +813,25 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
                                                     },
                                                 }}
                                             >
-                                                <MenuItem value="select_clear">
+                                                <MenuItem value={column.id === 'force_sync' ? 'select_clear' : 'select_clear_unsync'}>
                                                     <em>{column.label.toUpperCase()}</em>
                                                 </MenuItem>
-                                                <MenuItem value="select_page" onClick={() => handleSelectAllForceSyncPage(rowsPerPage, page)}>Select All in Page</MenuItem>
-                                                <MenuItem value="select_all" onClick={() => handleSelectAllForceSyncAll()}>Select All in Table</MenuItem>
+                                                <MenuItem value={column.id === 'force_sync' ? 'select_page' : 'select_page_unsync'} onClick={
+                                                    () => handleSelectAllSyncPage(rowsPerPage, page, column.id)}
+                                                >
+                                                    Select All in Page
+                                                </MenuItem>
+                                                <MenuItem value={column.id === 'force_sync' ? 'select_all' : 'select_all_unsync'} onClick={
+                                                    () => handleSelectAllSyncAll(column?.id)}
+                                                >
+                                                    Select All in Table
+                                                </MenuItem>
+                                                {((column.id === 'unsync' && selectedOptionUnsync !== 'select_clear_unsync') || 
+                                                 (column.id === 'unsync' && selectedInvoices.length > 0)) && (
+                                                    <MenuItem value='unsync_invoices' onClick={() => handleUnsync()}>
+                                                        <UndoRounded sx={{ marginRight: 1 }} /> <b>Unsync Selected Invoices</b>
+                                                    </MenuItem>
+                                                )}
                                             </Select>
                                         </>
                                     )}
@@ -723,6 +890,9 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
                                                         <Typography sx={{ color: 'warning.main' }}><b>Forced to sync</b></Typography>
                                                     </Box>)
                                             }
+                                        </TableCell>
+                                        <TableCell align="center" onClick={() => (!invoice.fields.inserted_in_qb) && handleViewInvoice(invoice)}>
+                                            {renderUnsyncCheckbox(invoice, isItemSelected, page)}
                                         </TableCell>
                                         <TableCell align="center">
                                             <IconButton onClick={() => handleDeleteInvoice(invoice)} color="error" aria-label="view" size='xx-large'>

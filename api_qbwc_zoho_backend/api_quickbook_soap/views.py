@@ -176,6 +176,28 @@ def force_to_sync_invoices_ajax(request):
     return JsonResponse({'status': 'error', 'message': 'Invalid JWT Token'}, status=401)
 
 
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def unsync_invoices_ajax(request):
+    valid_token = api_zoho_views.validateJWTTokenRequest(request)
+    if valid_token:
+        try:
+            data = json.loads(request.body)
+            list_id = data.get('invoices', [])
+            username = data.get('username', '')
+            print(f"List ID: {list_id}")
+            for invoice in list_id:
+                invoice_model = get_object_or_404(ZohoFullInvoice, invoice_id=invoice)
+                invoice_model.inserted_in_qb = False
+                invoice_model.save()
+                api_zoho_views.manage_api_tracking_log(username, 'unsync_invoices', request.META.get('REMOTE_ADDR'), 'Unsync invoices')
+            return JsonResponse({'status': 'success'}, status=200)
+        except Exception as e:
+            logger.error(f"An error occurred: {e}")
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+    return JsonResponse({'status': 'error', 'message': 'Invalid JWT Token'}, status=401)
+
+
 #############################################
 # Never match AJAX methods
 #############################################
