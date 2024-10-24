@@ -152,6 +152,7 @@ const ItemsDetails = () => {
                 const url = `${apiUrl}/api_quickbook_soap/qbwc_items/${isNeverMatch}`;
                 const response = await fetchWithToken(url, 'GET', null, {}, apiUrl);
                 const jsonData = JSON.parse(response.data);
+                
                 setQbItems(jsonData);
             } catch (error) {
                 console.error('Error fetching qb items:', error);

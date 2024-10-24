@@ -368,12 +368,16 @@ def generate_invoice_add_response():
                     regex = re.compile(r'^[A-Za-z0-9]{8}-\d{10}$')
                     if regex.match(zoho_item.qb_list_id):
                         counter_items_with_list_id += 1
+                        has_quantity = f'<Quantity>{quantity}</Quantity>'
+                        if zoho_item.item_id == '3154577000040782413' or zoho_item.item_id == '3154577000044099049':
+                            rate = (-1) * float(rate) 
+                            has_quantity = ''    
                         items_xml += f'''<InvoiceLineAdd>
                                         <ItemRef>
                                             <ListID>{zoho_item.qb_list_id}</ListID>
                                         </ItemRef>
                                         <Desc>{desc}</Desc>
-                                        <Quantity>{quantity}</Quantity>
+                                        {has_quantity}
                                         <Rate>{rate}</Rate>
                                     </InvoiceLineAdd>'''
                     else:

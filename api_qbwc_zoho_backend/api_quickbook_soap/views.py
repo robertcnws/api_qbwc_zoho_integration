@@ -691,7 +691,7 @@ def start_qbwc_query_request(request, query_object_name, list_of_objects):
                 list_of_objects = [elem for elem in elements_query_rs] if isinstance(elements_query_rs, list) else [elements_query_rs]
                 logger.info(f"Number of {query_object_name} detected: {len(list_of_objects)}")
 
-                if query_object_name in ['ItemInventory','ItemSalesTax', 'ItemService', 'ItemNonInventory', 'Item', 'ItemInventoryPart']:
+                if query_object_name in ['ItemInventory','ItemSalesTax', 'ItemService', 'ItemNonInventory', 'Item', 'ItemInventoryPart', 'ItemDiscount']:
                     module = 'items'
                     existing_items_ids = set(QbItem.objects.values_list('list_id', flat=True))
                     items_to_save = [
@@ -783,7 +783,7 @@ def process_qbwc_query_request(xml_data, query_object_name):
             response = soap_service.handle_authenticate(body)
         elif 'sendRequestXML' in body and counter == 0:
             counter += 1
-            if query_object_name in ['ItemInventory', 'ItemSalesTax', 'ItemService', 'Item', 'ItemNonInventory', 'ItemInventoryPart']:
+            if query_object_name in ['ItemInventory', 'ItemSalesTax', 'ItemService', 'Item', 'ItemNonInventory', 'ItemInventoryPart', 'ItemDiscount']:
                 response = soap_service.generate_item_query_response(query_object_name)
             else:
                 response = soap_service.generate_customer_query_response()

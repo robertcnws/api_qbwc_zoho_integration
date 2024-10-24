@@ -42,7 +42,15 @@ environ.Env.read_env()
 # ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['localhost', '10.1.10.216', '127.0.0.1'])
 
 # ALLOWED_HOSTS = []
-ALLOWED_HOSTS = ['localhost', '10.1.10.216', '127.0.0.1', 'host.docker.internal', 'integration.nws.com', 'api-integration-qbwc-zoho.nws.com']
+ALLOWED_HOSTS = [
+    'localhost', 
+    '10.1.10.216', 
+    '127.0.0.1', 
+    'host.docker.internal', 
+    'integration.nws.com', 
+    'api-integration-qbwc-zoho.nws.com',
+    'api-qbwc-zoho.nws.home'
+]
 
 # Env Vars
 ENVIRONMENT = env('ENVIRONMENT')
@@ -71,7 +79,7 @@ PATH_FROM_BACKUP_DB = env('PATH_FROM_BACKUP_DB_DEV') if ENVIRONMENT == 'DEV' els
 PATH_TO_BACKUP_DB = env('PATH_TO_BACKUP_DB')
 TERMS = env('TERMS')
 TEMPLATE_INVOICE_NAME = env('TEMPLATE_INVOICE_NAME_DEV') if ENVIRONMENT == 'DEV' else env('TEMPLATE_INVOICE_NAME_QA') if ENVIRONMENT == 'QA' else env('TEMPLATE_INVOICE_NAME_PROD')
-
+DISCOUNT_ITEM_ID = env('DISCOUNT_ITEM_ID')
 # CELERY
 CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL', 'redis://localhost:6379/0')
 CELERY_RESULT_BACKEND = os.getenv('CELERY_RESULT_BACKEND', 'redis://localhost:6379/0')
@@ -93,7 +101,8 @@ CSRF_TRUSTED_ORIGINS = [
     'https://localhost:8000',
     'https://host.docker.internal',
     'https://integration.nws.com',
-    'https://api-integration-qbwc-zoho.nws.com'
+    'https://api-integration-qbwc-zoho.nws.com',
+    'https://api-qbwc-zoho.nws.home'
 ]
 
 CSRF_COOKIE_SECURE = False  # False para desarrollo, True para producción
@@ -121,7 +130,8 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:3000",
     "https://host.docker.internal",
     "https://integration.nws.com",
-    "https://api-integration-qbwc-zoho.nws.com"
+    "https://api-integration-qbwc-zoho.nws.com",
+    "https://api-qbwc-zoho.nws.home"
 ]
 
 CORS_ALLOW_METHODS = [

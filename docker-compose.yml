@@ -59,8 +59,8 @@ services:
     ports:
       - "80:80"
       - "443:443"
-    extra_hosts:
-      - "api-integration-qbwc-zoho.nws.com:10.1.10.216"
+    # extra_hosts:
+    #   - "api-integration-qbwc-zoho.nws.com:10.1.10.216"
     volumes:
       - ./api_qbwc_zoho_backend/nginx/nginx_react_django.conf:/etc/nginx/nginx.conf:ro
       - ./api_qbwc_zoho_backend/nginx/certificates:/etc/nginx/certificates:ro
@@ -69,8 +69,8 @@ services:
       - django_app
       - react_app
     networks:
-      api_qbwc_zoho_network:
-        ipv4_address: 10.1.10.216
+      - api_qbwc_zoho_network
+        # ipv4_address: 10.1.10.216
 
   redis:
     image: redis:latest
@@ -87,6 +87,6 @@ volumes:
 networks:
   api_qbwc_zoho_network:
     driver: bridge
-    ipam:
-      config:
-        - subnet: "10.1.10.0/24"
+    # ipam:
+    #   config:
+    #     - subnet: "10.1.10.0/24"
