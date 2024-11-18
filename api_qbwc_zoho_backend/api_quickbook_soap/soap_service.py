@@ -321,11 +321,12 @@ def generate_invoice_add_response_new_version():
 
 def generate_invoice_add_response():
     today = date.today()
-    yesterday = today.replace(day=today.day - 1)    
+    # yesterday = today.replace(day=today.day - 1)    
     logging.debug(f'Today: {today}')
-    logging.debug(f'Yesterday: {yesterday}')
+    # logging.debug(f'Yesterday: {yesterday}')
 
-    invoices = ZohoFullInvoice.objects.filter(Q(force_to_sync=True) | Q(date=yesterday), inserted_in_qb=False)
+    # invoices = ZohoFullInvoice.objects.filter(Q(force_to_sync=True) | Q(date=yesterday), inserted_in_qb=False)
+    invoices = ZohoFullInvoice.objects.filter(force_to_sync=True, inserted_in_qb=False)
     logging.debug(f'Length Invoices: {len(invoices)}')
 
     data_xml = ''
