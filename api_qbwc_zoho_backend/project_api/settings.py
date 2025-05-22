@@ -41,16 +41,16 @@ environ.Env.read_env()
 # Configuración adicional, por ejemplo:
 # ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['localhost', '10.1.10.216', '127.0.0.1'])
 
-# ALLOWED_HOSTS = []
-ALLOWED_HOSTS = [
-    'localhost', 
-    '10.1.10.216', 
-    '127.0.0.1', 
-    'host.docker.internal', 
-    'integration.nws.com', 
-    'api-integration-qbwc-zoho.nws.com',
-    'api-qbwc-zoho.nws.home'
-]
+ALLOWED_HOSTS = ['*']
+# ALLOWED_HOSTS = [
+#     'localhost', 
+#     '10.1.10.216', 
+#     '127.0.0.1', 
+#     'host.docker.internal', 
+#     'integration.nws.com', 
+#     'api-integration-qbwc-zoho.nws.com',
+#     'api-qbwc-zoho.newwindowsystem.net',
+# ]
 
 # Env Vars
 ENVIRONMENT = env('ENVIRONMENT')
@@ -95,6 +95,14 @@ CELERY_BEAT_SCHEDULE = {
     },
 }
 
+DJANGO_SETTINGS_MODULE = os.getenv('DJANGO_SETTINGS_MODULE', 'project_api.settings')
+DJANGO_SUPERUSER_USERNAME = os.getenv('DJANGO_SUPERUSER_USERNAME', '')
+DJANGO_SUPERUSER_EMAIL = os.getenv('DJANGO_SUPERUSER_EMAIL', '')
+DJANGO_SUPERUSER_PASSWORD = os.getenv('DJANGO_SUPERUSER_PASSWORD', '')
+LOGINUSER_USERNAME = os.getenv('LOGINUSER_USERNAME', '')
+LOGINUSER_EMAIL = os.getenv('LOGINUSER_EMAIL', '')
+LOGINUSER_PASSWORD = os.getenv('LOGINUSER_PASSWORD', '')
+
 CSRF_TRUSTED_ORIGINS = [
     'http://localhost:3000',
     'http://127.0.0.1:3000',
@@ -102,7 +110,8 @@ CSRF_TRUSTED_ORIGINS = [
     'https://host.docker.internal',
     'https://integration.nws.com',
     'https://api-integration-qbwc-zoho.nws.com',
-    'https://api-qbwc-zoho.nws.home'
+    'http://api-qbwc-zoho.newwindowsystem.net',
+    'https://api-qbwc-zoho.newwindowsystem.net',
 ]
 
 CSRF_COOKIE_SECURE = False  # False para desarrollo, True para producción
@@ -131,7 +140,8 @@ CORS_ALLOWED_ORIGINS = [
     "https://host.docker.internal",
     "https://integration.nws.com",
     "https://api-integration-qbwc-zoho.nws.com",
-    "https://api-qbwc-zoho.nws.home"
+    'http://api-qbwc-zoho.newwindowsystem.net',
+    "https://api-qbwc-zoho.newwindowsystem.net",
 ]
 
 CORS_ALLOW_METHODS = [

@@ -10,6 +10,8 @@ app_name = 'api_zoho'
 urlpatterns = [
     path("connect/", views.zoho_api_connect, name="zoho_api_connect"),
     
+    path("health_check/", views.health_check, name="health_check"),
+    
     path("login/", views.login_view, name="login"),
     path("logout/", views.logout_view, name="logout"),
     path("list_users/", views.list_users, name="list_users"),

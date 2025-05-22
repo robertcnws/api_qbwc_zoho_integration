@@ -24,7 +24,7 @@ from .backup_db import create_backup
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 
 #############################################
 # Configura el logging
@@ -36,8 +36,19 @@ logger = logging.getLogger(__name__)
 @ensure_csrf_cookie
 def csrf_token_view(request):
     csrf_token = get_token(request)
-    print(csrf_token)
+    # print(csrf_token)
     return JsonResponse({'csrftoken': csrf_token})
+
+#############################################
+# Health Check
+#############################################
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+@csrf_exempt
+def health_check(request):
+    logger.info('Health check endpoint accessed')
+    return JsonResponse({'status': 'ok'})
 
 #############################################
 # Login View
