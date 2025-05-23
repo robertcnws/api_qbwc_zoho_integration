@@ -118,7 +118,7 @@ pipeline {
       when { changeset "**/api_qbwc_zoho_backend/**" }
       agent { label 'docker' }
       steps {
-        echo "→ There are changes in api_qbwc_zoho_frontend, redeploy backend"
+        echo "→ There are changes in api_qbwc_zoho_backend, redeploy backend"
         withCredentials([[
           $class: 'AmazonWebServicesCredentialsBinding',
           credentialsId: 'aws-ecr-creds'
