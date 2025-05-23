@@ -1,114 +1,261 @@
 pipeline {
-    agent any
 
-    triggers {
-        githubPush()
+  triggers {
+    githubPush()
+  }
+
+  agent none
+
+  tools {
+    nodejs 'node20'
+  }
+
+  environment {
+    AWS_ECR_REGISTRY         = "324037323031.dkr.ecr.us-east-2.amazonaws.com/nws"
+    BACKEND_IMAGE            = "${AWS_ECR_REGISTRY}/api_qbwc_zoho_backend"
+    FRONTEND_IMAGE           = "${AWS_ECR_REGISTRY}/api_qbwc_zoho_frontend"
+    AWS_DEFAULT_REGION       = "us-east-2"
+    AWS_FRONTEND_ENV_CRED_ID = "AWS_FRONTEND_ENV_CRED_ID"
+    AWS_CLUSTER              = "api-dealerportal-cluster"
+    AWS_FRONTEND_SERVICE     = "api-qbwc-zoho-frontend-service"
+    AWS_BACKEND_SERVICE      = "api-qbwc-zoho-backend-service"
+    JENKINS_HOOK             = "api-qbwc-zoho-repository-hook"
+  }
+
+  stages {
+
+    stage('1. Checkout & Stash') {
+      agent any
+      steps {
+        checkout scm
+        stash name: 'source', includes: '**'
+      }
     }
 
-    environment {
-        DOCKER_CREDENTIALS = credentials('docker-hub-token')  // ID de credenciales de tipo Secret text para Docker Hub PAT
-        DOCKER_USER = 'robertocnws'  // Tu nombre de usuario en Docker Hub
-        DOCKER_REPO = 'robertocnws/api_qbwc_zoho'  // Nombre de tu repositorio en Docker Hub
-        CONTAINER_NAME = 'project_api'  // Nombre del contenedor Docker
-        REPO_URL = 'https://github.com/robertcnws/api_qbwc_zoho.git'  // URL del repositorio de GitHub
+    stage('2. Verify agent groups') {
+      agent { label 'docker' }
+      steps {
+        sh 'echo "Users: $(id -un)"'
+        sh 'echo "Groups: $(id -Gn)"'
+      }
     }
 
-    stages {
-        stage('Checkout') {
-            steps {
-                git branch: 'dev', url: "${REPO_URL}"  // Reemplaza 'dev' con la rama correcta si es necesario
-            }
-        }
-
-        stage('Build Docker Image') {
-            steps {
-                script {
-                    // Construye la imagen Docker usando el Dockerfile en el subdirectorio project_api
-                    dockerImage = docker.build("${DOCKER_REPO}:${env.BUILD_NUMBER}", '-f Dockerfile.jenkins .')
-                    dockerImage = docker.build("${DOCKER_REPO}:latest", '-f Dockerfile.jenkins .')
-                }
-            }
-        }
-
-        stage('Push Docker Image') {
-            steps {
-                script {
-                    withCredentials([string(credentialsId: 'docker-hub-token', variable: 'DOCKER_HUB_TOKEN')]) {
-                        // Usa 'bash' para evitar problemas con `sh` y `Bad substitution`
-                        sh '''#!/bin/bash
-                        echo $DOCKER_HUB_TOKEN | docker login -u $DOCKER_USER --password-stdin https://index.docker.io/v1/
-                        docker push ${DOCKER_REPO}:${env.BUILD_NUMBER}
-                        docker push ${DOCKER_REPO}:latest
-                        '''
-                    }
-                }
-            }
-        }
-
-        stage('Deploy Docker Container') {
-            steps {
-                script {
-                    sh '''#!/bin/bash
-                    docker stop ${CONTAINER_NAME} || true  // Detiene el contenedor si está en ejecución
-                    docker rm ${CONTAINER_NAME} || true  // Elimina el contenedor detenido
-                    docker network create api_qbwc_zoho_network || true  // Crea una red de Docker si no existe
-                    docker run -d \
-                    --name ${CONTAINER_NAME} \
-                    -p 8000:8000 \
-                    -v $(pwd):/app \
-                    -v $(pwd)/nginx/gunicorn.conf.py:/etc/nginx/gunicorn.conf.py \
-                    -e DJANGO_SETTINGS_MODULE=${CONTAINER_NAME}.settings \
-                    --env-file ./${CONTAINER_NAME}/.env \
-                    --network api_qbwc_zoho_network \
-                    ${DOCKER_REPO}:latest
-                    '''
-                }
-            }
-        }
-
-        stage('Verify Container Running') {
-            steps {
-                script {
-                    def containerRunning = sh(script: "docker ps -q -f name=${CONTAINER_NAME}", returnStdout: true).trim()
-                    if (containerRunning) {
-                        echo "Container ${CONTAINER_NAME} is running."
-                    } else {
-                        error "Container ${CONTAINER_NAME} is not running. Check logs for details."
-                    }
-                }
-            }
-        }
-
-        stage('Verify Files') {
-            steps {
-                script {
-                    def containerRunning = sh(script: "docker ps -q -f name=${CONTAINER_NAME}", returnStdout: true).trim()
-                    if (containerRunning) {
-                        sh '''#!/bin/bash
-                        docker exec ${CONTAINER_NAME} ls -la /app
-                        '''
-                    } else {
-                        echo "Skipping file verification as container is not running."
-                    }
-                }
-            }
-        }
-
-        stage('Check Container Logs') {
-            steps {
-                script {
-                    def containerRunning = sh(script: "docker ps -aq -f name=${CONTAINER_NAME}", returnStdout: true).trim()
-                    if (!sh(script: "docker ps -q -f name=${CONTAINER_NAME}", returnStdout: true).trim()) {
-                        sh "docker logs ${containerRunning}"
-                    }
-                }
-            }
-        }
+    stage('3. Smoke Test Docker') {
+      agent { label 'docker' }
+      steps {
+        echo "🔍 Testing Docker from this agent in EC2..."
+        sh 'docker version'
+        sh 'docker info'
+        sh 'docker-compose version'
+      }
     }
 
-    post {
-        always {
-            cleanWs()  // Limpia el espacio de trabajo después de cada build
+    stage('4. Login to ECR') {
+      agent { label 'docker' }
+      steps {
+        withCredentials([[
+          $class: 'AmazonWebServicesCredentialsBinding',
+          credentialsId: 'aws-ecr-creds'
+        ]]) {
+          sh '''
+            docker run --rm \
+              -e AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID \
+              -e AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY \
+              amazon/aws-cli ecr get-login-password --region $AWS_DEFAULT_REGION \
+            | docker login --username AWS --password-stdin $AWS_ECR_REGISTRY
+          '''
         }
+      }
     }
-}
+
+    stage('5. Prune Docker') {
+      agent { label 'docker' }
+      steps {
+        sh 'docker system prune -af || true'
+      }
+    }
+
+    stage('6. Build & Push Backend') {
+      when { changeset "**/api_qbwc_zoho_backend/**" }
+      agent { label 'docker' }
+      steps {
+        deleteDir()
+        unstash 'source'
+        dir('api_qbwc_zoho_backend') {
+          sh """
+            docker-compose -f ../docker-compose.aws.backend.prod.yml build
+            docker tag "${JENKINS_HOOK}_aws_backend_app:latest" "${BACKEND_IMAGE}:latest"
+            docker push "${BACKEND_IMAGE}:latest"
+          """
+        }
+      }
+    }
+
+    stage('7. Build & Push Frontend') {
+      when { changeset "**/api_qbwc_zoho_frontend/**" }
+      agent { label 'docker' }
+      steps {
+        deleteDir()
+        unstash 'source'
+        dir('api_qbwc_zoho_frontend') {
+          withCredentials([file(credentialsId: env.AWS_FRONTEND_ENV_CRED_ID, variable: 'ENV_FILE')]) {
+            sh 'cp $ENV_FILE .env'
+          }
+          sh 'npm cache clean --force'
+          sh 'npm ci'
+          sh 'npm run lint -- --fix'
+          sh 'npm run build'
+          sh """
+            docker-compose -f ../docker-compose.aws.frontend.prod.yml build
+            docker tag "${JENKINS_HOOK}_aws_frontend_app:latest" "${FRONTEND_IMAGE}:latest"
+            docker push "${FRONTEND_IMAGE}:latest"
+          """
+        }
+      }
+    }
+
+    stage('8. Deploy Backend') {
+      when { changeset "**/api_qbwc_zoho_backend/**" }
+      agent { label 'docker' }
+      steps {
+        echo "→ There are changes in api_qbwc_zoho_frontend, redeploy backend"
+        withCredentials([[
+          $class: 'AmazonWebServicesCredentialsBinding',
+          credentialsId: 'aws-ecr-creds'
+        ]]) {
+          sh '''
+            docker run --rm \
+              -e AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID \
+              -e AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY \
+              -e AWS_DEFAULT_REGION=$AWS_DEFAULT_REGION \
+              amazon/aws-cli ecs update-service \
+                --cluster $AWS_CLUSTER \
+                --service $AWS_BACKEND_SERVICE \
+                --force-new-deployment
+          '''
+        }
+      }
+    }
+
+    stage('9. Deploy Frontend') {
+      when { changeset "**/api_qbwc_zoho_frontend/**" }
+      agent { label 'docker' }
+      steps {
+        echo "→ There are changes in api_qbwc_zoho_frontend, redeploy frontend"
+        withCredentials([[
+          $class: 'AmazonWebServicesCredentialsBinding',
+          credentialsId: 'aws-ecr-creds'
+        ]]) {
+          sh '''
+            docker run --rm \
+              -e AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID \
+              -e AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY \
+              -e AWS_DEFAULT_REGION=$AWS_DEFAULT_REGION \
+              amazon/aws-cli ecs update-service \
+                --cluster $AWS_CLUSTER \
+                --service $AWS_FRONTEND_SERVICE \
+                --force-new-deployment
+          '''
+        }
+      }
+    }
+
+    stage('10. Verify Deployments') {
+      agent { label 'docker' }
+      steps {
+        withCredentials([[
+          $class: 'AmazonWebServicesCredentialsBinding',
+          credentialsId: 'aws-ecr-creds'
+        ]]) {
+          script {
+            def services = [env.AWS_BACKEND_SERVICE, env.AWS_FRONTEND_SERVICE]
+            services.each { svc ->
+              echo "⏳ Waiting for ${svc} to complete deployment…"
+              timeout(time: 10, unit: 'MINUTES') {
+                waitUntil {
+                  def state = sh(
+                    script: """
+                      docker run --rm \\
+                        -e AWS_ACCESS_KEY_ID=${env.AWS_ACCESS_KEY_ID} \\
+                        -e AWS_SECRET_ACCESS_KEY=${env.AWS_SECRET_ACCESS_KEY} \\
+                        -e AWS_DEFAULT_REGION=${env.AWS_DEFAULT_REGION} \\
+                        amazon/aws-cli ecs describe-services \\
+                          --cluster ${env.AWS_CLUSTER} \\
+                          --services ${svc} \\
+                          --query "services[0].deployments[?status=='PRIMARY'].rolloutState" \\
+                          --output text
+                    """,
+                    returnStdout: true
+                  ).trim()
+                  
+                  echo "→ ${svc} rolloutState = ${state}"
+                    return (state == 'COMPLETED')
+                  }
+              }
+              echo "✅ ${svc} deployment COMPLETED"
+            }
+            echo "✅ Both deployments are COMPLETED"
+          }
+        }
+      }
+    }
+
+    stage('11. Notify') {
+      when { expression { currentBuild.currentResult == 'SUCCESS' } }
+      steps {
+        emailext(
+          mimeType: 'text/html',
+          subject: "✅ Build #${env.BUILD_NUMBER} Success – ${env.JOB_NAME}",
+          to: '$DEFAULT_RECIPIENTS',
+          from: 'Jenkins NWS CI/CD (API QBWC Zoho) <nnws15815@gmail.com>',
+          body: '''<!DOCTYPE html>
+              <html>
+                <head>
+                  <style>
+                    body { font-family: Arial, sans-serif; color: #333; }
+                    .header { background: #004579; padding: 10px; color: white; }
+                    .content { padding: 20px; }
+                    .changelog { background: #f9f9f9; border: 1px solid #ddd; padding: 10px; }
+                    .commit { margin-bottom: 8px; }
+                    .commit-author { font-weight: bold; }
+                    .footer { font-size: 0.8em; color: #777; margin-top: 20px; }
+                  </style>
+                </head>
+                <body>
+                  <div class="header">
+                    Jenkins CI/CD Notification (API QBWC Zoho)
+                  </div>
+                  <div class="content">
+                    <h1>Build #${BUILD_NUMBER} – Success 🎉</h1>
+                    <p><strong>Project:</strong> ${JOB_NAME}</p>
+                    <p><strong>URL:</strong> <a href="${BUILD_URL}">${BUILD_URL}</a></p>
+                    
+                    <h2>Commits included:</h2>
+                    <div class="changelog">
+                      <ul>
+                        ${CHANGES, showPaths="true", format="<li class='commit'><span class='commit-author'>%a</span> – (<code>%r</code>)<br/><pre style='background:#eee;padding:8px;'>%m</pre><br/><small>Files:<br/>%p</small><br/></li>"}
+                      </ul>
+                    </div>
+                  </div>
+                  <div class="footer">
+                    This is an automated message generated by Jenkins. Please contact DevOps Team for more questions.
+                  </div>
+                </body>
+              </html>''',
+        )
+      }
+    }
+  } 
+
+  post {
+    failure {
+      emailext(
+        mimeType: 'text/html',
+        subject: "❌ Build #${env.BUILD_NUMBER} Failed – ${env.JOB_NAME}",
+        to: '$DEFAULT_RECIPIENTS',
+        from: 'Jenkins NWS CI/CD (API QBWC Zoho) <nnws15815@gmail.com>',
+        body: '${FILE,path="failure_template.html"}'
+      )
+    }
+  }
+}    
