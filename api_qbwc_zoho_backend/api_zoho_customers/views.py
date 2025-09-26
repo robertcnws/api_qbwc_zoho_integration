@@ -110,8 +110,7 @@ def view_customer(request, customer_id):
         zoho_customer = ZohoCustomer.objects.filter(contact_id=customer_id).first()
         if not zoho_customer:
             return JsonResponse({'error': 'Customer not found'}, status=404)
-
-        # Consultar los datos necesarios de las tablas
+        
         qb_customers = QbCustomer.objects.filter(matched=False, never_match=False).values_list('list_id', 'name', 'email', 'phone')
 
         # Convertir a DataFrames de Pandas

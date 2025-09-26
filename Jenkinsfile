@@ -84,7 +84,7 @@ pipeline {
         dir('api_qbwc_zoho_backend') {
           sh """
             docker-compose -f ../docker-compose.aws.backend.prod.yml build
-            docker tag "${JENKINS_HOOK}_aws_backend_app:latest" "${BACKEND_IMAGE}:latest"
+            docker tag "ne_${JENKINS_HOOK}_aws_backend_app:latest" "${BACKEND_IMAGE}:latest"
             docker push "${BACKEND_IMAGE}:latest"
           """
         }
