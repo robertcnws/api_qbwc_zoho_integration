@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
+    Box,
     Container,
     Grid,
     Table,
@@ -22,6 +23,8 @@ import TableCustomPagination from '../../../Utils/components/TableCustomPaginati
 import CustomFilter from '../../../Utils/components/CustomFilter/CustomFilter';
 
 const numberRows = parseInt(process.env.REACT_APP_DEFAULT_ROWS_PER_PAGE);
+const TABLE_MIN_HEIGHT = 520;
+const TABLE_MAX_HEIGHT = 'calc(100vh - 260px)';
 
 const CustomersList = ({ customers }) => {
     const [page, setPage] = useState(0);
@@ -132,124 +135,169 @@ const CustomersList = ({ customers }) => {
     };
 
     return (
-        <Container
-            maxWidth="xl"
+        <Box
             sx={{
-                marginLeft: '-29.4%',
-                minWidth: '88.3vw',
+                width: '100%',
+                px: 0,
+                py: 1,
+                bgcolor: 'transparent',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 2,
             }}
         >
-            <Grid container spacing={2} alignItems="center" justifyContent="space-between" mb={3} sx={{ mt: '-3%' }}>
-                <Grid item container xs={6} justifyContent="flex-start" sx={{ marginTop: '-1%'}}>
-                    <Grid item xs={4}>
-                        <CustomFilter configCustomFilter={configCustomFilter} />
-                    </Grid>
-                </Grid>
-                <Grid item xs={6} container justifyContent="flex-end" spacing={1} sx={{ marginTop: '-2%' }}>
+            {/* Header: filtro (izq) + acción (der) */}
+            <Box
+                sx={{
+                    display: 'grid',
+                    gridTemplateColumns: { xs: '1fr', sm: '1fr auto' },
+                    alignItems: 'center',
+                    gap: 2,
+                }}
+            >
+                <Box sx={{ maxWidth: 380 }}>
+                    <CustomFilter configCustomFilter={configCustomFilter} />
+                </Box>
+
+                <Box sx={{
+                    display: 'flex',
+                    justifyContent: { xs: 'flex-start', sm: 'flex-end' },
+                    mr: 1
+                }}>
                     <HomeNavigationRightButton children={childrenNavigationRightButton} />
-                </Grid>
-                <Grid item xs={12} sx={{ mt: '-1%' }}>
-                    <TableContainer style={{ maxHeight: '789px', minHeight: '789px', minWidth: 690 }}>
-                        <Table id="myTable" aria-label="customers table" stickyHeader>
-                            <TableHead sx={{ backgroundColor: '#F9F9FB' }}>
-                                <TableRow>
-                                    {columns.map((column) => (
-                                        <TableCell key={column.id}
-                                            sx={{
-                                                fontWeight: 'bold',
-                                                color: '#6C7184',
-                                                borderBottom: '1px solid #ddd',
-                                                borderTop: '1px solid #ddd',
-                                                backgroundColor: '#F9F9FB',
-                                                padding: '5px 16px',
-                                            }}
+                </Box>
+            </Box>
+
+            {/* Tabla */}
+            <Box
+                sx={{
+                    border: '1px solid',
+                    borderColor: 'divider',
+                    borderRadius: 2,
+                    overflow: 'hidden',
+                    bgcolor: 'background.paper',
+                }}
+            >
+                <TableContainer
+                    sx={{
+                        maxHeight: TABLE_MAX_HEIGHT,
+                        minHeight: TABLE_MIN_HEIGHT,
+                    }}
+                >
+                    <Table stickyHeader aria-label="customers table" id="myTable">
+                        <TableHead>
+                            <TableRow>
+                                {columns.map((column) => (
+                                    <TableCell
+                                        key={column.id}
+                                        sx={{
+                                            fontWeight: 700,
+                                            color: 'text.secondary',
+                                            borderBottom: '1px solid',
+                                            borderTop: '1px solid',
+                                            borderColor: 'divider',
+                                            backgroundColor: '#F9F9FB',
+                                            py: 0.75,
+                                        }}
+                                    >
+                                        <TableSortLabel
+                                            active={orderBy === column.id}
+                                            direction={orderBy === column.id ? order : 'asc'}
+                                            onClick={() => handleSortChange(column.id)}
                                         >
-                                            <TableSortLabel
-                                                active={orderBy === column.id}
-                                                direction={orderBy === column.id ? order : 'asc'}
-                                                onClick={() => handleSortChange(column.id)}
-                                            >
-                                                {column.label.toUpperCase()}
-                                            </TableSortLabel>
-                                        </TableCell>
-                                    ))}
-                                </TableRow>
-                            </TableHead>
-                            <TableBody>
-                                {filteredCustomers.length === 0 ? (
-                                    <EmptyRecordsCell columns={columns} />
-                                ) : (
-                                    (rowsPerPage > 0
-                                        ? sortedCustomers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                                        : sortedCustomers
-                                    ).map((customer, index) => (
-                                        <TableRow key={index}
-                                            sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                                            style={{
+                                            {column.label.toUpperCase()}
+                                        </TableSortLabel>
+                                    </TableCell>
+                                ))}
+                            </TableRow>
+                        </TableHead>
+
+                        <TableBody>
+                            {filteredCustomers.length === 0 ? (
+                                <EmptyRecordsCell columns={columns} />
+                            ) : (
+                                (rowsPerPage > 0
+                                    ? sortedCustomers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                                    : sortedCustomers
+                                ).map((customer, index) => {
+                                    const f = customer.fields || {};
+                                    const matched = !!(f.qb_list_id && f.qb_list_id !== '');
+                                    return (
+                                        <TableRow
+                                            key={`${f.contact_name || 'row'}-${index}`}
+                                            hover
+                                            sx={{
                                                 cursor: 'pointer',
-                                                transition: 'background-color 0.3s ease',
-                                                backgroundColor: hoveredRowIndex === index ? '#F6F6FA' : '#FFFFFF'
+                                                transition: 'background-color 0.2s ease',
+                                                backgroundColor: hoveredRowIndex === index ? '#F6F6FA' : 'background.paper',
+                                                '&:last-child td, &:last-child th': { border: 0 },
                                             }}
                                             onMouseEnter={() => setHoveredRowIndex(index)}
                                             onMouseLeave={() => setHoveredRowIndex(null)}
                                             onClick={() => handleViewCustomer(customer)}
                                         >
-                                            <TableCell>{customer.fields.contact_name}</TableCell>
-                                            <TableCell>{customer.fields.email}</TableCell>
-                                            <TableCell>{customer.fields.phone}</TableCell>
-                                            <TableCell>{customer.fields.company_name}</TableCell>
-                                            <TableCell sx={(theme) => ({
-                                                color: !customer.fields.qb_list_id || customer.fields.qb_list_id === "" ? theme.palette.error.main : theme.palette.success.main,
-                                                fontWeight: 'bold',
-                                                borderBottom: '1px solid #ccc',
-                                                width: '20px',
-                                                maxWidth: '20px'
-                                            })}>
-                                                <b>{!customer.fields.qb_list_id || customer.fields.qb_list_id === "" ?
+                                            <TableCell>{f.contact_name}</TableCell>
+                                            <TableCell>{f.email}</TableCell>
+                                            <TableCell>{f.phone}</TableCell>
+                                            <TableCell>{f.company_name}</TableCell>
+                                            <TableCell
+                                                sx={(theme) => ({
+                                                    color: matched ? theme.palette.success.main : theme.palette.error.main,
+                                                    fontWeight: 700,
+                                                    borderBottom: '1px solid',
+                                                    borderColor: 'divider',
+                                                    width: 64,
+                                                    maxWidth: 64,
+                                                })}
+                                            >
+                                                {matched ? (
+                                                    <Tooltip
+                                                        title="MATCHED"
+                                                        arrow
+                                                        sx={{
+                                                            '& .MuiTooltip-tooltip': {
+                                                                backgroundColor: '#000',
+                                                                color: '#fff',
+                                                                fontSize: '0.875rem',
+                                                            },
+                                                        }}
+                                                    >
+                                                        <CheckCircleIcon sx={{ color: 'success.main', fontSize: 22 }} />
+                                                    </Tooltip>
+                                                ) : (
                                                     <Tooltip
                                                         title="NOT MATCHED"
                                                         arrow
                                                         sx={{
                                                             '& .MuiTooltip-tooltip': {
-                                                                backgroundColor: '#000000',
-                                                                color: 'white',
-                                                                fontSize: '0.875rem'
-                                                            }
+                                                                backgroundColor: '#000',
+                                                                color: '#fff',
+                                                                fontSize: '0.875rem',
+                                                            },
                                                         }}
                                                     >
-                                                        <ErrorIcon sx={{ color: 'error.main', fontSize: 'large' }} />
-                                                    </Tooltip> : <Tooltip
-                                                                    title="MATCHED"
-                                                                    arrow
-                                                                    sx={{
-                                                                        '& .MuiTooltip-tooltip': {
-                                                                            backgroundColor: '#000000',
-                                                                            color: 'white',
-                                                                            fontSize: '0.875rem'
-                                                                        }
-                                                                    }}
-                                                                >
-                                                                    <CheckCircleIcon sx={{ color: 'success.main', fontSize: 'large' }} />
-                                                                </Tooltip>
-                                                }</b>
+                                                        <ErrorIcon sx={{ color: 'error.main', fontSize: 22 }} />
+                                                    </Tooltip>
+                                                )}
                                             </TableCell>
                                         </TableRow>
-                                    ))
-                                )}
-                                <TableCustomPagination
-                                    columnsLength={columns.length}
-                                    data={filteredCustomers}
-                                    page={page}
-                                    rowsPerPage={rowsPerPage}
-                                    handleChangePage={handleChangePage}
-                                    handleChangeRowsPerPage={handleChangeRowsPerPage}
-                                />
-                            </TableBody>
-                        </Table>
-                    </TableContainer>
-                </Grid>
-            </Grid>
-        </Container>
+                                    );
+                                })
+                            )}
+
+                            <TableCustomPagination
+                                columnsLength={columns.length}
+                                data={filteredCustomers}
+                                page={page}
+                                rowsPerPage={rowsPerPage}
+                                handleChangePage={handleChangePage}
+                                handleChangeRowsPerPage={handleChangeRowsPerPage}
+                            />
+                        </TableBody>
+                    </Table>
+                </TableContainer>
+            </Box>
+        </Box>
     );
 };
 

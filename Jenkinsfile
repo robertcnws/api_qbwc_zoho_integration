@@ -15,7 +15,7 @@ pipeline {
     BACKEND_IMAGE            = "${AWS_ECR_REGISTRY}/api-qbwc-zoho-backend"
     FRONTEND_IMAGE           = "${AWS_ECR_REGISTRY}/api-qbwc-zoho-frontend"
     AWS_DEFAULT_REGION       = "us-east-2"
-    AWS_FRONTEND_ENV_CRED_ID = "AWS_FRONTEND_ENV_CRED_ID"
+    AWS_FRONTEND_ENV_CRED_ID = "AWS_FRONTEND_QBWC_ZOHO_ENV_CRED_ID"
     AWS_CLUSTER              = "api-dealerportal-cluster"
     AWS_FRONTEND_SERVICE     = "api-qbwc-zoho-frontend-service"
     AWS_BACKEND_SERVICE      = "api-qbwc-zoho-backend-service"

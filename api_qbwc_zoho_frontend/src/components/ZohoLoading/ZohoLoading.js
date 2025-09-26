@@ -11,12 +11,14 @@ import {
     Menu,
     IconButton,
     TextField,
-    Tooltip
+    Tooltip,
+    Box
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import People from '@mui/icons-material/People';
 import InventoryIcon from '@mui/icons-material/Inventory';
 import ReceiptIcon from '@mui/icons-material/Receipt';
+import ListAlt from '@mui/icons-material/ListAlt';
 import { Warning } from '@mui/icons-material';
 import { fetchWithToken } from '../../utils';
 import axios from 'axios'
@@ -36,16 +38,21 @@ const ZohoLoading = () => {
     const [loadingCustomers, setLoadingCustomers] = useState(false);
     const [loadingItems, setLoadingItems] = useState(false);
     const [loadingInvoices, setLoadingInvoices] = useState(false);
+    const [loadingSalesOrders, setLoadingSalesOrders] = useState(false);
     const [lastDateLoadedCustomers, setLastDateLoadedCustomers] = useState(null);
     const [lastDateLoadedItems, setlastDateLoadedItems] = useState(null);
     const [lastDateLoadedInvoices, setlastDateLoadedInvoices] = useState(null);
+    const [lastDateLoadedSalesOrders, setlastDateLoadedSalesOrders] = useState(null);
     const [error, setError] = useState(null);
-    const [anchorEl, setAnchorEl] = useState(null);
-    const [selectedDate, setSelectedDate] = useState(dayjs());
-    const [option, setOption] = useState(null);
+    const [anchorInvoices, setAnchorInvoices] = useState(null);
+    const [anchorSalesOrders, setAnchorSalesOrders] = useState(null);
+    const [selectedDateInvoices, setSelectedDateInvoices] = useState(dayjs());
+    const [selectedDateSalesOrders, setSelectedDateSalesOrders] = useState(dayjs());
+    const [optionInvoices, setOptionInvoices] = useState(null);
+    const [optionSalesOrders, setOptionSalesOrders] = useState(null);
     const navigate = useNavigate();
 
-    const isAnyLoading = loadingCustomers || loadingItems || loadingInvoices;
+    const isAnyLoading = loadingCustomers || loadingItems || loadingInvoices || loadingSalesOrders;
 
     const zohoConnectionConfigured = localStorage.getItem('zohoConnectionConfigured')
 
@@ -55,7 +62,10 @@ const ZohoLoading = () => {
     const loadData = async (element, module, endpoint, setLoading) => {
         setLoading(true);
         try {
-            const data = element === 'invoices' ? { option: option, username: localStorage.getItem('username') } : { username: localStorage.getItem('username') };
+            const option = (element === 'invoices') ? optionInvoices : optionSalesOrders;
+            const data = (element === 'invoices' || element === 'sales_orders') ?
+                { option: option, username: localStorage.getItem('username') } :
+                { username: localStorage.getItem('username') };
 
             const response = await fetchWithToken(`${apiUrl}/${module}/${endpoint}/`, 'POST', data, {}, apiUrl);
             if (response.status !== 200 && response.status !== 202) {
@@ -69,16 +79,22 @@ const ZohoLoading = () => {
         }
     };
 
-    const handleDateChange = (date) => {
-        setSelectedDate(date);
-        setAnchorEl(null);
-        setOption(date.format('YYYY-MM-DD'));
-        console.log(date);
+    const handleDateChange = (element, date) => {
+        if (element === 'invoices') {
+            setSelectedDateInvoices(date);
+            setOptionInvoices(date.format('YYYY-MM-DD'));
+            setAnchorInvoices(null);
+        } else if (element === 'sales_orders') {
+            setSelectedDateSalesOrders(date);
+            setOptionSalesOrders(date.format('YYYY-MM-DD'));
+            setAnchorSalesOrders(null);
+        }
     };
 
     const handleLoadCustomers = () => loadData('customers', 'api_zoho_customers', 'load_customers', setLoadingCustomers);
     const handleLoadItems = () => loadData('items', 'api_zoho_items', 'load_items', setLoadingItems);
     const handleLoadInvoices = () => loadData('invoices', 'api_zoho_invoices', 'load_invoices', setLoadingInvoices);
+    const handleLoadSalesOrders = () => loadData('sales_orders', 'api_zoho_sales_orders', 'load_sales_orders', setLoadingSalesOrders);
 
     useEffect(() => {
 
@@ -88,40 +104,52 @@ const ZohoLoading = () => {
                 setLastDateLoadedCustomers(response.data.zoho_loading_customers.zoho_record_updated)
                 setlastDateLoadedItems(response.data.zoho_loading_items.zoho_record_updated)
                 setlastDateLoadedInvoices(response.data.zoho_loading_invoices.zoho_record_updated)
+                setlastDateLoadedSalesOrders(response.data.zoho_loading_sales_orders.zoho_record_updated || null)
             } catch (error) {
                 console.error('Error fetching items:', error);
                 setError(`Failed to fetch items: ${error}`);
             }
         };
         fetchData();
-
     }, []);
 
-    const handleClick = (event) => {
-        setAnchorEl(event.currentTarget);
+    const handleClick = (event, element) => {
+        if (element === 'invoices') {
+            setAnchorInvoices(event.currentTarget);
+        } else if (element === 'sales_orders') {
+            setAnchorSalesOrders(event.currentTarget);
+        }
     };
 
-    const handleClose = () => {
-        setAnchorEl(null);
+    const handleClose = (element) => {
+        if (element === 'invoices') {
+            setAnchorInvoices(null);
+        } else if (element === 'sales_orders') {
+            setAnchorSalesOrders(null);
+        }
     };
 
-    const handleMenuItemClick = (opt) => {
-        setAnchorEl(null);
-        setOption(opt);
+    const handleMenuItemClick = (element, opt) => {
+        if (element === 'invoices') {
+            setOptionInvoices(opt);
+            setAnchorInvoices(null);
+        }
+        if (element === 'sales_orders') {
+            setOptionSalesOrders(opt);
+            setAnchorSalesOrders(null);
+        }
     };
 
     return (
-        <Container
-            component="main"
-            maxWidth="md"
+        <Box
             sx={{
-                mt: '0%',
-                bgcolor: '#f0f0f9',
-                boxShadow: 1,
-                borderRadius: 1,
-                minWidth: '87.5vw',
-                minHeight: '90vh',
-                marginLeft: '-22%',
+                display: 'flex',
+                flexDirection: 'column',
+                width: '100%',
+                bgcolor: '#F9F9FB',
+                p: 0,
+                gap: 2,
+                overflowX: 'hidden',
             }}
         >
             <Grid container alignItems="center" justifyContent="center">
@@ -277,18 +305,18 @@ const ZohoLoading = () => {
                                     variant="contained"
                                     color="info"
                                     size="small"
-                                    disabled={isAnyLoading || !zohoConnectionConfigured || option === null}
+                                    disabled={isAnyLoading || !zohoConnectionConfigured || optionInvoices === null}
                                     startIcon={loadingInvoices ? <CircularProgress size={24} /> : null}
                                     sx={{ flexGrow: 1, textAlign: 'left' }}
                                 >
-                                    Load {option}
+                                    Load {optionInvoices}
                                 </Button>
                                 {!loadingInvoices && (
                                     <IconButton
                                         size="small"
                                         onClick={(e) => {
                                             e.stopPropagation();
-                                            handleClick(e);
+                                            handleClick(e, 'invoices');
                                         }}
                                     >
                                         <ArrowDropDownIcon />
@@ -296,19 +324,29 @@ const ZohoLoading = () => {
                                 )}
                                 <Menu
                                     id="simple-menu"
-                                    anchorEl={anchorEl}
+                                    anchorEl={anchorInvoices}
                                     keepMounted
-                                    open={Boolean(anchorEl)}
-                                    onClose={handleClose}
+                                    open={Boolean(anchorInvoices)}
+                                    onClose={() => handleClose('invoices')}
                                 >
-                                    <MenuItem value="yesterday" onClick={() => handleMenuItemClick('Yesterday')}>Yesterday</MenuItem>
-                                    <MenuItem value="today" onClick={() => handleMenuItemClick('Today')}>Today</MenuItem>
-                                    <MenuItem value={selectedDate}>
+                                    <MenuItem
+                                        value="yesterday"
+                                        onClick={() => handleMenuItemClick('invoices', 'Yesterday')}
+                                    >
+                                        Yesterday
+                                    </MenuItem>
+                                    <MenuItem
+                                        value="today"
+                                        onClick={() => handleMenuItemClick('invoices', 'Today')}
+                                    >
+                                        Today
+                                    </MenuItem>
+                                    <MenuItem value={selectedDateInvoices}>
                                         <LocalizationProvider dateAdapter={AdapterDayjs}>
                                             <DatePicker
                                                 label="Select Date"
-                                                value={selectedDate}
-                                                onChange={handleDateChange}
+                                                value={selectedDateInvoices}
+                                                onChange={(date) => handleDateChange('invoices', date)}
                                                 minDate={oneYearAgo}
                                                 maxDate={today}
                                                 renderInput={(params) => <TextField {...params} />}
@@ -331,6 +369,95 @@ const ZohoLoading = () => {
                         </Grid>
                     </Container>
                 </Grid>
+                <Grid item xs={2} sx={{ textAlign: 'center' }}>
+                    <Container sx={{
+                        mt: '1%',
+                        bgcolor: 'white',
+                        boxShadow: 1,
+                        borderRadius: 1,
+                        minHeight: '25vh',
+                    }}>
+                        <IconButton size='small' sx={{ paddingTop: '8%', cursor: 'none' }}>
+                            <ListAlt
+                                sx={{
+                                    backgroundColor: 'rgba(33, 150, 243, 0.2)',
+                                    color: 'primary.main',
+                                    boxShadow: 0,
+                                    borderRadius: 1,
+                                    marginRight: '5%',
+                                }} /> <b style={{ color: 'black' }}>Orders</b>
+                        </IconButton>
+                        <Grid container spacing={2} alignItems="center" justifyContent="center" mb={3} sx={{ marginTop: '1%' }}>
+                            <Grid item xs={12} sx={{ textAlign: 'center' }}>
+                                <Button
+                                    onClick={handleLoadSalesOrders}
+                                    variant="contained"
+                                    color="info"
+                                    size="small"
+                                    disabled={isAnyLoading || !zohoConnectionConfigured || optionSalesOrders === null}
+                                    startIcon={loadingSalesOrders ? <CircularProgress size={24} /> : null}
+                                    sx={{ flexGrow: 1, textAlign: 'left' }}
+                                >
+                                    Load {optionSalesOrders}
+                                </Button>
+                                {!loadingSalesOrders && (
+                                    <IconButton
+                                        size="small"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleClick(e, 'sales_orders');
+                                        }}
+                                    >
+                                        <ArrowDropDownIcon />
+                                    </IconButton>
+                                )}
+                                <Menu
+                                    id="simple-menu"
+                                    anchorEl={anchorSalesOrders}
+                                    keepMounted
+                                    open={Boolean(anchorSalesOrders)}
+                                    onClose={() => handleClose('sales_orders')}
+                                >
+                                    <MenuItem
+                                        value="yesterday"
+                                        onClick={() => handleMenuItemClick('sales_orders', 'Yesterday')}
+                                    >
+                                        Yesterday
+                                    </MenuItem>
+                                    <MenuItem
+                                        value="today"
+                                        onClick={() => handleMenuItemClick('sales_orders', 'Today')}
+                                    >
+                                        Today
+                                    </MenuItem>
+                                    <MenuItem value={selectedDateSalesOrders}>
+                                        <LocalizationProvider dateAdapter={AdapterDayjs}>
+                                            <DatePicker
+                                                label="Select Date"
+                                                value={selectedDateSalesOrders}
+                                                onChange={(date) => handleDateChange('sales_orders', date)}
+                                                minDate={oneYearAgo}
+                                                maxDate={today}
+                                                renderInput={(params) => <TextField {...params} />}
+                                            />
+                                        </LocalizationProvider>
+                                    </MenuItem>
+                                </Menu>
+                            </Grid>
+                        </Grid>
+                        <Grid container spacing={2} alignItems="center" justifyContent="center" mb={3}>
+                            <Grid item xs={12} sx={{ textAlign: 'center' }}>
+                                {lastDateLoadedSalesOrders ? (
+                                    <Alert severity="warning" icon={<Warning />}>
+                                        Last loaded: <br />
+                                        Date: <b>{moment(lastDateLoadedSalesOrders).format('DD/MM/YYYY')}</b><br />
+                                        Time: <b>{moment(lastDateLoadedSalesOrders).format('hh:mm a')}</b><br />
+                                    </Alert>
+                                ) : null}
+                            </Grid>
+                        </Grid>
+                    </Container>
+                </Grid>
             </Grid>
             {error && (
                 <Alert severity="error" sx={{ mt: 3 }}>
@@ -338,7 +465,7 @@ const ZohoLoading = () => {
                 </Alert>
             )}
 
-        </Container>
+        </Box>
     );
 };
 

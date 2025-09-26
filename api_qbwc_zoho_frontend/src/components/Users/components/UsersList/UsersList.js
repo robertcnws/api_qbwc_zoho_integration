@@ -12,6 +12,7 @@ import {
     TableRow,
     TableSortLabel,
     IconButton,
+    Box,
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
@@ -129,14 +130,26 @@ const UsersList = ({ users, onSyncComplete }) => {
     ];
 
     return (
-        <Container
-            maxWidth="xl"
+        <Box
             sx={{
-                marginLeft: '-29.4%',
-                minWidth: '88.3vw',
+                width: '100%',
+                px: 0,
+                py: 1,
+                bgcolor: 'transparent',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 2,
             }}
         >
-            <Grid container spacing={2} alignItems="center" justifyContent="space-between" mb={3} sx={{ mt: '-3%' }}>
+            <Box
+                sx={{
+                    display: 'grid',
+                    gridTemplateColumns: { xs: '1fr', sm: '1fr auto' },
+                    alignItems: 'center',
+                    gap: 2,
+                }}
+            >
+
                 <Grid item xs={6}>
                     <Typography
                         variant="h6"
@@ -154,90 +167,91 @@ const UsersList = ({ users, onSyncComplete }) => {
                 <Grid item xs={6} container justifyContent="flex-end" spacing={1}>
                     <NavigationRightButton children={childrenNavigationRightButton} />
                 </Grid>
-                <Grid item xs={12} container justifyContent="flex-end" spacing={1}>
-                    <Grid item xs={12}>
-                        <Alert severity="info" sx={{ mb: 2 }}>
-                            There are {filteredUsers.length} users found.
-                        </Alert>
-                    </Grid>
-                </Grid>
-                <Grid item xs={12} sx={{ mt: '-1%' }}>
-                    <TableContainer style={{ maxHeight: '700px', minHeight: '700px', minWidth: 690 }}>
-                        <Table id="myTable" aria-label="items table" stickyHeader>
-                            <TableHead sx={{ backgroundColor: '#e0e0e0' }}>
-                                <TableRow>
-                                    {columns.map((column) => (
-                                        <TableCell key={column.id}
-                                            sx={{
-                                                fontWeight: 'bold',
-                                                color: '#6c7184',
-                                                borderBottom: '1px solid #ddd',
-                                                borderTop: '1px solid #ddd',
-                                                backgroundColor: '#f9f9fb',
-                                                padding: '5px 16px',
-                                            }}>
-                                            <TableSortLabel
-                                                active={orderBy === column.id}
-                                                direction={orderBy === column.id ? order : 'asc'}
-                                                onClick={() => handleSortChange(column.id)}
-                                            >
-                                                {column.label.toUpperCase()}
-                                            </TableSortLabel>
-                                        </TableCell>
-                                    ))}
-                                </TableRow>
-                            </TableHead>
-                            <TableBody>
-                                {filteredUsers.length === 0 ? (
-                                    <EmptyRecordsCell columns={columns} />
-                                ) : (
-                                    (rowsPerPage > 0
-                                        ? sortedUsers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                                        : sortedUsers
-                                    ).map((user, index) => (
-                                        user.username !== localStorage.getItem('username') && (
-                                            <TableRow key={index}
-                                                sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                                                style={{
-                                                    cursor: 'pointer',
-                                                    transition: 'background-color 0.3s ease',
-                                                    backgroundColor: hoveredRowIndex === index ? '#F6F6FA' : '#FFFFFF'
-                                                }}
-                                                onMouseEnter={() => setHoveredRowIndex(index)}
-                                                onMouseLeave={() => setHoveredRowIndex(null)}
-                                            >
-                                                <TableCell>{user.username}</TableCell>
-                                                <TableCell>{user.role}</TableCell>
-                                                <TableCell>{user.first_name ? user.first_name : user.username}</TableCell>
-                                                <TableCell>{user.last_name ? user.last_name : user.username}</TableCell>
-                                                <TableCell>{user.email ? user.email : '---'}</TableCell>
-                                                <TableCell>{user.last_login ? formatDate(user.last_login) : '---'}</TableCell>
-                                                <TableCell className="text-center align-middle">
-                                                    <IconButton color="info" aria-label="view" size='xx-large' onClick={() => viewUser(user)}>
-                                                        <EditIcon />
-                                                    </IconButton>
-                                                    <IconButton color="error" aria-label="view" size='xx-large' onClick={() => setUserStatus(user)}>
-                                                        <DeleteIcon />
-                                                    </IconButton>
-                                                </TableCell>
-                                            </TableRow>
-                                        )
-                                    ))
-                                )}
-                                <TableCustomPagination
-                                    columnsLength={columns.length}
-                                    data={filteredUsers}
-                                    page={page}
-                                    rowsPerPage={rowsPerPage}
-                                    handleChangePage={handleChangePage}
-                                    handleChangeRowsPerPage={handleChangeRowsPerPage}
-                                />
-                            </TableBody>
-                        </Table>
-                    </TableContainer>
-                </Grid>
+                <Box sx={{ display: 'flex', width: '100%'}}>
+                    <Alert severity="info" sx={{ mb: 2 }}>
+                        There are {filteredUsers.length} users found.
+                    </Alert>
+                </Box>
+
+            </Box>
+
+            <Grid item xs={12} sx={{ mt: '-1%' }}>
+                <TableContainer style={{ maxHeight: '700px', minHeight: '700px', minWidth: 690 }}>
+                    <Table id="myTable" aria-label="items table" stickyHeader>
+                        <TableHead sx={{ backgroundColor: '#e0e0e0' }}>
+                            <TableRow>
+                                {columns.map((column) => (
+                                    <TableCell key={column.id}
+                                        sx={{
+                                            fontWeight: 'bold',
+                                            color: '#6c7184',
+                                            borderBottom: '1px solid #ddd',
+                                            borderTop: '1px solid #ddd',
+                                            backgroundColor: '#f9f9fb',
+                                            padding: '5px 16px',
+                                        }}>
+                                        <TableSortLabel
+                                            active={orderBy === column.id}
+                                            direction={orderBy === column.id ? order : 'asc'}
+                                            onClick={() => handleSortChange(column.id)}
+                                        >
+                                            {column.label.toUpperCase()}
+                                        </TableSortLabel>
+                                    </TableCell>
+                                ))}
+                            </TableRow>
+                        </TableHead>
+                        <TableBody>
+                            {filteredUsers.length === 0 ? (
+                                <EmptyRecordsCell columns={columns} />
+                            ) : (
+                                (rowsPerPage > 0
+                                    ? sortedUsers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                                    : sortedUsers
+                                ).map((user, index) => (
+                                    user.username !== localStorage.getItem('username') && (
+                                        <TableRow key={index}
+                                            sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                                            style={{
+                                                cursor: 'pointer',
+                                                transition: 'background-color 0.3s ease',
+                                                backgroundColor: hoveredRowIndex === index ? '#F6F6FA' : '#FFFFFF'
+                                            }}
+                                            onMouseEnter={() => setHoveredRowIndex(index)}
+                                            onMouseLeave={() => setHoveredRowIndex(null)}
+                                        >
+                                            <TableCell>{user.username}</TableCell>
+                                            <TableCell>{user.role}</TableCell>
+                                            <TableCell>{user.first_name ? user.first_name : user.username}</TableCell>
+                                            <TableCell>{user.last_name ? user.last_name : user.username}</TableCell>
+                                            <TableCell>{user.email ? user.email : '---'}</TableCell>
+                                            <TableCell>{user.last_login ? formatDate(user.last_login) : '---'}</TableCell>
+                                            <TableCell className="text-center align-middle">
+                                                <IconButton color="info" aria-label="view" size='xx-large' onClick={() => viewUser(user)}>
+                                                    <EditIcon />
+                                                </IconButton>
+                                                <IconButton color="error" aria-label="view" size='xx-large' onClick={() => setUserStatus(user)}>
+                                                    <DeleteIcon />
+                                                </IconButton>
+                                            </TableCell>
+                                        </TableRow>
+                                    )
+                                ))
+                            )}
+                            <TableCustomPagination
+                                columnsLength={columns.length}
+                                data={filteredUsers}
+                                page={page}
+                                rowsPerPage={rowsPerPage}
+                                handleChangePage={handleChangePage}
+                                handleChangeRowsPerPage={handleChangeRowsPerPage}
+                            />
+                        </TableBody>
+                    </Table>
+                </TableContainer>
             </Grid>
-        </Container>
+
+        </Box>
     );
 
 }

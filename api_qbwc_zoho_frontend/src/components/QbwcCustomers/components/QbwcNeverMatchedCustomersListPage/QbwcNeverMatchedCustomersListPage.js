@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Container, CircularProgress, useMediaQuery, useTheme } from '@mui/material';
+import { Container, CircularProgress, useMediaQuery, useTheme, Box } from '@mui/material';
 import { AlertLoading } from '../../../Utils/components/AlertLoading/AlertLoading';
 import { AlertError } from '../../../Utils/components/AlertError/AlertError';
 import { fetchWithToken } from '../../../../utils';
@@ -46,12 +46,15 @@ const QbwcNeverMatchedCustomersListPage = () => {
     }
 
     return (
-        <Container maxWidth="lg"
+        <Box
             sx={{
-                mt: 5,
-                p: 2,
-                marginLeft: isSmallScreen ? '0' : '3%',
-                transition: 'margin-left 0.3s ease',
+                display: 'flex',
+                flexDirection: 'column',
+                width: '100%',
+                bgcolor: '#F9F9FB',
+                p: 0,
+                gap: 2,
+                overflowX: 'hidden',
             }}
         >
             {loading ? (
@@ -59,7 +62,7 @@ const QbwcNeverMatchedCustomersListPage = () => {
             ) : (
                 <QbwcNeverMatchedCustomersList customers={customers} onSyncComplete={fetchCustomers} />
             )}
-        </Container>
+        </Box>
     );
 };
 

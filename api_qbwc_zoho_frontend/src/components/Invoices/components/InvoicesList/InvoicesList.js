@@ -1,9 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-    Container,
     Box,
-    Grid,
     Typography,
     TextField,
     Table,
@@ -34,26 +32,25 @@ import Swal from 'sweetalert2';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
+import { RadioButtonCheckedOutlined, UndoRounded } from '@mui/icons-material';
+
 import { stableSort, fetchWithToken, getComparatorUndefined } from '../../../../utils';
 import { EmptyRecordsCell } from '../../../Utils/components/EmptyRecordsCell/EmptyRecordsCell';
 import HomeNavigationRightButton from '../../../Utils/components/NavigationRightButton/NavigationRightButton';
 import TableCustomPagination from '../../../Utils/components/TableCustomPagination/TableCustomPagination';
 import CustomFilter from '../../../Utils/components/CustomFilter/CustomFilter';
-import './InvoicesList.css';
-import { RadioButtonCheckedOutlined, RadioButtonUncheckedOutlined, UndoRounded } from '@mui/icons-material';
+
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-const apiUrl = process.env.REACT_APP_ENVIRONMENT === 'DEV' ? process.env.REACT_APP_BACKEND_URL_DEV : process.env.REACT_APP_BACKEND_URL_PROD;
-const numberRows = parseInt(process.env.REACT_APP_DEFAULT_ROWS_PER_PAGE);
-
-document.addEventListener('DOMContentLoaded', () => {
-    const page = '1'; // Asegúrate de que este valor coincide con los checkboxes
-    const checkboxes = document.querySelectorAll(`input[type="checkbox"][data-page="${page}"]`);
-    console.log(checkboxes);
-});
+const apiUrl =
+    process.env.REACT_APP_ENVIRONMENT === 'DEV'
+        ? process.env.REACT_APP_BACKEND_URL_DEV
+        : process.env.REACT_APP_BACKEND_URL_PROD;
+const numberRows = parseInt(process.env.REACT_APP_DEFAULT_ROWS_PER_PAGE, 10) || 10;
 
 const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterDate }) => {
+    const navigate = useNavigate();
 
     const [selectedInvoices, setSelectedInvoices] = useState([]);
     const [page, setPage] = useState(0);
@@ -63,32 +60,29 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
     const [order, setOrder] = useState('asc');
     const [filter, setFilter] = useState('all');
     const [hoveredRowIndex, setHoveredRowIndex] = useState(null);
+
     const [selectedOptionForceSync, setSelectedOptionForceSync] = useState('select_clear');
     const [titleSelectForceSync, setTitleSelectForceSync] = useState('Force Sync?');
     const [selectedOptionUnsync, setSelectedOptionUnsync] = useState('select_clear_unsync');
     const [titleSelectUnsync, setTitleSelectUnsync] = useState('Unsync?');
-    const navigate = useNavigate();
 
     const today = dayjs();
     const oneYearAgo = today.subtract(1, 'year');
 
-
+    // Restaurar estado inicial
     useEffect(() => {
-        // Restaurar el estado desde localStorage
         const handleStorageChange = () => {
             setSearchTerm(localStorage.getItem('searchTermGlobal') || '');
         };
         window.addEventListener('storage', handleStorageChange);
+
         const savedPage = localStorage.getItem('invoicesListPage');
         const savedRowsPerPage = localStorage.getItem('invoicesListRowsPerPage');
         const savedFilterDate = localStorage.getItem('invoicesListFilterDate');
 
         const initialPage = savedPage !== null ? Number(savedPage) : 0;
         const initialRowsPerPage = savedRowsPerPage !== null ? Number(savedRowsPerPage) : 10;
-
-        const absInitialPage = initialPage >= 0 ? initialPage : 0;
-
-        setPage(Number.isInteger(absInitialPage) ? absInitialPage : 0);
+        setPage(Number.isInteger(initialPage) && initialPage >= 0 ? initialPage : 0);
         setRowsPerPage([5, 10, 25].includes(initialRowsPerPage) ? initialRowsPerPage : 10);
 
         if (savedFilterDate) {
@@ -97,130 +91,108 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
         } else {
             setFilterDate(today);
         }
-        return () => {
-            window.removeEventListener('storage', handleStorageChange);
-        };
-    }, [setFilterDate, searchTerm]);
 
+        return () => window.removeEventListener('storage', handleStorageChange);
+    }, [setFilterDate]);
 
+    // Sincronizar querystring con fecha
     useEffect(() => {
         const handleStorageChange = () => {
             setSearchTerm(localStorage.getItem('searchTermGlobal') || '');
         };
         window.addEventListener('storage', handleStorageChange);
+
         const queryParams = new URLSearchParams(window.location.search);
         if (filterDate && filterDate.isValid()) {
             queryParams.set('date', filterDate.format('YYYY-MM-DD'));
         } else {
             queryParams.delete('date');
-            // queryParams.set('date', today.format('YYYY-MM-DD'));
         }
         window.history.replaceState(null, '', `${window.location.pathname}?${queryParams.toString()}`);
-        return () => {
-            window.removeEventListener('storage', handleStorageChange);
-        };
-    }, [filterDate, searchTerm]);
 
+        return () => window.removeEventListener('storage', handleStorageChange);
+    }, [filterDate]);
 
     const handleFilterChange = useCallback((event) => {
         setFilter(event.target.value);
         setPage(0);
     }, []);
 
+    const handleViewInvoice = useCallback(
+        (invoice) => {
+            const invoices = data.invoices;
+            localStorage.setItem('invoicesListPage', page);
+            localStorage.setItem('invoicesListRowsPerPage', rowsPerPage);
+            localStorage.setItem('invoicesListFilterDate', filterDate ? filterDate.format('YYYY-MM-DD') : '');
+            localStorage.setItem('invoice', JSON.stringify(invoice));
+            localStorage.setItem('invoices', JSON.stringify(invoices));
+            localStorage.setItem('filteredInvoices', JSON.stringify(filteredInvoices));
+            localStorage.setItem('filterInvoices', JSON.stringify(filter));
+            localStorage.setItem('backNavigation', 'invoice_details');
+            setFilterDate(filterDate);
+            navigate('/integration/invoice_details', { state: { invoice, invoices, filteredInvoices, filter } });
+        },
+        [page, rowsPerPage, filterDate, data.invoices, filter, navigate, setFilterDate]
+    );
 
-    const handleViewInvoice = useCallback((invoice) => {
-        const invoices = data.invoices;
-        localStorage.setItem('invoicesListPage', page);
-        localStorage.setItem('invoicesListRowsPerPage', rowsPerPage);
-        localStorage.setItem('invoicesListFilterDate', filterDate ? filterDate.format('YYYY-MM-DD') : '');
-        localStorage.setItem('invoice', JSON.stringify(invoice));
-        localStorage.setItem('invoices', JSON.stringify(invoices));
-        localStorage.setItem('filteredInvoices', JSON.stringify(filteredInvoices));
-        localStorage.setItem('filterInvoices', JSON.stringify(filter));
-        localStorage.setItem('backNavigation', 'invoice_details')
-        setFilterDate(filterDate);
-        navigate('/integration/invoice_details', { state: { invoice, invoices, filteredInvoices, filter } });
-    }, [page, rowsPerPage, filterDate, data.invoices, filter, navigate, setFilterDate]);
-
-    const handleChangePage = useCallback((event, newPage) => {
-        const maxPage = Math.max(0, Math.ceil(data.invoices.length / rowsPerPage) - 1);
-        setPage(Math.min(newPage, maxPage));
-        // setSelectedOptionForceSync('select_clear');
-        localStorage.setItem('invoicesListPage', Math.min(newPage, maxPage));
-    }, [data.invoices.length, rowsPerPage]);
+    const handleChangePage = useCallback(
+        (_event, newPage) => {
+            const maxPage = Math.max(0, Math.ceil(data.invoices.length / rowsPerPage) - 1);
+            const bounded = Math.min(newPage, maxPage);
+            setPage(bounded);
+            localStorage.setItem('invoicesListPage', bounded);
+        },
+        [data.invoices.length, rowsPerPage]
+    );
 
     const handleChangeRowsPerPage = useCallback((event) => {
         const rows = parseInt(event.target.value, 10);
-        if ([5, 10, 25].includes(rows)) {
-            setRowsPerPage(rows);
-            setPage(0);
-            localStorage.setItem('invoicesListRowsPerPage', rows);
-            localStorage.setItem('invoicesListPage', 0);
-        } else {
-            setRowsPerPage(10);
-            setPage(0);
-        }
+        const next = [5, 10, 25].includes(rows) ? rows : 10;
+        setRowsPerPage(next);
+        setPage(0);
+        localStorage.setItem('invoicesListRowsPerPage', next);
+        localStorage.setItem('invoicesListPage', 0);
     }, []);
 
-    const handleDeleteInvoice = useCallback((invoice) => {
-        Swal.fire({
-            title: 'Are you sure?',
-            text: 'Do you want to delete this invoice? This action cannot be undone.',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
-            confirmButtonText: 'Yes, delete it!'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                const fetchData = async () => {
+    const handleDeleteInvoice = useCallback(
+        (invoice) => {
+            Swal.fire({
+                title: 'Are you sure?',
+                text: 'Do you want to delete this invoice? This action cannot be undone.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Yes, delete it!',
+            }).then((result) => {
+                if (!result.isConfirmed) return;
+
+                (async () => {
                     try {
-                        const url = `${apiUrl}/api_zoho_invoices/delete_invoice/${invoice.fields.invoice_id}/`
-                        const data = { username: localStorage.getItem('username') };
-                        const response = await fetchWithToken(url, 'POST', data, {}, apiUrl);
+                        const url = `${apiUrl}/api_zoho_invoices/delete_invoice/${invoice.fields.invoice_id}/`;
+                        const body = { username: localStorage.getItem('username') };
+                        const response = await fetchWithToken(url, 'POST', body, {}, apiUrl);
                         if (response.data.status === 'success') {
-                            Swal.fire({
-                                title: 'Success!',
-                                text: 'Invoice has been deleted successfully.',
-                                icon: 'success',
-                                confirmButtonText: 'OK'
-                            }).then(() => {
-                                onSyncComplete();
+                            Swal.fire('Success!', 'Invoice has been deleted successfully.', 'success').then(() => {
+                                onSyncComplete?.();
                             });
                         } else {
-                            Swal.fire({
-                                title: 'Error!',
-                                text: `An error occurred while deleting invoice: ${response.data.message}`,
-                                icon: 'error',
-                                confirmButtonText: 'OK'
-                            });
+                            Swal.fire('Error!', `Error deleting invoice: ${response.data.message}`, 'error');
                         }
-                    } catch (error) {
-                        console.error('An error occurred while deleting invoice:', error);
-                        Swal.fire({
-                            title: 'Error!',
-                            text: `An error occurred while deleting invoice: ${error}`,
-                            icon: 'error',
-                            confirmButtonText: 'OK'
-                        });
+                    } catch (err) {
+                        Swal.fire('Error!', `Error deleting invoice: ${err}`, 'error');
                     }
-                };
-                fetchData();
-            }
-        });
-    }, [apiUrl, onSyncComplete]);
+                })();
+            });
+        },
+        [onSyncComplete]
+    );
 
     const handleForceToSync = useCallback(() => {
         if (selectedInvoices.length === 0) {
-            Swal.fire({
-                title: 'Error!',
-                text: 'Please select at least one invoice to force sync.',
-                icon: 'error',
-                confirmButtonText: 'OK'
-            });
+            Swal.fire('Error!', 'Please select at least one invoice to force sync.', 'error');
             return;
         }
-
         Swal.fire({
             title: 'Are you sure?',
             text: 'Do you want to force sync selected invoices?',
@@ -228,61 +200,34 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
             showCancelButton: true,
             confirmButtonColor: '#3085d6',
             cancelButtonColor: '#d33',
-            confirmButtonText: 'Yes, force to sync!'
+            confirmButtonText: 'Yes, force to sync!',
         }).then((result) => {
-            if (result.isConfirmed) {
-                const fetchData = async () => {
-                    try {
-                        const url = `${apiUrl}/api_quickbook_soap/force_to_sync_invoices_ajax/`
-                        const params = {
-                            invoices: selectedInvoices,
-                            username: localStorage.getItem('username'),
-                        }
-                        const response = await fetchWithToken(url, 'POST', params, {}, apiUrl);
-                        if (response.data.status === 'success') {
-                            Swal.fire({
-                                title: 'Success!',
-                                text: 'Selected invoices have been forced to sync.',
-                                icon: 'success',
-                                confirmButtonText: 'OK'
-                            }).then(() => {
-                                setSelectedInvoices([]);
-                                onSyncComplete(); // Notify parent component to update data
-                            });
-                        } else {
-                            Swal.fire({
-                                title: 'Error!',
-                                text: `An error occurred while syncing invoices: ${response.data.message}`,
-                                icon: 'error',
-                                confirmButtonText: 'OK'
-                            });
-                        }
-                    } catch (error) {
-                        console.error('An error occurred while syncing invoices:', error);
-                        Swal.fire({
-                            title: 'Error!',
-                            text: `An error occurred while syncing invoices: ${error}`,
-                            icon: 'error',
-                            confirmButtonText: 'OK'
+            if (!result.isConfirmed) return;
+            (async () => {
+                try {
+                    const url = `${apiUrl}/api_quickbook_soap/force_to_sync_invoices_ajax/`;
+                    const params = { invoices: selectedInvoices, username: localStorage.getItem('username') };
+                    const response = await fetchWithToken(url, 'POST', params, {}, apiUrl);
+                    if (response.data.status === 'success') {
+                        Swal.fire('Success!', 'Selected invoices have been forced to sync.', 'success').then(() => {
+                            setSelectedInvoices([]);
+                            onSyncComplete?.();
                         });
+                    } else {
+                        Swal.fire('Error!', `Error syncing invoices: ${response.data.message}`, 'error');
                     }
-                };
-                fetchData();
-            }
+                } catch (err) {
+                    Swal.fire('Error!', `Error syncing invoices: ${err}`, 'error');
+                }
+            })();
         });
-    }, [selectedInvoices, apiUrl, onSyncComplete]);
+    }, [selectedInvoices, onSyncComplete]);
 
     const handleUnsync = useCallback(() => {
         if (selectedInvoices.length === 0) {
-            Swal.fire({
-                title: 'Error!',
-                text: 'Please select at least one invoice to unsync.',
-                icon: 'error',
-                confirmButtonText: 'OK'
-            });
+            Swal.fire('Error!', 'Please select at least one invoice to unsync.', 'error');
             return;
         }
-
         Swal.fire({
             title: 'Are you sure?',
             text: 'Do you want to unsync selected invoices?',
@@ -290,375 +235,244 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
             showCancelButton: true,
             confirmButtonColor: '#3085d6',
             cancelButtonColor: '#d33',
-            confirmButtonText: 'Yes, unsync!'
+            confirmButtonText: 'Yes, unsync!',
         }).then((result) => {
-            if (result.isConfirmed) {
-                const fetchData = async () => {
-                    try {
-                        const url = `${apiUrl}/api_quickbook_soap/unsync_invoices_ajax/`
-                        const params = {
-                            invoices: selectedInvoices,
-                            username: localStorage.getItem('username'),
-                        }
-                        const response = await fetchWithToken(url, 'POST', params, {}, apiUrl);
-                        if (response.data.status === 'success') {
-                            Swal.fire({
-                                title: 'Success!',
-                                text: 'Selected invoices have been unsynced.',
-                                icon: 'success',
-                                confirmButtonText: 'OK'
-                            }).then(() => {
-                                setSelectedInvoices([]);
-                                onSyncComplete(); 
-                            });
-                        } else {
-                            Swal.fire({
-                                title: 'Error!',
-                                text: `An error occurred while unsyncing invoices: ${response.data.message}`,
-                                icon: 'error',
-                                confirmButtonText: 'OK'
-                            });
-                        }
-                    } catch (error) {
-                        console.error('An error occurred while syncing invoices:', error);
-                        Swal.fire({
-                            title: 'Error!',
-                            text: `An error occurred while syncing invoices: ${error}`,
-                            icon: 'error',
-                            confirmButtonText: 'OK'
+            if (!result.isConfirmed) return;
+            (async () => {
+                try {
+                    const url = `${apiUrl}/api_quickbook_soap/unsync_invoices_ajax/`;
+                    const params = { invoices: selectedInvoices, username: localStorage.getItem('username') };
+                    const response = await fetchWithToken(url, 'POST', params, {}, apiUrl);
+                    if (response.data.status === 'success') {
+                        Swal.fire('Success!', 'Selected invoices have been unsynced.', 'success').then(() => {
+                            setSelectedInvoices([]);
+                            onSyncComplete?.();
                         });
+                    } else {
+                        Swal.fire('Error!', `Error unsyncing invoices: ${response.data.message}`, 'error');
                     }
-                };
-                fetchData();
-            }
+                } catch (err) {
+                    Swal.fire('Error!', `Error unsyncing invoices: ${err}`, 'error');
+                }
+            })();
         });
-    }, [selectedInvoices, apiUrl, onSyncComplete]);
+    }, [selectedInvoices, onSyncComplete]);
 
-    const isSelected = (invoiceId) => selectedInvoices.indexOf(invoiceId) !== -1;
+    const isSelected = (invoiceId) => selectedInvoices.includes(invoiceId);
 
-    const handleCheckboxClick = (event, invoiceId) => {
-        const selectedIndex = selectedInvoices.indexOf(invoiceId);
-        let newSelected = [];
+    const handleCheckboxClick = (_event, invoiceId) => {
+        setSelectedInvoices((prev) =>
+            prev.includes(invoiceId) ? prev.filter((id) => id !== invoiceId) : [...prev, invoiceId]
+        );
+    };
 
-        if (selectedIndex === -1) {
-            newSelected = [...selectedInvoices, invoiceId];
-        } else {
-            newSelected = selectedInvoices.filter((id) => id !== invoiceId);
+    // --- Selección masiva (corregida para no meter undefined)
+    const handleSelectAllSyncPage = (rpp, currentPage, type) => {
+        const startIndex = currentPage * rpp;
+        const endIndex = Math.min(startIndex + rpp, filteredInvoices.length);
+        const ids = [];
+        for (let i = startIndex; i < endIndex; i++) {
+            const inv = filteredInvoices[i];
+            if (type === 'force_sync' && !inv.fields.inserted_in_qb) ids.push(inv.fields.invoice_id);
+            if (type === 'unsync' && inv.fields.inserted_in_qb) ids.push(inv.fields.invoice_id);
         }
+        setSelectedInvoices(ids);
+    };
 
-        setSelectedInvoices(newSelected);
+    const handleSelectAllSyncAll = (type) => {
+        const ids =
+            type === 'force_sync'
+                ? filteredInvoices.filter((inv) => !inv.fields.inserted_in_qb).map((inv) => inv.fields.invoice_id)
+                : filteredInvoices.filter((inv) => inv.fields.inserted_in_qb).map((inv) => inv.fields.invoice_id);
+        setSelectedInvoices(ids);
     };
 
     const handleSelectSyncChange = (event) => {
-        setSelectedOptionForceSync(event.target.value);
+        const v = event.target.value;
+        setSelectedOptionForceSync(v);
         setSelectedInvoices([]);
-        if (event.target.value === 'select_page') {
+        if (v === 'select_page') {
             setTitleSelectForceSync('Unselect?');
             handleSelectAllSyncPage(rowsPerPage, page, 'force_sync');
-        }
-        else if (event.target.value === 'select_all') {
+        } else if (v === 'select_all') {
             setTitleSelectForceSync('Unselect?');
             handleSelectAllSyncAll('force_sync');
         } else {
             setTitleSelectForceSync('Force Sync?');
-            setSelectedInvoices([]);
         }
     };
 
     const handleSelectUnsyncChange = (event) => {
+        const v = event.target.value;
+        setSelectedOptionUnsync(v);
         setSelectedInvoices([]);
-        setSelectedOptionUnsync(event.target.value);
-        if (event.target.value === 'select_page_unsync') {
+        if (v === 'select_page_unsync') {
             setTitleSelectUnsync('Unselect?');
             handleSelectAllSyncPage(rowsPerPage, page, 'unsync');
-        }
-        else if (event.target.value === 'select_all_unsync') {
+        } else if (v === 'select_all_unsync') {
             setTitleSelectUnsync('Unselect?');
             handleSelectAllSyncAll('unsync');
         } else {
             setTitleSelectUnsync('Unsync?');
-            setSelectedInvoices([]);
         }
     };
 
-    const handleSelectAllSyncPage = (rowsPerPage, page, type) => {
-        setSelectedInvoices([]);
-        const startIndex = page * rowsPerPage;
-        const endIndex = Math.min(startIndex + rowsPerPage, filteredInvoices.length);
-        const newSelected = [...selectedInvoices];
-        let invoiceId = '';
-        if (type) {
-            for (let i = startIndex; i < endIndex; i++) {
-                if (type === 'force_sync') {
-                    if (!filteredInvoices[i].fields.inserted_in_qb) {
-                        invoiceId = filteredInvoices[i].fields.invoice_id;
-                    }
-                }
-                else if (type === 'unsync') {
-                    if (filteredInvoices[i].fields.inserted_in_qb) {
-                        invoiceId = filteredInvoices[i].fields.invoice_id;
-                    }
-                }
-                if (!newSelected.includes(invoiceId)) {
-                    newSelected.push(invoiceId);
-                }
-            }
-        }
-        setSelectedInvoices(newSelected);
-    };
-
-    const handleSelectAllSyncAll = (type) => {
-        setSelectedInvoices([]);
-        setSelectedInvoices([...filteredInvoices.map(
-            (invoice) => {
-                if (type) {
-                    if (type === 'force_sync') {
-                        if (!invoice.fields.inserted_in_qb) {
-                            return invoice.fields.invoice_id;
-                        }
-                    }
-                    else if (type === 'unsync') {
-                        if (invoice.fields.inserted_in_qb) {
-                            return invoice.fields.invoice_id;
-                        }
-                    }
-                }
-            })
-        ]);
-    };
-
+    // --- Filtros
     const filterByDate = (invoice) => {
         if (!filterDate) return true;
-
-        const invoiceDate = new Date(invoice.fields.date);
-        const filterDateFormatted = filterDate.isValid() ? filterDate.toISOString().split('T')[0] : null;
-
-        if (!invoiceDate || !filterDateFormatted) return false;
-
-        return invoiceDate.toISOString().split('T')[0] === filterDateFormatted;
+        const invDate = dayjs(invoice.fields.date);
+        return invDate.isValid() && invDate.isSame(filterDate, 'day');
     };
 
     const filterBySearchTerm = (invoice) => {
         if (!searchTerm) return true;
-        const normalizedSearch = searchTerm.toLowerCase().trim();
+        const q = searchTerm.toLowerCase().trim();
+        const f = invoice.fields;
         return (
-            invoice.fields.invoice_number.toLowerCase().includes(normalizedSearch) ||
-            invoice.fields.customer_name.toLowerCase().includes(normalizedSearch) ||
-            invoice.fields.date.toLowerCase().includes(normalizedSearch) ||
-            invoice.fields.total.toLowerCase().includes(normalizedSearch)
+            (f.invoice_number || '').toLowerCase().includes(q) ||
+            (f.customer_name || '').toLowerCase().includes(q) ||
+            (f.date || '').toLowerCase().includes(q) ||
+            String(f.total || '').toLowerCase().includes(q)
         );
     };
 
     const clearFilters = () => {
-        const today = dayjs();
-        setFilterDate(today);
-        localStorage.setItem('invoicesListFilterDate', today.format('YYYY-MM-DD'));
+        const t = dayjs();
+        setFilterDate(t);
+        localStorage.setItem('invoicesListFilterDate', t.format('YYYY-MM-DD'));
         setSearchTerm(localStorage.getItem('searchTermGlobal') || '');
         const queryParams = new URLSearchParams(window.location.search);
         queryParams.delete('date');
         window.history.replaceState(null, '', `${window.location.pathname}?${queryParams.toString()}`);
     };
 
-    const getBackgroundColor = (invoice, isMouseOver) => {
-        if (invoice.fields.customer_unmatched.length > 0 || invoice.fields.items_unmatched.length > 0) {
-            // return !isMouseOver ? 'rgba(255, 255, 255, 1)' : 'rgba(255, 0, 0, 0.1)';
-            return !isMouseOver ? '#FFFFFF' : '#f6f6fa';
-        } else if (invoice.fields.inserted_in_qb) {
-            // return !isMouseOver ? 'rgba(255, 255, 255, 1)' : 'rgba(0, 255, 0, 0.1)';
-            return !isMouseOver ? '#FFFFFF' : '#f6f6fa';
-        } else {
-            // return !isMouseOver ? 'rgba(255, 255, 255, 1)' : 'rgba(255, 255, 0, 0.1)';
-            return !isMouseOver ? '#FFFFFF' : '#f6f6fa';
-        }
+    const getRowBg = (invoice, isMouseOver) => {
+        // Unificamos hover a #f6f6fa
+        return !isMouseOver ? '#FFFFFF' : '#F6F6FA';
     };
 
     const renderSyncStatus = (invoice) => {
-        if (invoice.fields.customer_unmatched.length > 0 || invoice.fields.items_unmatched.length > 0) {
+        const hasErrors = invoice.fields.customer_unmatched.length > 0 || invoice.fields.items_unmatched.length > 0;
+        if (hasErrors)
             return (
-                <Tooltip
-                    title="ERROR"
-                    arrow
-                    sx={{
-                        '& .MuiTooltip-tooltip': {
-                            backgroundColor: '#000000',
-                            color: 'white',
-                            fontSize: '0.875rem'
-                        }
-                    }}
-                >
-                    <ErrorIcon sx={{ color: 'error.main', fontSize: 'large' }} />
+                <Tooltip title="ERROR" arrow sx={{ '& .MuiTooltip-tooltip': { backgroundColor: '#000', color: '#fff' } }}>
+                    <ErrorIcon sx={{ color: 'error.main' }} />
                 </Tooltip>
             );
-        } else if (!invoice.fields.inserted_in_qb && !invoice.fields.customer_unmatched.length > 0 && !invoice.fields.items_unmatched.length > 0) {
+        if (!invoice.fields.inserted_in_qb)
             return (
                 <Tooltip
                     title="NOT PROCESSED"
                     arrow
-                    sx={{
-                        '& .MuiTooltip-tooltip': {
-                            backgroundColor: '#000000',
-                            color: 'white',
-                            fontSize: '0.875rem'
-                        }
-                    }}
+                    sx={{ '& .MuiTooltip-tooltip': { backgroundColor: '#000', color: '#fff' } }}
                 >
-                    <RemoveCircleIcon sx={{ color: 'warning.main', fontSize: 'large' }} />
+                    <RemoveCircleIcon sx={{ color: 'warning.main' }} />
                 </Tooltip>
             );
-        } else {
-            return (
-                <Tooltip
-                    title="SUCCESS"
-                    arrow
-                    sx={{
-                        '& .MuiTooltip-tooltip': {
-                            backgroundColor: '#000000',
-                            color: 'white',
-                            fontSize: '0.875rem'
-                        }
-                    }}
-                >
-                    <CheckCircleIcon sx={{ color: 'success.main', fontSize: 'large' }} />
-                </Tooltip>
-            );
-        }
+        return (
+            <Tooltip title="SUCCESS" arrow sx={{ '& .MuiTooltip-tooltip': { backgroundColor: '#000', color: '#fff' } }}>
+                <CheckCircleIcon sx={{ color: 'success.main' }} />
+            </Tooltip>
+        );
     };
 
     const renderMatchStatus = (invoice) => {
-        if (invoice.fields.all_items_matched && invoice.fields.all_customer_matched) {
-            return (
-                <Tooltip
-                    title="MATCHED"
-                    arrow
-                    sx={{
-                        '& .MuiTooltip-tooltip': {
-                            backgroundColor: '#000000',
-                            color: 'white',
-                            fontSize: '0.875rem'
-                        }
-                    }}
-                >
-                    <CheckCircleIcon sx={{ color: 'success.main', fontSize: 'large' }} />
-                </Tooltip>
-            );
-        } else {
-            return (
-                <Tooltip
-                    title="NOT MATCHED"
-                    arrow
-                    sx={{
-                        '& .MuiTooltip-tooltip': {
-                            backgroundColor: '#000000',
-                            color: 'white',
-                            fontSize: '0.875rem'
-                        }
-                    }}
-                >
-                    <ErrorIcon sx={{ color: 'error.main', fontSize: 'large' }} />
-                </Tooltip>
-            );
-        }
+        const matched = invoice.fields.all_items_matched && invoice.fields.all_customer_matched;
+        return matched ? (
+            <Tooltip title="MATCHED" arrow sx={{ '& .MuiTooltip-tooltip': { backgroundColor: '#000', color: '#fff' } }}>
+                <CheckCircleIcon sx={{ color: 'success.main' }} />
+            </Tooltip>
+        ) : (
+            <Tooltip title="NOT MATCHED" arrow sx={{ '& .MuiTooltip-tooltip': { backgroundColor: '#000', color: '#fff' } }}>
+                <ErrorIcon sx={{ color: 'error.main' }} />
+            </Tooltip>
+        );
     };
 
-    const renderForceSyncCheckbox = (invoice, isSelected, page) => {
-        if (!(invoice.fields.inserted_in_qb && !invoice.fields.customer_unmatched.length > 0 && !invoice.fields.items_unmatched.length > 0)) {
+    const renderForceSyncCheckbox = (invoice, isSel) => {
+        const hasErrors = invoice.fields.customer_unmatched.length > 0 || invoice.fields.items_unmatched.length > 0;
+        if (!(invoice.fields.inserted_in_qb && !hasErrors)) {
             return (
                 <FormControl sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <FormControlLabel
                         control={
                             <Checkbox
-                                checked={isSelected}
+                                checked={isSel}
                                 value={invoice.fields.invoice_id}
                                 onChange={(e) => handleCheckboxClick(e, invoice.fields.invoice_id)}
-                                data-page={page}
                             />
                         }
                         label="Force to sync?"
                     />
                 </FormControl>
             );
-        } else {
-            return (
-                <Tooltip
-                    title="SYNCED"
-                    arrow
-                    sx={{
-                        '& .MuiTooltip-tooltip': {
-                            backgroundColor: '#000000',
-                            color: 'white',
-                            fontSize: '0.875rem',
-                        }
-                    }}
-                >
-                    <CheckCircleIcon sx={{ color: 'success.main', fontSize: 'large' }} />
-                </Tooltip>
-
-            );
         }
-
+        return (
+            <Tooltip title="SYNCED" arrow sx={{ '& .MuiTooltip-tooltip': { backgroundColor: '#000', color: '#fff' } }}>
+                <CheckCircleIcon sx={{ color: 'success.main' }} />
+            </Tooltip>
+        );
     };
 
-
-    const renderUnsyncCheckbox = (invoice, isSelected, page) => {
+    const renderUnsyncCheckbox = (invoice, isSel) => {
         if (invoice.fields.inserted_in_qb) {
             return (
                 <FormControl sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <FormControlLabel
                         control={
                             <Checkbox
-                                checked={isSelected}
+                                checked={isSel}
                                 value={invoice.fields.invoice_id}
                                 onChange={(e) => handleCheckboxClick(e, invoice.fields.invoice_id)}
-                                data-page={page}
                             />
                         }
                         label="Unsync?"
                     />
                 </FormControl>
             );
-        } else {
-            return (
-                <Tooltip
-                    title="Not synced yet"
-                    arrow
-                    sx={{
-                        '& .MuiTooltip-tooltip': {
-                            backgroundColor: '#000000',
-                            color: 'white',
-                            fontSize: '0.875rem',
-                        }
-                    }}
-                >
-                    <RadioButtonCheckedOutlined sx={{ color: 'warning.main', fontSize: 'large' }} />
-                </Tooltip>
-
-            );
         }
-
+        return (
+            <Tooltip
+                title="Not synced yet"
+                arrow
+                sx={{ '& .MuiTooltip-tooltip': { backgroundColor: '#000', color: '#fff' } }}
+            >
+                <RadioButtonCheckedOutlined sx={{ color: 'warning.main' }} />
+            </Tooltip>
+        );
     };
 
+    const handleChangeDate = useCallback(
+        (date) => {
+            if (date && date.isValid()) {
+                setFilterDate(date);
+                localStorage.setItem('invoicesListFilterDate', date.format('YYYY-MM-DD'));
+            } else {
+                setFilterDate(null);
+                localStorage.setItem('invoicesListFilterDate', '');
+            }
+            setPage(0);
+        },
+        [setFilterDate]
+    );
 
-    const handleChangeDate = useCallback((date) => {
-        if (date && date.isValid()) {
-            setFilterDate(date);
-            localStorage.setItem('invoicesListFilterDate', date.format('YYYY-MM-DD'));
-        } else {
-            setFilterDate(null);
-            localStorage.setItem('invoicesListFilterDate', '');
-        }
-        setPage(0);
-    }, [setFilterDate]);
+    const handleSortChange = useCallback(
+        (columnId) => {
+            const isAsc = orderBy === columnId && order === 'asc';
+            setOrder(isAsc ? 'desc' : 'asc');
+            setOrderBy(columnId);
+        },
+        [orderBy, order]
+    );
 
-    const handleSortChange = useCallback((columnId) => {
-        const isAsc = orderBy === columnId && order === 'asc';
-        setOrder(isAsc ? 'desc' : 'asc');
-        setOrderBy(columnId);
-    }, [orderBy, order]);
-
+    // ---- Derivados
     const filteredInvoices = useMemo(() => {
-        return data.invoices.filter(invoice => {
+        return data.invoices.filter((invoice) => {
             const matchesSearchTerm = filterBySearchTerm(invoice) && filterByDate(invoice);
-            const notProcessed = !invoice.fields.inserted_in_qb && !invoice.fields.customer_unmatched.length > 0 && !invoice.fields.items_unmatched.length > 0;
+            const notProcessed =
+                !invoice.fields.inserted_in_qb &&
+                !(invoice.fields.customer_unmatched.length > 0) &&
+                !(invoice.fields.items_unmatched.length > 0);
             const notSynced = invoice.fields.customer_unmatched.length > 0 || invoice.fields.items_unmatched.length > 0;
             const synced = invoice.fields.inserted_in_qb;
             const forcedSync = invoice.fields.force_to_sync;
@@ -671,13 +485,15 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
             if (filter === 'not_forced_sync') return matchesSearchTerm && !forcedSync;
             if (filter === 'matched') return matchesSearchTerm && matched;
             if (filter === 'not_matched') return matchesSearchTerm && !matched;
+            // not_processed
             return matchesSearchTerm && notProcessed;
         });
-    }, [data.invoices, filter, filterBySearchTerm, filterByDate]);
+    }, [data.invoices, filter, searchTerm, filterDate]);
 
-    const sortedInvoices = useMemo(() => {
-        return stableSort(filteredInvoices, getComparatorUndefined(order, orderBy));
-    }, [filteredInvoices, order, orderBy]);
+    const sortedInvoices = useMemo(
+        () => stableSort(filteredInvoices, getComparatorUndefined(order, orderBy)),
+        [filteredInvoices, order, orderBy]
+    );
 
     const columns = [
         { id: 'invoice_number', label: 'Invoice#', colspan: 1, textAlign: 'left' },
@@ -687,33 +503,33 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
         { id: 'status', label: 'Sync & Matched?', colspan: 2, textAlign: 'right' },
         { id: 'force_sync', label: titleSelectForceSync, colspan: 1, textAlign: 'center' },
         { id: 'unsync', label: titleSelectUnsync, colspan: 1, textAlign: 'center' },
-        { id: 'actions', label: 'Actions', colspan: 1, textAlign: 'center' }
+        { id: 'actions', label: 'Actions', colspan: 1, textAlign: 'center' },
     ];
 
     const childrenNavigationRightButton = [
         {
             label: 'Clear Filters',
-            icon: <FilterAltOffIcon sx={{ marginRight: 1 }} />,
+            icon: <FilterAltOffIcon sx={{ mr: 1 }} />,
             onClick: clearFilters,
-            visibility: filterDate || searchTerm
+            visibility: Boolean(filterDate || searchTerm),
         },
         {
             label: 'Sync Selected',
-            icon: <CheckCircleIcon sx={{ marginRight: 1 }} />,
+            icon: <CheckCircleIcon sx={{ mr: 1 }} />,
             onClick: handleForceToSync,
-            visibility: selectedInvoices.length > 0
+            visibility: selectedInvoices.length > 0,
         },
         {
             label: 'Back to Integration',
-            icon: <HomeIcon sx={{ marginRight: 1 }} />,
+            icon: <HomeIcon sx={{ mr: 1 }} />,
             route: '/integration',
-            visibility: true
-        }
+            visibility: true,
+        },
     ];
 
     const configCustomFilter = {
-        filter: filter,
-        handleFilterChange: handleFilterChange,
+        filter,
+        handleFilterChange,
         listValues: [
             { value: 'all', label: 'All Invoices' },
             { value: 'synced', label: 'Synced Invoices' },
@@ -722,63 +538,68 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
             { value: 'forced_sync', label: 'Forced to Sync Invoices' },
             { value: 'not_forced_sync', label: 'Not Forced to Sync Invoices' },
             { value: 'matched', label: 'Matched Invoices' },
-            { value: 'not_matched', label: 'Not Matched Invoices' }
+            { value: 'not_matched', label: 'Not Matched Invoices' },
         ],
-        hasSearch: false
+        hasSearch: false,
     };
 
     return (
-        <Container
-            maxWidth="xl"
-            sx={{
-                marginLeft: '-29.4%',
-                minWidth: '88.3vw',
-            }}
-        >
-            <Grid container spacing={1} mb={3} sx={{ mt: '-3%' }}>
-                <Grid item container xs={4} justifyContent="flex-start">
-                    <Grid item xs={5}>
-                        <CustomFilter configCustomFilter={configCustomFilter} />
-                    </Grid>
-                </Grid>
-                <Grid item xs={8} container justifyContent="flex-end" spacing={1}>
-                    <Grid item xs={3} sx={{ display: 'flex', flexDirection: 'column' }}>
-                        <LocalizationProvider dateAdapter={AdapterDayjs}>
-                            <DatePicker
-                                label="Filter by date"
-                                inputFormat="yyyy-MM-dd"
-                                value={filterDate}
-                                onChange={(date) => handleChangeDate(date)}
-                                minDate={oneYearAgo}
-                                maxDate={today}
-                                slotProps={{ textField: { size: 'small' } }}
-                                textField={(params) => (
-                                    <TextField
-                                        variant="outlined"
-                                        {...params}
-                                    />
-                                )}
-                            />
-                        </LocalizationProvider>
-                    </Grid>
-                    <HomeNavigationRightButton children={childrenNavigationRightButton} />
-                </Grid>
-            </Grid>
+        <Box sx={{ width: '100%', px: 0, py: 1, overflowX: 'hidden' }}>
+            {/* Header de filtros */}
+            <Box
+                sx={{
+                    display: 'grid',
+                    gridTemplateColumns: { xs: '1fr', md: '1fr auto' },
+                    gap: 2,
+                    alignItems: 'start',
+                    mb: 2,
+                }}
+            >
+                <Box sx={{ maxWidth: 420 }}>
+                    <CustomFilter configCustomFilter={configCustomFilter} />
+                </Box>
 
-            <TableContainer style={{ maxHeight: '773px', mixHeight: '773px', minWidth: 690 }} sx={{ mt: '-1%' }}>
-                <Table id="myTable" aria-label="items table" stickyHeader>
+                <Box sx={{
+                    display: 'flex',
+                    gap: 1.5,
+                    justifyContent: 'flex-end',
+                    alignItems: 'center',
+                    flexWrap: 'wrap',
+                    mr: 1
+                }}>
+                    <LocalizationProvider dateAdapter={AdapterDayjs}>
+                        <DatePicker
+                            label="Filter by date"
+                            value={filterDate}
+                            onChange={handleChangeDate}
+                            minDate={oneYearAgo}
+                            maxDate={today}
+                            format="YYYY-MM-DD"
+                            slotProps={{ textField: { size: 'small' } }}
+                        />
+                    </LocalizationProvider>
+
+                    <HomeNavigationRightButton children={childrenNavigationRightButton} />
+                </Box>
+            </Box>
+
+            {/* Tabla */}
+            <TableContainer sx={{ maxHeight: 620, minHeight: 620 }}>
+                <Table stickyHeader aria-label="invoices table" size="small">
                     <TableHead>
                         <TableRow sx={{ backgroundColor: '#f9f9fb' }}>
                             {columns.map((column) => (
-                                <TableCell key={column.id} colSpan={column.colspan}
+                                <TableCell
+                                    key={column.id}
+                                    colSpan={column.colspan}
                                     sx={{
                                         fontWeight: 'bold',
                                         color: '#6c7184',
                                         borderBottom: '1px solid #ddd',
                                         borderTop: '1px solid #ddd',
                                         backgroundColor: '#f9f9fb',
-                                        padding: '5px 16px',
-                                        textAlign: { xs: 'center', sm: column.textAlign }
+                                        py: 0.75,
+                                        textAlign: { xs: 'center', sm: column.textAlign },
                                     }}
                                 >
                                     {column.id !== 'force_sync' && column.id !== 'unsync' ? (
@@ -790,112 +611,112 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
                                             {column.label.toUpperCase()}
                                         </TableSortLabel>
                                     ) : (
-                                        <>
-                                            <Select
-                                                value={column.id === 'force_sync' ? selectedOptionForceSync : selectedOptionUnsync}
-                                                onChange={
-                                                    (e) => column.id === 'force_sync' ?
-                                                        handleSelectSyncChange(e) :
-                                                        handleSelectUnsyncChange(e)
+                                        <Select
+                                            value={column.id === 'force_sync' ? selectedOptionForceSync : selectedOptionUnsync}
+                                            onChange={(e) =>
+                                                column.id === 'force_sync' ? handleSelectSyncChange(e) : handleSelectUnsyncChange(e)
+                                            }
+                                            displayEmpty
+                                            size="small"
+                                            sx={{ minWidth: 180 }}
+                                        >
+                                            <MenuItem value={column.id === 'force_sync' ? 'select_clear' : 'select_clear_unsync'}>
+                                                <em>{column.label.toUpperCase()}</em>
+                                            </MenuItem>
+                                            <MenuItem
+                                                value={column.id === 'force_sync' ? 'select_page' : 'select_page_unsync'}
+                                                onClick={() =>
+                                                    handleSelectAllSyncPage(rowsPerPage, page, column.id === 'force_sync' ? 'force_sync' : 'unsync')
                                                 }
-                                                displayEmpty
-                                                sx={{
-                                                    fontSize: '0.875rem',
-                                                    padding: '0px 0px',
-                                                    minWidth: '160px',
-                                                    maxHeight: '30px',
-                                                }}
-                                                MenuProps={{
-                                                    PaperProps: {
-                                                        sx: {
-                                                            marginLeft: '130px',  // Ajusta el valor según lo que necesites
-                                                        },
-                                                    },
-                                                }}
                                             >
-                                                <MenuItem value={column.id === 'force_sync' ? 'select_clear' : 'select_clear_unsync'}>
-                                                    <em>{column.label.toUpperCase()}</em>
+                                                Select All in Page
+                                            </MenuItem>
+                                            <MenuItem
+                                                value={column.id === 'force_sync' ? 'select_all' : 'select_all_unsync'}
+                                                onClick={() => handleSelectAllSyncAll(column.id === 'force_sync' ? 'force_sync' : 'unsync')}
+                                            >
+                                                Select All in Table
+                                            </MenuItem>
+
+                                            {/* Acción directa para UNSYNC si hay selección */}
+                                            {column.id === 'unsync' && selectedInvoices.length > 0 && (
+                                                <MenuItem value="unsync_invoices" onClick={handleUnsync}>
+                                                    <UndoRounded sx={{ mr: 1 }} /> <b>Unsync Selected Invoices</b>
                                                 </MenuItem>
-                                                <MenuItem value={column.id === 'force_sync' ? 'select_page' : 'select_page_unsync'} onClick={
-                                                    () => handleSelectAllSyncPage(rowsPerPage, page, column.id)}
-                                                >
-                                                    Select All in Page
-                                                </MenuItem>
-                                                <MenuItem value={column.id === 'force_sync' ? 'select_all' : 'select_all_unsync'} onClick={
-                                                    () => handleSelectAllSyncAll(column?.id)}
-                                                >
-                                                    Select All in Table
-                                                </MenuItem>
-                                                {((column.id === 'unsync' && selectedOptionUnsync !== 'select_clear_unsync') || 
-                                                 (column.id === 'unsync' && selectedInvoices.length > 0)) && (
-                                                    <MenuItem value='unsync_invoices' onClick={() => handleUnsync()}>
-                                                        <UndoRounded sx={{ marginRight: 1 }} /> <b>Unsync Selected Invoices</b>
-                                                    </MenuItem>
-                                                )}
-                                            </Select>
-                                        </>
+                                            )}
+                                        </Select>
                                     )}
                                 </TableCell>
                             ))}
                         </TableRow>
                     </TableHead>
+
                     <TableBody>
                         {filteredInvoices.length === 0 ? (
-                            <EmptyRecordsCell columns={columns} isColspanTable={true} />
+                            <EmptyRecordsCell columns={columns} isColspanTable />
                         ) : (
                             (rowsPerPage > 0
                                 ? sortedInvoices.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                                 : sortedInvoices
                             ).map((invoice, index) => {
                                 const isItemSelected = isSelected(invoice.fields.invoice_id);
-                                const backgroundColor =
-                                    index === hoveredRowIndex
-                                        ? getBackgroundColor(invoice, true)
-                                        : getBackgroundColor(invoice, false);
+                                const bg = index === hoveredRowIndex ? getRowBg(invoice, true) : getRowBg(invoice, false);
                                 return (
-                                    <TableRow key={index}
-                                        style={{
-                                            cursor: 'pointer',
-                                            transition: 'background-color 0.3s ease',
-                                            backgroundColor: backgroundColor
-                                        }}
-                                        data-page={page}
+                                    <TableRow
+                                        key={invoice.fields.invoice_id || index}
+                                        hover
+                                        sx={{ cursor: 'pointer', backgroundColor: bg, transition: 'background-color 0.2s ease' }}
                                         onMouseEnter={() => setHoveredRowIndex(index)}
                                         onMouseLeave={() => setHoveredRowIndex(null)}
                                     >
                                         <TableCell onClick={() => handleViewInvoice(invoice)}>{invoice.fields.invoice_number}</TableCell>
                                         <TableCell onClick={() => handleViewInvoice(invoice)}>{invoice.fields.customer_name}</TableCell>
                                         <TableCell onClick={() => handleViewInvoice(invoice)}>{invoice.fields.date}</TableCell>
-                                        <TableCell onClick={() => handleViewInvoice(invoice)}>$ {invoice.fields.total}</TableCell>
+                                        <TableCell onClick={() => handleViewInvoice(invoice)}>${invoice.fields.total}</TableCell>
+
                                         <TableCell align="center" onClick={() => handleViewInvoice(invoice)}>
                                             {renderSyncStatus(invoice)}
                                         </TableCell>
-                                        <TableCell align="center" sx={(theme) => ({
-                                            fontWeight: 'bold',
-                                            borderBottom: '1px solid #ccc',
-                                            width: '20px',
-                                            maxWidth: '20px',
-                                            color: invoice.fields.all_items_matched && invoice.fields.all_customer_matched ? theme.palette.success.main : theme.palette.error.main,
-                                        })} onClick={() => handleViewInvoice(invoice)}>
+
+                                        <TableCell
+                                            align="center"
+                                            sx={(theme) => ({
+                                                fontWeight: 'bold',
+                                                borderBottom: '1px solid #ccc',
+                                                width: 20,
+                                                maxWidth: 20,
+                                                color:
+                                                    invoice.fields.all_items_matched && invoice.fields.all_customer_matched
+                                                        ? theme.palette.success.main
+                                                        : theme.palette.error.main,
+                                            })}
+                                            onClick={() => handleViewInvoice(invoice)}
+                                        >
                                             {renderMatchStatus(invoice)}
                                         </TableCell>
-                                        <TableCell align="center"
+
+                                        <TableCell
+                                            align="center"
                                             onClick={() => (invoice.fields.force_to_sync || invoice.fields.inserted_in_qb) && handleViewInvoice(invoice)}
                                         >
-                                            {
-                                                !invoice.fields.force_to_sync ?
-                                                    renderForceSyncCheckbox(invoice, isItemSelected, page) :
-                                                    (<Box sx={{ display: 'flex', gap: 1, marginLeft: '20%' }}>
-                                                        <SyncIcon color="warning" />
-                                                        <Typography sx={{ color: 'warning.main' }}><b>Forced to sync</b></Typography>
-                                                    </Box>)
-                                            }
+                                            {!invoice.fields.force_to_sync ? (
+                                                renderForceSyncCheckbox(invoice, isItemSelected)
+                                            ) : (
+                                                <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', justifyContent: 'center' }}>
+                                                    <SyncIcon color="warning" />
+                                                    <Typography variant="body2" sx={{ color: 'warning.main', fontWeight: 700 }}>
+                                                        Forced to sync
+                                                    </Typography>
+                                                </Box>
+                                            )}
                                         </TableCell>
-                                        <TableCell align="center" onClick={() => (!invoice.fields.inserted_in_qb) && handleViewInvoice(invoice)}>
-                                            {renderUnsyncCheckbox(invoice, isItemSelected, page)}
+
+                                        <TableCell align="center" onClick={() => !invoice.fields.inserted_in_qb && handleViewInvoice(invoice)}>
+                                            {renderUnsyncCheckbox(invoice, isItemSelected)}
                                         </TableCell>
+
                                         <TableCell align="center">
-                                            <IconButton onClick={() => handleDeleteInvoice(invoice)} color="error" aria-label="view" size='xx-large'>
+                                            <IconButton onClick={() => handleDeleteInvoice(invoice)} color="error">
                                                 <DeleteIcon />
                                             </IconButton>
                                         </TableCell>
@@ -903,10 +724,15 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
                                 );
                             })
                         )}
+
                         <TableCustomPagination
                             columnsLength={columns.length + 1}
                             data={filteredInvoices}
-                            page={Number.isFinite(page) && page >= 0 ? Math.min(page, Math.ceil(filteredInvoices.length / rowsPerPage) - 1) : 0}
+                            page={
+                                Number.isFinite(page) && page >= 0
+                                    ? Math.min(page, Math.max(0, Math.ceil(filteredInvoices.length / rowsPerPage) - 1))
+                                    : 0
+                            }
                             rowsPerPage={rowsPerPage}
                             handleChangePage={handleChangePage}
                             handleChangeRowsPerPage={handleChangeRowsPerPage}
@@ -914,7 +740,7 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
                     </TableBody>
                 </Table>
             </TableContainer>
-        </Container>
+        </Box>
     );
 };
 

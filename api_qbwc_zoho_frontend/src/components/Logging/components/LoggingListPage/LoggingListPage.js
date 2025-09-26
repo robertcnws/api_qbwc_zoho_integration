@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Container, CircularProgress, useMediaQuery, useTheme } from '@mui/material';
+import { Container, CircularProgress, useMediaQuery, useTheme, Box } from '@mui/material';
 import { AlertLoading } from '../../../Utils/components/AlertLoading/AlertLoading';
 import { AlertError } from '../../../Utils/components/AlertError/AlertError';
 import { fetchWithToken } from '../../../../utils';
@@ -27,36 +27,39 @@ const LoggingListPage = () => {
     }
 
     useEffect(() => {
-      fetchData();
+        fetchData();
     }, []);
 
     if (loading) {
         return (
-            <AlertLoading isSmallScreen={isSmallScreen} message='Users List'/>
+            <AlertLoading isSmallScreen={isSmallScreen} message='Users List' />
         );
     }
 
     if (error) {
         return (
-            <AlertError isSmallScreen={isSmallScreen} error={error}/>
+            <AlertError isSmallScreen={isSmallScreen} error={error} />
         );
     }
 
     return (
-        <Container maxWidth="lg"
+        <Box
             sx={{
-                mt: 5,
-                p: 2,
-                marginLeft: isSmallScreen ? '0' : '3%',
-                transition: 'margin-left 0.3s ease', 
+                display: 'flex',
+                flexDirection: 'column',
+                width: '100%',
+                bgcolor: '#F9F9FB',
+                p: 0,
+                gap: 2,
+                overflowX: 'hidden',
             }}
         >
             {loading ? (
                 <CircularProgress />
             ) : (
-                <LoggingList logs={logs} onSyncComplete={fetchData}/>
+                <LoggingList logs={logs} onSyncComplete={fetchData} />
             )}
-        </Container>
+        </Box>
     );
 };
 

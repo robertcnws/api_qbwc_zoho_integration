@@ -140,6 +140,9 @@ const Topbar = ({ handleLogout }) => {
         } else if (currentPath.includes('list_invoices')) {
             setLabelSearch('Search Invoices (/)');
             setVisibleSearch(true);
+        } else if (currentPath.includes('list_sales_orders')) {
+            setLabelSearch('Search Sales Orders (/)');
+            setVisibleSearch(true);
         } else if (currentPath.includes('qbwc/customers/list')) {
             setLabelSearch('Search QB Customers (/)');
             setVisibleSearch(true);
@@ -187,6 +190,8 @@ const Topbar = ({ handleLogout }) => {
             navigate('/integration/list_items');
         } else if (option === 'Invoices') {
             navigate('/integration/list_invoices');
+        } else if (option === 'Sales Orders') {
+            navigate('/integration/list_sales_orders');
         } else if (option === 'QB Customers') {
             navigate('/integration/qbwc/customers/list');
         } else if (option === 'QB Items') {
@@ -253,10 +258,10 @@ const Topbar = ({ handleLogout }) => {
     };
 
     return (
-        <>
+        <Box sx={{ display: 'flex', flexDirection: 'row' }}>
             <Toolbar
                 sx={{
-                    bgcolor: '#f7f7fe', position: 'relative', border: '1px solid #ddd', marginLeft: '225px', maxWidth: 'calc(96vw - 225px)',
+                    bgcolor: '#f7f7fe', border: '1px solid #ddd', marginLeft: 0, width: '100%',
                 }}>
                 <Box sx={{ flexGrow: 1 }}>
                     {visibleSearch && (
@@ -316,6 +321,7 @@ const Topbar = ({ handleLogout }) => {
                             'Customers',
                             'Items',
                             'Invoices',
+                            'Sales Orders',
                             'QB Customers',
                             'QB Items',
                             'QB Never Match Customers',
@@ -594,7 +600,7 @@ const Topbar = ({ handleLogout }) => {
 
                 </Box>
             </Drawer>
-        </>
+        </Box>
     );
 };
 

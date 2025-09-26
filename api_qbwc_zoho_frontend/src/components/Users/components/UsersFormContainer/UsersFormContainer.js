@@ -3,6 +3,7 @@ import { fetchWithToken } from '../../../../utils'
 import UsersForm from '../UsersForm/UsersForm';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
+import { Box } from '@mui/material';
 
 const apiUrl = process.env.REACT_APP_ENVIRONMENT === 'DEV' ? process.env.REACT_APP_BACKEND_URL_DEV : process.env.REACT_APP_BACKEND_URL_PROD;
 
@@ -33,14 +34,14 @@ const UsersFormContainer = () => {
             console.log(data);
             const response = await fetchWithToken(`${apiUrl}/manage_user/`, 'POST', data, {}, apiUrl);
             setSuccess(response.data.message);
-            if(response.status === 200) {
+            if (response.status === 200) {
                 setError(null);
                 Swal.fire({
                     icon: 'success',
                     title: 'Success',
                     text: response.data.message
                 }).then(() => {
-                    if (isStaff !== null){
+                    if (isStaff !== null) {
                         localStorage.setItem('isStaff', isStaff);
                     }
                     navigate('/integration/list_users');
@@ -54,13 +55,25 @@ const UsersFormContainer = () => {
     };
 
     return (
-        <UsersForm
-            formData={formData}
-            onSubmit={handleSubmit}
-            error={error}
-            success={success}
-            isNew={isNew}
-        />
+        <Box
+            sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                width: '100%',
+                bgcolor: '#F9F9FB',
+                p: 0,
+                gap: 2,
+                overflowX: 'hidden',
+            }}
+        >
+            <UsersForm
+                formData={formData}
+                onSubmit={handleSubmit}
+                error={error}
+                success={success}
+                isNew={isNew}
+            />
+        </Box>
     );
 };
 

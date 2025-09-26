@@ -1,0 +1,15 @@
+.custom-textfield .MuiInputBase-root {
+    height: 20px !important;
+    max-height: 20px !important;
+  }
+  
+  .custom-textfield .MuiOutlinedInput-root {
+    height: 20px !important;
+    max-height: 20px !important;
+  }
+  
+  .custom-textfield .MuiInputBase-input {
+    padding: 4px 7px !important;
+    height: 20px !important;
+    line-height: 20px !important;
+  }

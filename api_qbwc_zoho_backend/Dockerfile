@@ -1,31 +1,31 @@
 FROM python:3.12
 
-ENV PYTHONUNBUFFERED 1
-ENV PYTHONPATH=/app
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONPATH=/app
 
 WORKDIR /app
 
+# --- Python deps ---
 COPY requirements.txt /app/
 
-RUN pip install --upgrade pip
-RUN pip install gunicorn
-RUN pip install -r requirements.txt
+RUN mkdir -p /var/log/supervisor
 
-# Instalar herramientas necesarias incluyendo cron
-RUN apt-get update && apt-get install -y wget gnupg2 lsb-release
-
-# Agregar repositorio de PostgreSQL
-RUN wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -
-RUN echo "deb http://apt.postgresql.org/pub/repos/apt/ $(lsb_release -cs)-pgdg main" | tee /etc/apt/sources.list.d/pgdg.list
-
-# Actualizar e instalar dependencias
-RUN apt-get update && apt-get install -y postgresql-client-16
-
-# Copia el contenido del directorio al contenedor
+RUN pip install --upgrade pip \
+ && pip install gunicorn \
+ && pip install -r requirements.txt
+ 
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends wget ca-certificates gnupg supervisor \
+ && rm -rf /var/lib/apt/lists/*
+ 
 COPY . /app/
 
-# Expose port 8000 for the Django application
+COPY _deploy/supervisord.conf /etc/supervisor/supervisord.conf
+COPY _deploy/entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
 EXPOSE 8000
 
-# Ejecuta el script de inicialización y luego arranca Gunicorn y cron
-CMD ["sh", "-c", "python manage.py makemigrations && python manage.py migrate && python init_script.py && gunicorn --bind 0.0.0.0:8000 project_api.wsgi:application & celery -A project_api worker --loglevel=info & celery -A project_api beat --loglevel=info"]
+HEALTHCHECK --interval=30s --timeout=5s --retries=5 CMD wget -qO- http://127.0.0.1:8000/api_qbwc_zoho/health_check/ || exit 1
+
+CMD ["/entrypoint.sh"]

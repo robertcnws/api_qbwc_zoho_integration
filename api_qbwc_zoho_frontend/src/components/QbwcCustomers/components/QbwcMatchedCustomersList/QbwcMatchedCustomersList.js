@@ -15,6 +15,7 @@ import {
     TablePagination,
     TextField,
     TableSortLabel,
+    Box,
 } from '@mui/material';
 import { Link } from 'react-router-dom';
 import Swal from 'sweetalert2';
@@ -121,15 +122,15 @@ const QbwcMatchedCustomersList = ({ matchedCustomers, onSyncComplete }) => {
     ];
 
     return (
-        <Container
-            maxWidth="xl"
+        <Box
             sx={{
-                marginLeft: '-10%',
-                marginTop: '-6%',
-                transition: 'margin-left 0.3s ease',
-                minHeight: '100vh',
-                minWidth: '88vw',
-                padding: 1,
+                display: 'flex',
+                flexDirection: 'column',
+                width: '100%',
+                bgcolor: '#F9F9FB',
+                p: 0,
+                gap: 2,
+                overflowX: 'hidden',
             }}
         >
             <Grid container spacing={2} alignItems="center" justifyContent="space-between" mb={3}>
@@ -232,7 +233,7 @@ const QbwcMatchedCustomersList = ({ matchedCustomers, onSyncComplete }) => {
                     />
                 </Grid>
             </Grid>
-        </Container>
+        </Box>
     );
 
 }

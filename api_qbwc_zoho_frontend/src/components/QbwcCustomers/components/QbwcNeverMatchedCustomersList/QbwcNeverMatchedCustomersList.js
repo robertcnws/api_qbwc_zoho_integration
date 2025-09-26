@@ -13,7 +13,8 @@ import {
     TableSortLabel,
     FormControl,
     FormControlLabel,
-    Checkbox
+    Checkbox,
+    Box
 } from '@mui/material';
 import UndoIcon from '@mui/icons-material/Undo';
 import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
@@ -187,14 +188,18 @@ const QbwcNeverMatchedCustomersList = ({ customers, onSyncComplete }) => {
     ];
 
     return (
-        <Container
-            maxWidth="xl"
+        <Box
             sx={{
-                marginLeft: '-29.4%',
-                minWidth: '88.3vw',
+                display: 'flex',
+                flexDirection: 'column',
+                width: '100%',
+                bgcolor: '#F9F9FB',
+                p: 0,
+                gap: 2,
+                overflowX: 'hidden',
             }}
         >
-            <Grid container spacing={2} alignItems="center" justifyContent="space-between" mb={3} sx={{ mt: '-3%' }}>
+            <Grid container spacing={2} alignItems="center" justifyContent="space-between" mb={3}>
                 <Grid item xs={6}>
                     <Typography
                         variant="h6"
@@ -220,7 +225,7 @@ const QbwcNeverMatchedCustomersList = ({ customers, onSyncComplete }) => {
                     </Grid>
                 </Grid>
                 <Grid item xs={12} sx={{ mt: '-1%' }}>
-                    <TableContainer style={{ maxHeight: '760px', minWidth: 690 }}>
+                    <TableContainer style={{ maxHeight: '600px', minWidth: 690 }}>
                         <Table id="myTable" aria-label="customers table" stickyHeader>
                             <TableHead sx={{ backgroundColor: '#e0e0e0' }}>
                                 <TableRow>
@@ -287,7 +292,7 @@ const QbwcNeverMatchedCustomersList = ({ customers, onSyncComplete }) => {
                     </TableContainer>
                 </Grid>
             </Grid>
-        </Container>
+        </Box>
     );
 
 }

@@ -103,6 +103,10 @@ LOGINUSER_USERNAME = os.getenv('LOGINUSER_USERNAME', '')
 LOGINUSER_EMAIL = os.getenv('LOGINUSER_EMAIL', '')
 LOGINUSER_PASSWORD = os.getenv('LOGINUSER_PASSWORD', '')
 
+API_MAIN_DATA_URL = os.getenv('API_MAIN_DATA_URL', 'https://main-load-data.newwindowsystem.net/api/manage')
+API_USER_DATA_URL = os.getenv('API_USER_DATA_URL', 'https://main-load-data.newwindowsystem.net/api/manage')
+API_MAIN_DATA_TOKEN = os.getenv('API_MAIN_DATA_TOKEN', '')
+
 CSRF_TRUSTED_ORIGINS = [
     'http://localhost:3000',
     'http://127.0.0.1:3000',
@@ -186,6 +190,7 @@ INSTALLED_APPS = [
     'api_zoho_invoices',
     'api_quickbook_soap',
     'api_zoho_statistics',
+    'api_zoho_sales_orders',
 ]
 
 REST_FRAMEWORK = {

@@ -11,6 +11,7 @@ import {
     TableHead,
     TableRow,
     TableSortLabel,
+    Box,
 } from '@mui/material';
 import HomeIcon from '@mui/icons-material/Home';
 import { stableSort, getComparatorUndefined } from '../../../../utils';
@@ -81,11 +82,15 @@ const LoggingList = ({ logs }) => {
     ];
 
     return (
-        <Container
-            maxWidth="xl"
+        <Box
             sx={{
-                marginLeft: '-29.4%',
-                minWidth: '88.3vw',
+                display: 'flex',
+                flexDirection: 'column',
+                width: '100%',
+                bgcolor: '#F9F9FB',
+                p: 0,
+                gap: 2,
+                overflowX: 'hidden',
             }}
         >
             <Grid container spacing={2} alignItems="center" justifyContent="space-between" mb={3} sx={{ mt: '-3%' }}>
@@ -178,7 +183,7 @@ const LoggingList = ({ logs }) => {
                     </TableContainer>
                 </Grid>
             </Grid>
-        </Container>
+        </Box>
     );
 
 }

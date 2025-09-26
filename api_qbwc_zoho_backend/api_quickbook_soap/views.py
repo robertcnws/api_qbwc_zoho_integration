@@ -14,6 +14,7 @@ from datetime import date as date
 from api_zoho_customers.models import ZohoCustomer
 from api_zoho_items.models import ZohoItem
 from api_zoho_invoices.models import ZohoFullInvoice
+from api_zoho_sales_orders.models import ZohoFullSalesOrder
 from api_zoho.models import AppConfig
 from .models import QbItem, QbCustomer, QbLoading
 from .tasks import start_qbwc_query_request_task, authenticate_qbwc_request_task
@@ -476,15 +477,26 @@ def matched_customers(request):
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
-def matched_invoices(request):
+def matched(request, kind, filt):
     valid_token = api_zoho_views.validateJWTTokenRequest(request)
     if valid_token:
         # Obtener la fecha desde los parámetros de consulta, o usar la fecha actual si no se proporciona
         date_str = request.GET.get('date')
         date_date = parse_date(date_str) if date_str else date.today()
+        custom_item_ids = list(ZohoItem.objects.filter(is_custom=True).values_list('item_id', flat=True))
+        cond = Q()
+        for cid in custom_item_ids:
+            cond |= Q(line_items__contains=[{"item_id": cid}])
 
         # Agregar filtro de fecha para obtener solo las facturas del día
-        invoices = ZohoFullInvoice.objects.filter(date=date_date).order_by('-invoice_number')
+        if kind == 'invoices':
+            iterable = ZohoFullInvoice.objects.filter(date=date_date).order_by('-invoice_number')
+            if filt == 'stock':
+                iterable = iterable.exclude(cond)
+        elif kind == 'sales_orders':
+            iterable = ZohoFullSalesOrder.objects.filter(date=date_date).order_by('-salesorder_number')
+            if filt == 'custom':
+                iterable = iterable.filter(cond)
         
         pattern = r'^[A-Za-z0-9]{8}-[A-Za-z0-9]{10}$'
         all_items = ZohoItem.objects.filter(Q(qb_list_id__regex=pattern)).values_list('item_id', 'qb_list_id')
@@ -498,36 +510,37 @@ def matched_invoices(request):
         items_dict = {item['item_id']: item for item in all_items_data}
         customers_dict = {customer['contact_id']: customer for customer in all_customers_data}
 
-        for invoice in invoices:
-            for item in invoice.line_items:
+        for it in iterable:
+            for item in it.line_items:
                 item_id = item.get('item_id')
                 if item_id in items_dict:
                     item['qb_list_id'] = items_dict[item_id]['qb_list_id']
 
-            for item in invoice.items_unmatched:
+            for item in it.items_unmatched:
                 zoho_item_id = item.get('zoho_item_id')
                 if zoho_item_id in items_dict:
                     item['qb_list_id'] = items_dict[zoho_item_id]['qb_list_id']
 
-            customer_id = invoice.customer_id
+            customer_id = it.customer_id
             if customer_id in customers_dict:
                 qb_customer_list_id = customers_dict[customer_id]['qb_list_id']
 
-            for customer in invoice.customer_unmatched:
+            for customer in it.customer_unmatched:
                 zoho_customer_id = customer.get('zoho_customer_id')
                 if zoho_customer_id in customers_dict:
                     customer['qb_list_id'] = customers_dict[zoho_customer_id]['qb_list_id']
-            
-            cont_items = len(list(filter(lambda x: 'qb_list_id' in x, invoice.line_items)))
-                        
-            invoice.all_items_matched = cont_items == len(invoice.line_items)
-            invoice.all_customer_matched = qb_customer_list_id != ''
-            invoice.qb_customer_list_id = qb_customer_list_id
-            invoice.save()
+
+            # cont_items = len(list(filter(lambda x: 'qb_list_id' in x, it.line_items)))
+            cont_items = sum(1 for x in (it.line_items or []) if 'qb_list_id' in x)
+
+            it.all_items_matched = cont_items == len(it.line_items)
+            it.all_customer_matched = qb_customer_list_id != ''
+            it.qb_customer_list_id = qb_customer_list_id
+            it.save()
             qb_customer_list_id = ''
 
         # Calcular estadísticas basadas en las facturas del día
-        stats = invoices.aggregate(
+        stats = iterable.aggregate(
             matched_number=Count('id', filter=Q(inserted_in_qb=True)),
             total_items_unmatched=Count('id', filter=Q(items_unmatched__isnull=False, items_unmatched__gt=0)),
             total_customers_unmatched=Count('id', filter=Q(customer_unmatched__isnull=False, customer_unmatched__gt=0)),
@@ -542,7 +555,7 @@ def matched_invoices(request):
 
         # Serializar las facturas para la respuesta
         context = {
-            'invoices': serializers.serialize('json', invoices),
+            'elements': serializers.serialize('json', iterable),
             'matched_number': matched_number,
             'unmatched_number': unmatched_number,
             'unprocessed_number': unprocessed_number,
