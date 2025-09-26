@@ -107,11 +107,9 @@ def view_item(request, item_id):
         zoho_item = ZohoItem.objects.filter(item_id=item_id).first()
         if not zoho_item:
             return JsonResponse({'error': 'Item not found'}, status=404)
-
-        # Consultar los datos necesarios de las tablas
+        
         qb_items = QbItem.objects.filter(matched=False, never_match=False).values_list('list_id', 'name')
-
-        # Convertir a DataFrames de Pandas
+        
         qb_df = pd.DataFrame(list(qb_items), columns=['list_id', 'name'])
 
         # Preparar arrays para comparación
