@@ -19,17 +19,17 @@ const InvoicesListPage = () => {
 
     const fetchInvoices = useCallback(async () => {
         try {
-            const url = `${apiUrl}/api_quickbook_soap/matched/invoices/stock/`
+            const url = `${apiUrl}/api_quickbook_soap/matched/invoices/stock/`;
             const params = {
                 date: filterDate.format('YYYY-MM-DD')
-            }
+            };
             const response = await fetchWithToken(url, 'GET', params, {}, apiUrl);
             const data = response.data;
             const config = {
                 matchedNumber: data.matched_number,
                 unmatchedNumber: data.unmatched_number,
                 unprocessedNumber: data.unprocessed_number,
-            }
+            };
             const invoices = JSON.parse(data.elements);
             setInvoices(invoices);
             setConfigData(config);

@@ -72,7 +72,7 @@ const QbwcSimilarItemsList = ({ similarItems, onSyncComplete }) => {
             item_id: zoho_item_id,
             action: 'match',
             username: localStorage.getItem('username')
-          }
+          };
           const response = await fetchWithToken(url, 'POST', body, {}, apiUrl);
           if (response.status === 200) {
             Swal.fire('Matched!', 'Item has been matched.', 'success').then(() => {
@@ -85,7 +85,7 @@ const QbwcSimilarItemsList = ({ similarItems, onSyncComplete }) => {
         } catch (error) {
           Swal.fire('Error!', `Error matching items for the item: ${error}`, 'error');
         }
-      }
+      };
       matchOneItemAjax();
     });
   };

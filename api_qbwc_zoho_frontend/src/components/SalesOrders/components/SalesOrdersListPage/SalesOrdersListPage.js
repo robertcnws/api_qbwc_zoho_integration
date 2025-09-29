@@ -19,17 +19,17 @@ const SalesOrdersListPage = () => {
 
     const fetchSalesOrders = useCallback(async () => {
         try {
-            const url = `${apiUrl}/api_quickbook_soap/matched/sales_orders/custom/`
+            const url = `${apiUrl}/api_quickbook_soap/matched/sales_orders/custom/`;
             const params = {
                 date: filterDate.format('YYYY-MM-DD')
-            }
+            };
             const response = await fetchWithToken(url, 'GET', params, {}, apiUrl);
             const data = response.data;
             const config = {
                 matchedNumber: data.matched_number,
                 unmatchedNumber: data.unmatched_number,
                 unprocessedNumber: data.unprocessed_number,
-            }
+            };
             const sales_orders = JSON.parse(data.elements);
             setSalesOrders(sales_orders);
             setConfigData(config);

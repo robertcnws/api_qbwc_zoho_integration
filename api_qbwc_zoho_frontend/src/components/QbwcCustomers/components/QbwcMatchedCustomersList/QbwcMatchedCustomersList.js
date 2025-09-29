@@ -66,13 +66,13 @@ const QbwcMatchedCustomersList = ({ matchedCustomers, onSyncComplete }) => {
             if (result.isConfirmed) {
                 const unmatchOneCustomerAjax = async () => {
                     try {
-                        const url = `${apiUrl}/api_zoho_customers/match_one_customer_ajax/`
+                        const url = `${apiUrl}/api_zoho_customers/match_one_customer_ajax/`;
                         const data = {
                             contact_id: customer.zoho_customer_id,
                             qb_customer_list_id: customer.qb_customer_list_id,
                             action: 'unmatch',
                             username: localStorage.getItem('username'),
-                        }
+                        };
                         const response = await fetchWithToken(url, 'POST', data, {}, apiUrl);
                         if (response.data.status === 'success') {
                             Swal.fire({
@@ -236,6 +236,6 @@ const QbwcMatchedCustomersList = ({ matchedCustomers, onSyncComplete }) => {
         </Box>
     );
 
-}
+};
 
 export default QbwcMatchedCustomersList;

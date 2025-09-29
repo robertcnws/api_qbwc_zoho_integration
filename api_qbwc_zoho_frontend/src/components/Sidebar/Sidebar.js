@@ -242,7 +242,7 @@ const Sidebar = ({ width = 240, expanded, toggleSubmenu, handleLogout, handleDoB
                 sx={{
                   backgroundColor: isActive('/integration/zoho') ? '#00796b' : 'inherit',
                   borderRadius: isActive('/integration/zoho') ? 3 : 0,
-                  ml: -4, 
+                  ml: -4,
                 }}
               >
                 <ListItemText
@@ -252,7 +252,7 @@ const Sidebar = ({ width = 240, expanded, toggleSubmenu, handleLogout, handleDoB
                       fontSize: '13px',
                       fontFamily: 'Inter, Source Sans Pro, Helvetica, Arial, sans-serif',
                     },
-                    ml: 3.3, 
+                    ml: 3.3,
                   }}
                 />
               </ListItemButton>

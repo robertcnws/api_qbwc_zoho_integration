@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import ApplicationSettingsForm from '../ApplicationSettingsForm/ApplicationSettingsForm';
-import { fetchWithToken } from '../../../../utils'
+import { fetchWithToken } from '../../../../utils';
 
 const apiUrl = process.env.REACT_APP_ENVIRONMENT === 'DEV' ? process.env.REACT_APP_BACKEND_URL_DEV : process.env.REACT_APP_BACKEND_URL_PROD;
 
@@ -24,7 +24,7 @@ const ApplicationSettingsContainer = () => {
 
     const handleSubmit = async (data) => {
         try {
-            data = JSON.stringify(data)
+            data = JSON.stringify(data);
             const response = await fetchWithToken(`${apiUrl}/application_settings/`, 'POST', data, {}, apiUrl);
             setSuccess(response.data.message);
             setError(null);

@@ -144,7 +144,7 @@ const SalesOrdersDetails = () => {
     setFilter(st.filter || 'all');
 
     const invId = st.salesOrder?.fields?.salesorder_id;
-    
+
     if (invId) {
       (async () => {
         try {

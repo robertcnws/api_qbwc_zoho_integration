@@ -26,7 +26,7 @@ const QbwcNeverMatchedItemsListPage = () => {
         } finally {
             setLoading(false);
         }
-    }
+    };
 
     useEffect(() => {
         fetchNeverMatchedItems();

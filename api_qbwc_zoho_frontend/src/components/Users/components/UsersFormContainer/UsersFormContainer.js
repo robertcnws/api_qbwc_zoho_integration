@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { fetchWithToken } from '../../../../utils'
+import { fetchWithToken } from '../../../../utils';
 import UsersForm from '../UsersForm/UsersForm';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
@@ -26,11 +26,11 @@ const UsersFormContainer = () => {
     const handleSubmit = async (data) => {
         try {
             data = { ...data, logged_username: localStorage.getItem('username') };
-            const isStaff = null
+            const isStaff = null;
             if (data.username === localStorage.getItem('username')) {
                 isStaff = data.is_staff;
             }
-            data = JSON.stringify(data)
+            data = JSON.stringify(data);
             console.log(data);
             const response = await fetchWithToken(`${apiUrl}/manage_user/`, 'POST', data, {}, apiUrl);
             setSuccess(response.data.message);

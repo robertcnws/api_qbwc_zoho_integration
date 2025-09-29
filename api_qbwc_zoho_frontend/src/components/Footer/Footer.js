@@ -18,14 +18,14 @@ const Footer = () => {
                 width: '100%'
             }}
         >
-            <Box sx={{ 
+            <Box sx={{
                 marginLeft: '0px',
                 display: 'flex',
                 flexDirection: 'row',
                 justifyContent: 'space-between',
                 alignItems: 'center',
                 padding: '0 10px',
-                py: 0.5 
+                py: 0.5
             }}>
                 <Grid container item xs={6} justifyContent="left" spacing={6}>
                     <Grid item>

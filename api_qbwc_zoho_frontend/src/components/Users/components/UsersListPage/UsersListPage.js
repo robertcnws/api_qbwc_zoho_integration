@@ -24,7 +24,7 @@ const UsersListPage = () => {
         } finally {
             setLoading(false);
         }
-    }
+    };
 
     useEffect(() => {
         fetchUsers();

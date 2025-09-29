@@ -103,11 +103,11 @@ pipeline {
           }
           sh 'npm cache clean --force'
           sh 'npm ci'
-          sh 'npm run lint -- --fix'
+          sh 'npx eslint "src/**/*.{js,jsx}" --fix'
           sh 'npm run build'
           sh """
             docker-compose -f ../docker-compose.aws.frontend.prod.yml build
-            docker tag "${JENKINS_HOOK}_aws_frontend_app:latest" "${FRONTEND_IMAGE}:latest"
+            docker tag "ne_${JENKINS_HOOK}_aws_frontend_app:latest" "${FRONTEND_IMAGE}:latest"
             docker push "${FRONTEND_IMAGE}:latest"
           """
         }

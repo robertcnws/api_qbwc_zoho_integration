@@ -17,7 +17,7 @@ const ItemsListPage = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const url = `${apiUrl}/api_zoho_items/list_items/`
+                const url = `${apiUrl}/api_zoho_items/list_items/`;
                 const response = await fetchWithToken(url, 'GET', null, {}, apiUrl);
                 const jsonData = JSON.parse(response.data);
                 setItems(jsonData);

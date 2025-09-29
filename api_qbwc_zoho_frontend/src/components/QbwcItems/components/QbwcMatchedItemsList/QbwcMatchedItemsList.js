@@ -65,13 +65,13 @@ const QbwcMatchedItemsList = ({ matchedItems, onSyncComplete }) => {
             if (result.isConfirmed) {
                 const unmatchOneItemAjax = async () => {
                     try {
-                        const url = `${apiUrl}/api_zoho_items/match_one_item_ajax/`
+                        const url = `${apiUrl}/api_zoho_items/match_one_item_ajax/`;
                         const data = {
                             item_id: item.zoho_item_id,
                             qb_item_list_id: item.qb_item_list_id,
                             action: 'unmatch',
                             username: localStorage.getItem('username'),
-                        }
+                        };
                         const response = await fetchWithToken(url, 'POST', data, {}, apiUrl);
                         if (response.data.status === 'success') {
                             Swal.fire({
@@ -231,6 +231,6 @@ const QbwcMatchedItemsList = ({ matchedItems, onSyncComplete }) => {
         </Container>
     );
 
-}
+};
 
 export default QbwcMatchedItemsList;

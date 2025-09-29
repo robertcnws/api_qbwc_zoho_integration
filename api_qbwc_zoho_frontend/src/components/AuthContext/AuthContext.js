@@ -9,7 +9,7 @@ export const AuthProvider = ({ children }) => {
     // Verifica el token al montar el componente
     const token = localStorage.getItem('authToken');
     if (token) {
-      setIsAuthenticated(true); 
+      setIsAuthenticated(true);
     }
   }, []);
 

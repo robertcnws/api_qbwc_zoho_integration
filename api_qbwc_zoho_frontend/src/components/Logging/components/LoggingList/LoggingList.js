@@ -186,6 +186,6 @@ const LoggingList = ({ logs }) => {
         </Box>
     );
 
-}
+};
 
 export default LoggingList;

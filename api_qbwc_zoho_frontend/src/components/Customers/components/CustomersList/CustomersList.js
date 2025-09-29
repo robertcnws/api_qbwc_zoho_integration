@@ -79,8 +79,8 @@ const CustomersList = ({ customers }) => {
             customer.fields.phone.toLowerCase().includes(searchTerm.toLowerCase());
 
         if (filter === 'all') return matchesSearchTerm;
-        if (filter === 'matched') return matchesSearchTerm && customer.fields.qb_list_id && customer.fields.qb_list_id !== "";
-        if (filter === 'unmatched') return matchesSearchTerm && (!customer.fields.qb_list_id || customer.fields.qb_list_id === "");
+        if (filter === 'matched') return matchesSearchTerm && customer.fields.qb_list_id && customer.fields.qb_list_id !== '';
+        if (filter === 'unmatched') return matchesSearchTerm && (!customer.fields.qb_list_id || customer.fields.qb_list_id === '');
 
         return matchesSearchTerm;
     });
@@ -88,9 +88,9 @@ const CustomersList = ({ customers }) => {
     const handleViewCustomer = (customer) => {
         localStorage.setItem('customerListPage', page);
         localStorage.setItem('customerListRowsPerPage', rowsPerPage);
-        localStorage.setItem('backNavigation', 'list_customers')
-        navigate('/integration/customer_details', { state: { customer, customers, filteredCustomers, filter, page } })
-    }
+        localStorage.setItem('backNavigation', 'list_customers');
+        navigate('/integration/customer_details', { state: { customer, customers, filteredCustomers, filter, page } });
+    };
 
     const handleSortChange = (columnId) => {
         const isAsc = orderBy === columnId && order === 'asc';

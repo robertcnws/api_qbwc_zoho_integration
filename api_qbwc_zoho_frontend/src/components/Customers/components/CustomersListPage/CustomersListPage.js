@@ -17,7 +17,7 @@ const CustomersListPage = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const url = `${apiUrl}/api_zoho_customers/list_customers/`
+                const url = `${apiUrl}/api_zoho_customers/list_customers/`;
                 const response = await fetchWithToken(url, 'GET', null, {}, apiUrl);
                 const jsonData = JSON.parse(response.data);
                 setCustomers(jsonData);

@@ -15,7 +15,7 @@ const QbwcGetting = () => {
     const gettingData = async (module, objects, setLoading) => {
         setLoading(true);
         navigate(`/integration/qbwc/${objects}/${module}`);
-    }
+    };
 
     const handleListCustomers = () => gettingData('list', 'customers', setLoadingCustomers);
     const handleListItems = () => gettingData('list', 'items', setLoadingItems);

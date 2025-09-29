@@ -26,7 +26,7 @@ const QbwcItemsListPage = () => {
         } finally {
             setLoading(false);
         }
-    }
+    };
 
     useEffect(() => {
         fetchItems();

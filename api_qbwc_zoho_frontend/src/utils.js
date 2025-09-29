@@ -25,7 +25,7 @@ export const getCookie = (name) => {
   if (document.cookie && document.cookie !== '') {
       const cookies = document.cookie.split(';');
       for (let i = 0; i < cookies.length; i++) {
-          let cookie = cookies[i].trim();
+          const cookie = cookies[i].trim();
           if (cookie.indexOf(name + '=') === 0) {
               cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
               break;
@@ -33,7 +33,7 @@ export const getCookie = (name) => {
       }
   }
   return cookieValue;
-}
+};
 
 export const stableSort = (array, comparator) => {
     const stabilizedThis = array.map((el, index) => [el, index]);
@@ -43,13 +43,13 @@ export const stableSort = (array, comparator) => {
         return a[1] - b[1];
     });
     return stabilizedThis.map((el) => el[0]);
-}
+};
 
 export const getComparator = (order, orderBy) => {
     return order === 'desc'
         ? (a, b) => descendingComparator(a, b, orderBy)
         : (a, b) => -descendingComparator(a, b, orderBy);
-}
+};
 
 export function getComparatorUndefined(order, orderBy) {
     return order === 'desc'
@@ -65,13 +65,13 @@ export const descendingComparator = (a, b, orderBy) => {
         return 1;
     }
     return 0;
-}
+};
 
 function descendingComparatorUndefined(a, b, orderBy) {
   if (!a || !b || !a[orderBy] || !b[orderBy]) {
     return 0;
   }
-  
+
   if (b[orderBy] < a[orderBy]) {
     return -1;
   }
@@ -112,8 +112,8 @@ const refreshToken = async (apiUrl) => {
 };
 
 export const fetchWithToken = async (url, method = 'GET', data = null, headers = {}, apiUrl) => {
-  let accessToken = getAccessToken();
-  
+  const accessToken = getAccessToken();
+
   const makeRequest = async (token) => {
       const config = {
           method: method,

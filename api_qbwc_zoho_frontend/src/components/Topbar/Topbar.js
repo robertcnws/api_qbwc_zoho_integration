@@ -71,7 +71,7 @@ const Topbar = ({ handleLogout }) => {
     const [drawerOpen, setDrawerOpen] = useState(false);
 
     const handleClose = () => {
-        setDrawerOpen(false)
+        setDrawerOpen(false);
     };
 
     const toggleDrawer = (open, drawingUser) => (event) => {
@@ -98,7 +98,7 @@ const Topbar = ({ handleLogout }) => {
             const notification_unread = data.filter(item => !item.notification_is_read);
             if (quantityUnread === 1) {
                 toast.info(`${notification_unread[0].notification_message} on ${notification_unread[0].notification_modified}`, {
-                    position: "top-center",
+                    position: 'top-center',
                     autoClose: 5000,
                     hideProgressBar: false,
                     closeOnClick: true,
@@ -113,7 +113,7 @@ const Topbar = ({ handleLogout }) => {
                 });
             } else {
                 toast.info(`You have ${quantityUnread} new notifications`, {
-                    position: "top-center",
+                    position: 'top-center',
                     autoClose: 5000,
                     hideProgressBar: false,
                     closeOnClick: true,
@@ -218,7 +218,7 @@ const Topbar = ({ handleLogout }) => {
     const logout = () => {
         handleClose();
         handleLogout();
-    }
+    };
 
     const handleCheckNotification = async (notification) => {
         const data = {
@@ -230,10 +230,10 @@ const Topbar = ({ handleLogout }) => {
             if (notification.notification_module !== 'backup') {
                 navigate(`/integration/list_${notification.notification_module}`);
             } else {
-                navigate(`/integration/download_backup_db`);
+                navigate('/integration/download_backup_db');
             }
         }
-    }
+    };
 
     const handleFilterChange = event => {
         setFilter(event.target.value);

@@ -90,7 +90,7 @@ const ItemsList = ({ items }) => {
     const handleViewItem = (item) => {
         localStorage.setItem('itemListPage', page);
         localStorage.setItem('itemListRowsPerPage', rowsPerPage);
-        localStorage.setItem('backNavigation', 'list_items')
+        localStorage.setItem('backNavigation', 'list_items');
         navigate('/integration/item_details', { state: { item, items, filteredItems, filter } });
 
     };
@@ -136,8 +136,8 @@ const ItemsList = ({ items }) => {
             item.fields.item_id.toLowerCase().includes(searchTerm.toLowerCase());
 
         if (filter === 'all') return matchesSearchTerm;
-        if (filter === 'matched') return matchesSearchTerm && item.fields.qb_list_id && item.fields.qb_list_id !== "";
-        if (filter === 'unmatched') return matchesSearchTerm && (!item.fields.qb_list_id || item.fields.qb_list_id === "");
+        if (filter === 'matched') return matchesSearchTerm && item.fields.qb_list_id && item.fields.qb_list_id !== '';
+        if (filter === 'unmatched') return matchesSearchTerm && (!item.fields.qb_list_id || item.fields.qb_list_id === '');
         if (filter === 'custom') return matchesSearchTerm && item.fields.is_custom === true;
 
         return matchesSearchTerm;
@@ -307,7 +307,7 @@ const ItemsList = ({ items }) => {
                                                     }}
                                                     onClick={() => handleSetCustom(item)}
                                                 >
-                                                    {item.fields.is_custom ? "Quit Custom" : "Set Custom"}
+                                                    {item.fields.is_custom ? 'Quit Custom' : 'Set Custom'}
                                                 </Button>
                                             </Box>
                                         </TableCell>
@@ -343,14 +343,14 @@ const ItemsList = ({ items }) => {
                                         <TableCell
                                             onClick={() => handleViewItem(item)}
                                             sx={(theme) => ({
-                                                color: !item.fields.qb_list_id || item.fields.qb_list_id === "" ? theme.palette.error.main : theme.palette.success.main,
+                                                color: !item.fields.qb_list_id || item.fields.qb_list_id === '' ? theme.palette.error.main : theme.palette.success.main,
                                                 fontWeight: 'bold',
                                                 borderBottom: '1px solid #ccc',
                                                 width: '50px',
                                                 maxWidth: '50px'
                                             })}>
                                             {/* <b>{!item.fields.qb_list_id || item.fields.qb_list_id === "" ? "NO" : "YES"}</b> */}
-                                            {!item.fields.qb_list_id || item.fields.qb_list_id === "" ?
+                                            {!item.fields.qb_list_id || item.fields.qb_list_id === '' ?
                                                 <Tooltip
                                                     title="NOT MATCHED"
                                                     arrow

@@ -167,7 +167,7 @@ const UsersList = ({ users, onSyncComplete }) => {
                 <Grid item xs={6} container justifyContent="flex-end" spacing={1}>
                     <NavigationRightButton children={childrenNavigationRightButton} />
                 </Grid>
-                <Box sx={{ display: 'flex', width: '100%'}}>
+                <Box sx={{ display: 'flex', width: '100%' }}>
                     <Alert severity="info" sx={{ mb: 2 }}>
                         There are {filteredUsers.length} users found.
                     </Alert>
@@ -254,6 +254,6 @@ const UsersList = ({ users, onSyncComplete }) => {
         </Box>
     );
 
-}
+};
 
 export default UsersList;

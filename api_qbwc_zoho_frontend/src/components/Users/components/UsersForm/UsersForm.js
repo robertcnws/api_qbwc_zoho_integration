@@ -103,7 +103,7 @@ const UsersForm = ({ formData, onSubmit, error, success, isNew }) => {
             setData({
                 ...data,
                 is_new: isNew,
-            })
+            });
             onSubmit(data);
             setFormChanged(false);
         }

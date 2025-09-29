@@ -72,6 +72,6 @@ const CustomFilter = ({ configCustomFilter, fontSize }) => {
       </Select>
     </FormControl>
   );
-}
+};
 
 export default CustomFilter;

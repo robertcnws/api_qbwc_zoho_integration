@@ -119,7 +119,7 @@ const QbwcNeverMatchedCustomersList = ({ customers, onSyncComplete }) => {
         }).then(async (result) => {
             if (result.isConfirmed) {
                 try {
-                    const url = `${apiUrl}/api_quickbook_soap/never_match_customers_ajax/`
+                    const url = `${apiUrl}/api_quickbook_soap/never_match_customers_ajax/`;
                     const body = {
                         customers: selectedCustomers,
                         to_match: true,
@@ -295,6 +295,6 @@ const QbwcNeverMatchedCustomersList = ({ customers, onSyncComplete }) => {
         </Box>
     );
 
-}
+};
 
 export default QbwcNeverMatchedCustomersList;

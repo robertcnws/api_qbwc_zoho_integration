@@ -24,7 +24,7 @@ const LoggingListPage = () => {
         } finally {
             setLoading(false);
         }
-    }
+    };
 
     useEffect(() => {
         fetchData();

@@ -41,7 +41,7 @@ const LoginForm = () => {
       });
 
       if (jwtResponse.status !== 200) {
-        setError(`Invalid Credentials : No active account found with the given credentials`);
+        setError('Invalid Credentials : No active account found with the given credentials');
         throw new Error(`${error}`);
       }
 
@@ -72,7 +72,7 @@ const LoginForm = () => {
         }
       }
     } catch (error) {
-      setError(`Invalid Credentials : No active account found with the given credentials`);
+      setError('Invalid Credentials : No active account found with the given credentials');
     } finally {
       setLoading(false);
     }

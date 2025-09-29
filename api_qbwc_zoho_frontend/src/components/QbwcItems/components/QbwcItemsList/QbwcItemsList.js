@@ -96,7 +96,7 @@ const QbwcItemsList = ({ items, onSyncComplete }) => {
             { value: 'not_matched', label: 'Unmatched Items' }
         ],
         hasSearch: false
-    }
+    };
 
     const renderForceSyncCheckbox = (item, isSelected) => {
         if (filter !== 'matched') {
@@ -119,7 +119,7 @@ const QbwcItemsList = ({ items, onSyncComplete }) => {
                 <Typography sx={{ color: 'success.main' }}>
                     Matched
                 </Typography>
-            )
+            );
         }
     };
 
@@ -144,7 +144,7 @@ const QbwcItemsList = ({ items, onSyncComplete }) => {
         }).then(async (result) => {
             if (result.isConfirmed) {
                 try {
-                    const url = `${apiUrl}/api_quickbook_soap/never_match_items_ajax/`
+                    const url = `${apiUrl}/api_quickbook_soap/never_match_items_ajax/`;
                     const body = {
                         items: selectedItems,
                         username: localStorage.getItem('username')
@@ -318,6 +318,6 @@ const QbwcItemsList = ({ items, onSyncComplete }) => {
         </Box>
     );
 
-}
+};
 
 export default QbwcItemsList;

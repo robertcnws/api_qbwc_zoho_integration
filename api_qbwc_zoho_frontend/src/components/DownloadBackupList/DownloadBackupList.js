@@ -260,6 +260,6 @@ const DownloadBackupList = () => {
         </Box>
     );
 
-}
+};
 
 export default DownloadBackupList;

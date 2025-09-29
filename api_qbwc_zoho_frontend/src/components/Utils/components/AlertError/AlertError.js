@@ -13,9 +13,9 @@ export const AlertError = ({ isSmallScreen, error, redirect }) => {
 
     return (
         <>
-            <Alert 
-            severity="error" 
-            xs={12} 
+            <Alert
+            severity="error"
+            xs={12}
             sx={{
                 mt: 3,
                 p: 1,
@@ -38,5 +38,5 @@ export const AlertError = ({ isSmallScreen, error, redirect }) => {
                 {error}
             </Alert>
         </>
-    )
-}
+    );
+};

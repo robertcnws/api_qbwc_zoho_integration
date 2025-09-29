@@ -11,5 +11,5 @@ export const AlertLoading = ({ isSmallScreen, message }) => {
     }}>
         <b>Loading {message ? `(${message})` : ''}...</b>
     </Alert>
-    )
-}
+    );
+};

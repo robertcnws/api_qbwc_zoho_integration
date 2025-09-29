@@ -12,7 +12,7 @@ const ProtectedRoute = ({ children }) => {
   //   }
   // }, [isAuthenticated, location.pathname]);
 
-  if (isAuthenticated === undefined) return "... LOADING ...";
+  if (isAuthenticated === undefined) return '... LOADING ...';
 
   return isAuthenticated ? (
     children

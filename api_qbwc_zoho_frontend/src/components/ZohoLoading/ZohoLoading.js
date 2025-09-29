@@ -21,8 +21,8 @@ import ReceiptIcon from '@mui/icons-material/Receipt';
 import ListAlt from '@mui/icons-material/ListAlt';
 import { Warning } from '@mui/icons-material';
 import { fetchWithToken } from '../../utils';
-import axios from 'axios'
-import moment from 'moment'
+import axios from 'axios';
+import moment from 'moment';
 import { ArrowDropDownIcon, DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs from 'dayjs';
@@ -54,7 +54,7 @@ const ZohoLoading = () => {
 
     const isAnyLoading = loadingCustomers || loadingItems || loadingInvoices || loadingSalesOrders;
 
-    const zohoConnectionConfigured = localStorage.getItem('zohoConnectionConfigured')
+    const zohoConnectionConfigured = localStorage.getItem('zohoConnectionConfigured');
 
     const today = dayjs();
     const oneYearAgo = today.subtract(1, 'year');
@@ -101,10 +101,10 @@ const ZohoLoading = () => {
         const fetchData = async () => {
             try {
                 const response = await axios.get(`${apiUrl}/zoho_loading/`);
-                setLastDateLoadedCustomers(response.data.zoho_loading_customers.zoho_record_updated)
-                setlastDateLoadedItems(response.data.zoho_loading_items.zoho_record_updated)
-                setlastDateLoadedInvoices(response.data.zoho_loading_invoices.zoho_record_updated)
-                setlastDateLoadedSalesOrders(response.data.zoho_loading_sales_orders.zoho_record_updated || null)
+                setLastDateLoadedCustomers(response.data.zoho_loading_customers.zoho_record_updated);
+                setlastDateLoadedItems(response.data.zoho_loading_items.zoho_record_updated);
+                setlastDateLoadedInvoices(response.data.zoho_loading_invoices.zoho_record_updated);
+                setlastDateLoadedSalesOrders(response.data.zoho_loading_sales_orders.zoho_record_updated || null);
             } catch (error) {
                 console.error('Error fetching items:', error);
                 setError(`Failed to fetch items: ${error}`);
