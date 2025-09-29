@@ -173,7 +173,7 @@ const QbwcMatchedCustomersList = ({ matchedCustomers, onSyncComplete }) => {
                 </Grid>
                 <Grid item xs={12}>
                     <TableContainer component={Paper}>
-                        <Table id="myTable" aria-label="customers table" sx={{ minWidth: 650 }}>
+                        <Table id="myTable" aria-label="customers table" sx={{ maxHeight: 700, minHeight: 700, minWidth: 650 }}>
                             <TableHead sx={{ backgroundColor: '#e0e0e0' }}>
                                 <TableRow>
                                     {columns.map((column) => (

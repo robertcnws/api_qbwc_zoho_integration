@@ -584,7 +584,7 @@ const SalesOrdersList = ({ data, configData, onSyncComplete, filterDate, setFilt
             </Box>
 
             {/* Tabla */}
-            <TableContainer sx={{ maxHeight: 620, minHeight: 620 }}>
+            <TableContainer sx={{ maxHeight: 700, minHeight: 700 }}>
                 <Table stickyHeader aria-label="sales orders table" size="small">
                     <TableHead>
                         <TableRow sx={{ backgroundColor: '#f9f9fb' }}>

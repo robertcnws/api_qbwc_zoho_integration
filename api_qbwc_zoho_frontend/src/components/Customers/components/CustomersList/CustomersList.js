@@ -23,8 +23,8 @@ import TableCustomPagination from '../../../Utils/components/TableCustomPaginati
 import CustomFilter from '../../../Utils/components/CustomFilter/CustomFilter';
 
 const numberRows = parseInt(process.env.REACT_APP_DEFAULT_ROWS_PER_PAGE);
-const TABLE_MIN_HEIGHT = 520;
-const TABLE_MAX_HEIGHT = 'calc(100vh - 260px)';
+const TABLE_MIN_HEIGHT = 700;
+const TABLE_MAX_HEIGHT = 700;
 
 const CustomersList = ({ customers }) => {
     const [page, setPage] = useState(0);

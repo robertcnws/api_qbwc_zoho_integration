@@ -243,7 +243,7 @@ const QbwcItemsList = ({ items, onSyncComplete }) => {
 
                 </Grid>
                 <Grid item xs={12}>
-                    <TableContainer style={{ maxHeight: '600px', minWidth: 690 }}>
+                    <TableContainer style={{ maxHeight: 700, minHeight: 700, minWidth: 690 }}>
                         <Table id="myTable" aria-label="items table" stickyHeader>
                             <TableHead sx={{ backgroundColor: '#e0e0e0' }}>
                                 <TableRow>

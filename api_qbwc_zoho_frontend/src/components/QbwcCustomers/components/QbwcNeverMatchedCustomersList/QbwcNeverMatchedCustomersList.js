@@ -225,7 +225,7 @@ const QbwcNeverMatchedCustomersList = ({ customers, onSyncComplete }) => {
                     </Grid>
                 </Grid>
                 <Grid item xs={12} sx={{ mt: '-1%' }}>
-                    <TableContainer style={{ maxHeight: '600px', minWidth: 690 }}>
+                    <TableContainer style={{ maxHeight: 650, minHeight: 650, minWidth: 690 }}>
                         <Table id="myTable" aria-label="customers table" stickyHeader>
                             <TableHead sx={{ backgroundColor: '#e0e0e0' }}>
                                 <TableRow>

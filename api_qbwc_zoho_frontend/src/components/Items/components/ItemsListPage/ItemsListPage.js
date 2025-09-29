@@ -52,7 +52,7 @@ const ItemsListPage = () => {
                 flexDirection: 'column',
                 width: '100%',
                 bgcolor: '#F9F9FB',
-                p: { xs: 1.5, md: 2 },
+                p: 0,
                 gap: 2,
             }}
         >
