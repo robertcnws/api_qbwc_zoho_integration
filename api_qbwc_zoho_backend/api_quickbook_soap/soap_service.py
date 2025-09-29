@@ -509,7 +509,7 @@ def generate_sales_order_add_response():
     response = None
 
     for i in range(len(sales_orders)):
-        logging.debug(f'Sales Order: {sales_orders[i].date}, {sales_orders[i].order_number}, {sales_orders[i].customer_id}, {sales_orders[i].customer_name}')
+        logging.debug(f'Sales Order: {sales_orders[i].date}, {sales_orders[i].salesorder_number}, {sales_orders[i].customer_id}, {sales_orders[i].customer_name}')
 
         items_xml = ''
         items_unmatched = []

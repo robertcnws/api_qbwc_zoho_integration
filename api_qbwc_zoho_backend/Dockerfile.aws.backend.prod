@@ -20,7 +20,7 @@ RUN pip install --upgrade pip \
  && pip install -r requirements.txt
  
 RUN apt-get update \
- && apt-get install -y --no-install-recommends wget ca-certificates gnupg supervisor \
+ && apt-get install -y --no-install-recommends wget ca-certificates gnupg supervisor postgresql-client \
  && rm -rf /var/lib/apt/lists/*
  
 COPY . /app/

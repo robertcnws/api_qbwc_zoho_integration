@@ -36,7 +36,7 @@ const HomeRedirect = () => {
   if (isAuthenticated) {
     const redirectPath = localStorage.getItem('redirectPath') || '/integration';
     localStorage.removeItem('redirectPath');
-    return <Navigate to={redirectPath} />;
+    return <Navigate to={redirectPath} replace />;
   }
 
   return <LoginForm />;

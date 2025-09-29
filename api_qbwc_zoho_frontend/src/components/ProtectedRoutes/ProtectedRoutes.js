@@ -6,19 +6,11 @@ const ProtectedRoute = ({ children }) => {
   const { isAuthenticated } = useAuth();
   const location = useLocation();
 
-  // useEffect(() => {
-  //   if (isAuthenticated) {
-  //     <Navigate to="/" replace state={{ from: location }} />
-  //   }
-  // }, [isAuthenticated, location.pathname]);
-
-  if (isAuthenticated === undefined) return '... LOADING ...';
-
-  return isAuthenticated ? (
-    children
-  ) : (
-    <Navigate to="/" replace state={{ from: location }} />
-  );
+  if (!isAuthenticated) {
+    localStorage.setItem('redirectPath', location.pathname + location.search);
+    return <Navigate to="/" replace />;
+  }
+  return children;
 };
 
 export default ProtectedRoute;
