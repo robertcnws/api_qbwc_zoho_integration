@@ -97,7 +97,6 @@ const ZohoLoading = () => {
     const handleLoadSalesOrders = () => loadData('sales_orders', 'api_zoho_sales_orders', 'load_sales_orders', setLoadingSalesOrders);
 
     useEffect(() => {
-
         const fetchData = async () => {
             try {
                 const response = await axios.get(`${apiUrl}/zoho_loading/`);
