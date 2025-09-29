@@ -73,6 +73,7 @@ def invoice_add_request(request):
 def sales_order_add_request(request):
     return start_qbwc_sales_order_add_request(request)
 
+
 #############################################
 # Home page
 #############################################

@@ -17,6 +17,9 @@
     "**/*.ts",
     "**/*.tsx"
   ],
+  "plugins": [
+    "react-hooks"
+  ],
   "rules": {
     "no-unused-vars": ["warn", { "varsIgnorePattern": "^_", "argsIgnorePattern": "^_" }],
     "prefer-const": "warn",
@@ -24,6 +27,9 @@
     "no-trailing-spaces": "warn",
     "object-curly-spacing": ["warn", "always"],
     "semi": ["warn", "always"],
-    "quotes": ["warn", "single", { "avoidEscape": true }]
+    "quotes": ["warn", "single", { "avoidEscape": true }],
+
+    "react-hooks/rules-of-hooks": "error",
+    "react-hooks/exhaustive-deps": "warn"
   }
 }
