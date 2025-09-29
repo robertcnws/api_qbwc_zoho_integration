@@ -356,7 +356,7 @@ const CustomersDetails = () => {
     <Box
       sx={{
         width: '100%',
-        px: { xs: 1.5, md: 2 },
+        px: 0,
         py: { xs: 1.5, md: 2 },
         display: 'flex',
         flexDirection: 'column',

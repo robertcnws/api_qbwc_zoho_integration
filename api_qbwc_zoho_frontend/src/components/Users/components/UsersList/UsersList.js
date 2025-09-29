@@ -176,7 +176,7 @@ const UsersList = ({ users, onSyncComplete }) => {
             </Box>
 
             <Grid item xs={12} sx={{ mt: '-1%' }}>
-                <TableContainer style={{ maxHeight: '700px', minHeight: '700px', minWidth: 690 }}>
+                <TableContainer style={{ maxHeight: '600px', minHeight: '600px', minWidth: 690 }}>
                     <Table id="myTable" aria-label="items table" stickyHeader>
                         <TableHead sx={{ backgroundColor: '#e0e0e0' }}>
                             <TableRow>

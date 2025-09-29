@@ -2,6 +2,7 @@ from django.db.models import Q
 from api_zoho.models import AppConfig
 from api_zoho_invoices.models import ZohoFullInvoice
 from api_zoho_customers.models import ZohoCustomer
+from api_zoho_sales_orders.models import ZohoFullSalesOrder
 from api_zoho_items.models import ZohoItem
 from datetime import date
 from django.conf import settings
@@ -476,6 +477,174 @@ def generate_invoice_add_response():
             invoices[i].customer_unmatched = customers_unmatched
             invoices[i].inserted_in_qb = False
             invoices[i].save()
+
+    if data_xml != '':
+        request_xml = f'''<?qbxml version="8.0"?>
+                                <QBXML>
+                                    <QBXMLMsgsRq onError="continueOnError">
+                                        {data_xml}
+                                    </QBXMLMsgsRq>
+                                </QBXML>'''
+
+        response = f'''<?xml version="1.0" encoding="utf-8"?>
+                                <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:qb="http://developer.intuit.com/">
+                                    <soap:Header/>
+                                    <soap:Body>
+                                        <qb:sendRequestXMLResponse>
+                                            <qb:sendRequestXMLResult><![CDATA[{request_xml}]]></qb:sendRequestXMLResult>
+                                        </qb:sendRequestXMLResponse>
+                                    </soap:Body>
+                                </soap:Envelope>'''
+    return response
+
+
+def generate_sales_order_add_response():
+    today = date.today()
+    logging.debug(f'Today: {today}')
+
+    sales_orders = ZohoFullSalesOrder.objects.filter(force_to_sync=True, inserted_in_qb=False)
+    logging.debug(f'Length Sales Orders: {len(sales_orders)}')
+
+    data_xml = ''
+    response = None
+
+    for i in range(len(sales_orders)):
+        logging.debug(f'Sales Order: {sales_orders[i].date}, {sales_orders[i].order_number}, {sales_orders[i].customer_id}, {sales_orders[i].customer_name}')
+
+        items_xml = ''
+        items_unmatched = []
+        customers_unmatched = []
+        counter_items_with_list_id = 0
+
+        sales_orders[i].last_sync_date = today
+        sales_orders[i].number_of_times_synced += 1
+
+        for item in sales_orders[i].line_items:
+            if isinstance(item, ZohoItem):
+                desc = item.description if item.description else 'default_desc_value_if_not_found'
+                name = item.name if item.name else 'default_name_value_if_not_found'
+                sku = item.sku if item.sku else 'default_sku_value_if_not_found'
+                quantity = item.quantity if item.quantity else 'default_quantity_value_if_not_found'
+                rate = item.rate
+            else:
+                desc = item.get('description', 'default_desc_value_if_not_found')
+                name = item.get('name', 'default_name_value_if_not_found')
+                sku = item.get('sku', 'default_sku_value_if_not_found')
+                quantity = item.get('quantity', 'default_quantity_value_if_not_found')
+                rate = item.get('rate', 'default_rate_value_if_not_found')
+
+            if sku == 'default_sku_value_if_not_found' or sku == '':
+                zoho_item = ZohoItem.objects.filter(Q(name=desc) | Q(description=desc) | Q(name=name)).first()
+            else:
+                zoho_item = ZohoItem.objects.filter(Q(sku=sku)).first()
+
+            logging.debug(f'Zoho Item: {zoho_item}')
+
+            if zoho_item:
+                if zoho_item.qb_list_id:
+                    regex = re.compile(r'^[A-Za-z0-9]{8}-\d{10}$')
+                    if regex.match(zoho_item.qb_list_id):
+                        counter_items_with_list_id += 1
+                        has_quantity = f'<Quantity>{quantity}</Quantity>'
+                        if zoho_item.item_id == '3154577000040782413' or zoho_item.item_id == '3154577000044099049':
+                            rate = (-1) * float(rate) 
+                            has_quantity = ''    
+                        items_xml += f'''<SalesOrderLineAdd>
+                                        <ItemRef>
+                                            <ListID>{zoho_item.qb_list_id}</ListID>
+                                        </ItemRef>
+                                        <Desc>{desc}</Desc>
+                                        {has_quantity}
+                                        <Rate>{rate}</Rate>
+                                    </SalesOrderLineAdd>'''
+                    else:
+                        logger.debug(f'Item {zoho_item} has a QB List ID that is not valid (Proceed to match)')
+                        info_item_unmatched = {
+                            'zoho_item_id': zoho_item.item_id,
+                            'zoho_item_unmatched': zoho_item.name,
+                            'reason': 'Item QB List ID is not valid (Proceed to match)'
+                        }
+                        items_unmatched.append(info_item_unmatched)
+                else:
+                    logger.debug(f'Item {zoho_item} has no QB List ID (Proceed to match)')
+                    info_item_unmatched = {
+                        'zoho_item_id': zoho_item.item_id,
+                        'zoho_item_unmatched': zoho_item.name,
+                        'reason': 'Item has no QB List ID (Proceed to match)'
+                    }
+                    items_unmatched.append(info_item_unmatched)
+            else:
+                logger.debug(f'Item {desc} has no match in Zoho Items')
+                info_item_unmatched = {
+                    'zoho_item_id': None,
+                    'zoho_item_unmatched': desc,
+                    'reason': 'Item does not exist in Zoho Items'
+                }
+                items_unmatched.append(info_item_unmatched)
+
+        logging.debug(f'--------------------------------------------------------------------------------------------')
+
+        if len(items_unmatched) > 0:
+            sales_orders[i].items_unmatched = items_unmatched
+            sales_orders[i].inserted_in_qb = False
+            sales_orders[i].save()
+        elif counter_items_with_list_id == len(sales_orders[i].line_items):
+            sales_orders[i].items_unmatched = []
+            sales_orders[i].save()
+
+        zoho_customer = ZohoCustomer.objects.filter(contact_id=sales_orders[i].customer_id).first()
+
+        if zoho_customer:
+            if zoho_customer.qb_list_id:
+                sales_orders[i].customer_unmatched = []
+                terms = settings.TERMS
+
+                if counter_items_with_list_id == len(sales_orders[i].line_items):
+                    if items_xml != '':
+                        sales_tax_list_id = settings.SALES_TAX_LIST_ID
+                        template = settings.TEMPLATE_INVOICE_NAME
+                        data_xml += f'''<SalesOrderAddRq requestID="{i + 2}">
+                                        <SalesOrderAdd>
+                                            <CustomerRef>
+                                                <ListID>{zoho_customer.qb_list_id}</ListID>
+                                            </CustomerRef>
+                                            <TemplateRef>
+                                                <FullName>{template}</FullName>
+                                            </TemplateRef>
+                                            <TxnDate>{sales_orders[i].date}</TxnDate>
+                                            <TermsRef>
+                                                <FullName>{terms}</FullName>
+                                            </TermsRef>
+                                            {items_xml}
+                                        </SalesOrderAdd>
+                                    </SalesOrderAddRq>
+                                    '''
+
+                    logger.debug(f'Data XML: {data_xml}')
+                    sales_orders[i].inserted_in_qb = True
+                    sales_orders[i].save()
+            else:
+                logger.debug(f'Customer {zoho_customer} has no QB List ID (Proceed to match)')
+                customer_unmatched = {
+                    'zoho_customer_id': zoho_customer.contact_id,
+                    'zoho_customer_unmatched': zoho_customer.customer_name,
+                    'reason': 'Customer is not matched in QuickBooks (Proceed to match)'
+                }
+                customers_unmatched.append(customer_unmatched)
+                sales_orders[i].customer_unmatched = customers_unmatched
+                sales_orders[i].inserted_in_qb = False
+                sales_orders[i].save()
+        else:
+            logger.debug(f'Customer {sales_orders[i].customer_id} has no match in Zoho Customers')
+            customer_unmatched = {
+                'zoho_customer_id': sales_orders[i].customer_id,
+                'zoho_customer_unmatched': 'Customer not found',
+                'reason': 'Customer is not matched in Zoho Customers'
+            }
+            customers_unmatched.append(customer_unmatched)
+            sales_orders[i].customer_unmatched = customers_unmatched
+            sales_orders[i].inserted_in_qb = False
+            sales_orders[i].save()
 
     if data_xml != '':
         request_xml = f'''<?qbxml version="8.0"?>

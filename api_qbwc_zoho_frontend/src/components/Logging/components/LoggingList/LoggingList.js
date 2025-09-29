@@ -93,7 +93,7 @@ const LoggingList = ({ logs }) => {
                 overflowX: 'hidden',
             }}
         >
-            <Grid container spacing={2} alignItems="center" justifyContent="space-between" mb={3} sx={{ mt: '-3%' }}>
+            <Grid container spacing={2} alignItems="center" justifyContent="space-between" mb={3}>
                 <Grid item xs={6}>
                     <Typography
                         variant="h6"
@@ -119,7 +119,7 @@ const LoggingList = ({ logs }) => {
                     </Grid>
                 </Grid>
                 <Grid item xs={12} sx={{ mt: '-1%' }}>
-                    <TableContainer style={{ maxHeight: '700px', minHeight: '700px', minWidth: 690 }}>
+                    <TableContainer style={{ maxHeight: '600px', minHeight: '600px', minWidth: 690 }}>
                         <Table id="myTable" aria-label="items table" stickyHeader>
                             <TableHead sx={{ backgroundColor: '#e0e0e0' }}>
                                 <TableRow>

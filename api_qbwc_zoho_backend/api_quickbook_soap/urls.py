@@ -8,6 +8,7 @@ urlpatterns = [
     path("customer_query/", views.customer_query, name="customer_query"),
     path("item_query/<str:item_type>", views.item_query, name="item_query"),
     path("invoice_add_request/", views.invoice_add_request, name="invoice_add_request"),
+    path("sales_order_add_request/", views.sales_order_add_request, name="sales_order_add_request"),
     path("qbwc_items/<str:is_never_match>", views.qbwc_items, name="qbwc_items"),
     path("qbwc_customers/<str:is_never_match>", views.qbwc_customers, name="qbwc_customers"),
     path("matching_items/", views.matching_items, name="matching_items"),

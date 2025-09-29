@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { alpha, lighten } from '@mui/material/styles';
 import {
   Box,
   Typography,
@@ -22,6 +23,8 @@ import LineChartComponent from '../DataCharts/components/LineChartComponent/Line
 
 // import './MainContent.css'; // Evita estilos que rompan tamaños/espaciados
 
+const SAFE_COLORS = ['primary', 'secondary', 'info', 'success', 'warning', 'error'];
+
 const apiUrl =
   process.env.REACT_APP_ENVIRONMENT === 'DEV'
     ? process.env.REACT_APP_BACKEND_URL_DEV
@@ -30,20 +33,22 @@ const apiUrl =
 const Card = ({ children, onClick, sx }) => (
   <Box
     onClick={onClick}
-    sx={{
-      p: 2,
-      borderRadius: 2,
-      border: '1px solid',
-      borderColor: 'divider',
-      boxShadow: 1,
-      bgcolor: 'background.paper',
-      transition: 'transform 120ms ease, box-shadow 120ms ease',
-      cursor: onClick ? 'pointer' : 'default',
-      '&:hover': onClick
-        ? { transform: 'translateY(-2px)', boxShadow: 3 }
-        : undefined,
-      ...sx,
-    }}
+    sx={[
+      {
+        p: 2,
+        borderRadius: 2,
+        border: '1px solid',
+        borderColor: 'divider',
+        boxShadow: 1,
+        bgcolor: 'background.paper',
+        transition: 'transform 120ms ease, box-shadow 120ms ease',
+        cursor: onClick ? 'pointer' : 'default',
+        '&:hover': onClick
+          ? { transform: 'translateY(-2px)', boxShadow: 3 }
+          : undefined,
+      },
+      sx,
+    ]}
   >
     {children}
   </Box>
@@ -64,17 +69,30 @@ const Panel = ({ title, children, sx }) => (
   </Card>
 );
 
-const StatCard = ({ title, iconUp, valueNode, onClick }) => (
+const StatCard = ({ title, iconUp, valueNode, onClick, color = 'default' }) => (
   <Card
     onClick={onClick}
-    sx={{
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      textAlign: 'center',
-      minHeight: 120,
-      gap: 1,
+    sx={(theme) => {
+      const isDefault = color === 'default';
+      const colorKey = SAFE_COLORS.includes(color) ? color : 'primary';
+      const slot = theme.palette[colorKey];
+      const lightBase = slot.light ?? lighten(slot.main, 0.05);
+      const lighter = alpha(lightBase, 0.2);
+
+      console.log('isDefault:', isDefault, 'colorKey:', colorKey, 'slot:', slot, 'lightBase:', lightBase, 'lighter:', lighter);
+
+      return {
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        textAlign: 'center',
+        minHeight: 60,
+        gap: 1,
+        bgcolor: isDefault ? theme.palette.background.paper : lighter,
+        border: '1px solid',
+        borderColor: isDefault ? theme.palette.divider : alpha(slot.main, 0.12),
+      };
     }}
   >
     <Typography variant="subtitle2">{title}</Typography>
@@ -194,7 +212,7 @@ const MainContent = () => {
         flexDirection: 'column',
         width: '100%',
         bgcolor: '#F9F9FB',
-        p: { xs: 1.5, md: 2 },
+        p: 0,
         gap: 2,
       }}
     >
@@ -275,6 +293,7 @@ const MainContent = () => {
                 <b>{invoicesTrendStats.trend.change}</b> (Last Week: {invoicesTrendStats.trend.previous_week})
               </Typography>
             }
+            color='success'
           />
         )}
 
@@ -302,6 +321,7 @@ const MainContent = () => {
                 <b>{customersTrendStats.trend.change}</b> (Last Week: {customersTrendStats.trend.previous_week})
               </Typography>
             }
+            color='secondary'
           />
         )}
 
@@ -329,6 +349,7 @@ const MainContent = () => {
                 <b>{itemsTrendStats.trend.change}</b> (Last Week: {itemsTrendStats.trend.previous_week})
               </Typography>
             }
+            color='info'
           />
         )}
 
@@ -356,6 +377,7 @@ const MainContent = () => {
                 <b>{customersMatchedStats.trend.per_cent_matched} %</b> (Unmatched: {customersMatchedStats.trend.per_cent_not_matched} %)
               </Typography>
             }
+            color='warning'
           />
         )}
 
@@ -383,6 +405,7 @@ const MainContent = () => {
                 <b>{itemsMatchedStats.trend.per_cent_matched} %</b> (Unmatched: {itemsMatchedStats.trend.per_cent_not_matched} %)
               </Typography>
             }
+            color='error'
           />
         )}
 
@@ -410,6 +433,7 @@ const MainContent = () => {
                 <b>{itemsMatchedStats.trend.per_cent_matched} %</b> (Unmatched: {itemsMatchedStats.trend.per_cent_not_matched} %)
               </Typography>
             }
+            color='primary'
           />
         )}
       </Box>

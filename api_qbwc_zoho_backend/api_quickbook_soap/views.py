@@ -69,6 +69,10 @@ def customer_query(request):
 def invoice_add_request(request):
     return start_qbwc_invoice_add_request(request)
 
+@csrf_exempt
+def sales_order_add_request(request):
+    return start_qbwc_sales_order_add_request(request)
+
 
 #############################################
 # Home page
@@ -668,6 +672,28 @@ def match_one_customer_ajax(request):
 # SOAP requests
 #############################################
 
+def start_qbwc_sales_order_add_request(request):
+    if request.method == 'POST':
+        xml_data = request.body.decode('utf-8')
+        response_xml = process_qbwc_sales_order_add_request(xml_data)
+        qb_loading = QbLoading.objects.filter(qb_module='sales_orders', qb_record_created=datetime.now(timezone.utc)).first()
+        app_config = AppConfig.objects.first()
+        api_zoho_views.manage_api_tracking_log(f'{app_config.qb_username} (From QBWC)', 'sync_sales_orders_to_qb', request.META.get('REMOTE_ADDR'), 'Sync sales orders to QuickBooks')
+
+        if not qb_loading:
+            qb_loading = create_qb_loading_instance('sales_orders')
+        else:
+            qb_loading.qb_record_updated = datetime.now(timezone.utc)
+        qb_loading.save()
+
+        message_notification = 'Sales orders have been synced to QuickBooks'
+        api_zoho_views.manage_notifications(message_notification)
+        
+        return HttpResponse(response_xml, content_type='text/xml')
+    else:
+        return HttpResponse(status=405)
+    
+
 def start_qbwc_invoice_add_request(request):
     if request.method == 'POST':
         xml_data = request.body.decode('utf-8')
@@ -856,6 +882,28 @@ def process_qbwc_invoice_add_request(xml_data):
         elif 'sendRequestXML' in body and counter == 0:
             counter += 1
             response = soap_service.generate_invoice_add_response()
+        elif 'closeConnection' in body:
+            counter = 0
+            response = soap_service.generate_close_connection_response()
+        else:
+            response = soap_service.generate_unsupported_request_response()
+        return response
+    except Exception as e:
+        logger.error(f"Error processing request: {e}")
+        return soap_service.generate_error_response(str(e))
+    
+    
+def process_qbwc_sales_order_add_request(xml_data):
+    global counter
+    response = None
+    try:
+        xml_dict = xmltodict.parse(xml_data)
+        body = xml_dict['soap:Envelope']['soap:Body']
+        if 'authenticate' in body:
+            response = soap_service.handle_authenticate(body)
+        elif 'sendRequestXML' in body and counter == 0:
+            counter += 1
+            response = soap_service.generate_sales_order_add_response()
         elif 'closeConnection' in body:
             counter = 0
             response = soap_service.generate_close_connection_response()

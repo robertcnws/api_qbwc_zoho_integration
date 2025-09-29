@@ -27,7 +27,7 @@ const Footer = () => {
                 padding: '0 10px',
                 py: 0.5 
             }}>
-                <Grid container xs={6} justifyContent="left" spacing={6}>
+                <Grid container item xs={6} justifyContent="left" spacing={6}>
                     <Grid item>
                         <Link href="mailto:" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', color: 'inherit', textDecoration: 'none' }}>
                             <MessageIcon fontSize="small" sx={{ fontSize: 16 }} />
