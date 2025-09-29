@@ -1,21 +1,25 @@
 FROM python:3.12
 
-ENV PYTHONUNBUFFERED=1 \
-    PYTHONPATH=/app
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONPATH=/app
+
+ENV TZ=America/New_York
+
+RUN ln -fs "/usr/share/zoneinfo/$TZ" /etc/localtime && \
+    dpkg-reconfigure -f noninteractive tzdata
 
 WORKDIR /app
 
 # --- Python deps ---
 COPY requirements.txt /app/
 
-RUN mkdir -p /var/log/supervisor
-
-RUN pip install --upgrade pip \
+RUN mkdir -p /var/log/supervisor \
+ && mkdir -p /app/backup \
+ && pip install --upgrade pip \
  && pip install gunicorn \
- && pip install -r requirements.txt
- 
-RUN apt-get update \
- && apt-get install -y --no-install-recommends wget ca-certificates gnupg supervisor postgresql-client \
+ && pip install -r requirements.txt \
+ && apt-get update \
+ && apt-get install -y --no-install-recommends ca-certificates gnupg postgresql-client supervisor wget \
  && rm -rf /var/lib/apt/lists/*
  
 COPY . /app/
