@@ -310,7 +310,7 @@ const SalesOrdersDetails = () => {
             }}
           >
             <Box sx={{ p: 1.5 }}>
-              <CustomFilter configCustomFilter={configCustomFilter} />
+              <CustomFilter configCustomFilter={configCustomFilter} date={salesOrder.date} />
             </Box>
 
             <TableContainer sx={{ flex: 1, borderTop: '1px solid', borderColor: 'divider' }}>
