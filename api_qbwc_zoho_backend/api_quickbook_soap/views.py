@@ -738,11 +738,30 @@ def start_qbwc_query_request(request, query_object_name, list_of_objects):
                         QbItem(
                             list_id=item.get('ListID', ''), 
                             name=item.get('Name', ''), 
-                            item_type=query_object_name)
+                            item_type=query_object_name
+                        )
                         for item in list_of_objects
                         if item.get('ListID', '') not in existing_items_ids
                     ]
+                    items_to_update = [
+                        item for item in list_of_objects
+                        if item.get('ListID', '') in existing_items_ids
+                    ]
+                    count_updated = 0
+                    for item in items_to_update:
+                        existing_item = QbItem.objects.filter(list_id=item.get('ListID', '')).first()
+                        if existing_item and existing_item.name != item.get('Name', ''):
+                            existing_item.name = item.get('Name', '')
+                            existing_item.item_type = query_object_name
+                            try:
+                                existing_item.save()
+                                count_updated += 1
+                            except IntegrityError as e:
+                                logger.error(f"Failed to update item with list_id {existing_item.list_id}: {e}")
+                            
                     logger.info(f"Number of {query_object_name} to save: {len(items_to_save)}")
+                    logger.info(f"Number of {query_object_name} updated: {count_updated}")
+                    
                     save_items_in_batches(items_to_save)
 
                 elif query_object_name == 'Customer':
@@ -758,7 +777,34 @@ def start_qbwc_query_request(request, query_object_name, list_of_objects):
                         for customer in list_of_objects
                         if customer['ListID'] not in existing_customers_ids
                     ]
+                    # customers_to_update = [
+                    #     customer for customer in list_of_objects
+                    #     if customer['ListID'] in existing_customers_ids
+                    # ]
+                    # count_updated = 0
+                    # for customer in customers_to_update:
+                    #     existing_customer = QbCustomer.objects.filter(list_id=customer['ListID']).first()
+                    #     if existing_customer:
+                    #         updated = False
+                    #         if existing_customer.name != customer.get('FullName', ''):
+                    #             existing_customer.name = customer.get('FullName', '')
+                    #             updated = True
+                    #         email = customer.get('Email', '').lower() if customer.get('Email', '') else ''
+                    #         if existing_customer.email != email:
+                    #             existing_customer.email = email
+                    #             updated = True
+                    #         phone = api_zoho_views.clean_phone_number(customer.get('Phone', '')) if customer.get('Phone', '') else ''
+                    #         if existing_customer.phone != phone:
+                    #             existing_customer.phone = phone
+                    #             updated = True
+                    #         if updated:
+                    #             try:
+                    #                 existing_customer.save()
+                    #                 count_updated += 1
+                    #             except IntegrityError as e:
+                    #                 logger.error(f"Failed to update customer with list_id {existing_customer.list_id}: {e}")
                     logger.info(f"Number of {query_object_name} to save: {len(customers_to_save)}")
+                    # logger.info(f"Number of {query_object_name} updated: {count_updated}")
                     save_customers_in_batches(customers_to_save)
 
         if module:
