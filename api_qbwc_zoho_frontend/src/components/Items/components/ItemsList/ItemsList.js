@@ -133,6 +133,7 @@ const ItemsList = ({ items }) => {
         const matchesSearchTerm = item.fields.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
             item.fields.sku.toLowerCase().includes(searchTerm.toLowerCase()) ||
             item.fields.rate.toString().includes(searchTerm.toLowerCase()) ||
+            item.fields.qb_list_id.toString().includes(searchTerm.toLowerCase()) ||
             item.fields.item_id.toLowerCase().includes(searchTerm.toLowerCase());
 
         if (filter === 'all') return matchesSearchTerm;
