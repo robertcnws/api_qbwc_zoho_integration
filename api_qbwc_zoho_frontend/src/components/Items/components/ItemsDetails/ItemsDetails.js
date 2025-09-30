@@ -234,6 +234,8 @@ const ItemsDetails = () => {
         filter: JSON.parse(localStorage.getItem('filterSalesOrders')),
       };
       navigate(`/integration/${localStorage.getItem('backNavigation')}`, { state });
+    } else if (localStorage.getItem('backNavigation') === 'qbwc_items') {      
+      navigate('/integration/qbwc/items/list');
     } else {
       navigate(-1);
     }
@@ -508,9 +510,12 @@ const ItemsDetails = () => {
 
               <Box sx={{ display: 'flex', gap: 1 }}>
                 {(localStorage.getItem('backNavigation') === 'invoice_details' ||
-                  localStorage.getItem('backNavigation') === 'sales_order_details') && (
+                  localStorage.getItem('backNavigation') === 'qbwc_items' ||
+                  localStorage.getItem('backNavigation') === 'sales_order_details'
+                ) && (
                     <Tooltip
-                      title={`Go Back to ${localStorage.getItem('backNavigation') === 'invoice_details' ? 'Invoice' : 'Sales Order'} Details`}
+                      title={`Go Back to ${localStorage.getItem('backNavigation') === 'invoice_details' ? 'Invoice' :
+                        localStorage.getItem('backNavigation') === 'qbwc_items' ? 'QBWC Items' : 'Sales Order'} Details`}
                       arrow
                       sx={{
                         '& .MuiTooltip-tooltip': {
@@ -526,7 +531,7 @@ const ItemsDetails = () => {
                     </Tooltip>
                   )}
 
-                  <Tooltip
+                <Tooltip
                   title="Previous in List Items"
                   arrow
                   sx={{
@@ -537,21 +542,21 @@ const ItemsDetails = () => {
                     },
                   }}
                 >
-                  <IconButton 
-                  onClick={() => {
-                    const prevItem = filteredItems[currentIndexInList - 1] || filteredItems[filteredItems.length - 1];
-                    if (prevItem) {
-                      const fetchItemsDetails = async () => {
-                        try {
-                          const url = `${apiUrl}/api_zoho_items/view_item/${prevItem.fields.item_id}/`;
-                          const response = await fetchWithToken(url, 'GET', null, {}, apiUrl);
-                          setItem(response.data);
-                          setCoincidences(response.data.coincidences);
-                        } catch { }
-                      };
-                      fetchItemsDetails();
-                    }
-                  }} sx={{ color: '#000' }}>
+                  <IconButton
+                    onClick={() => {
+                      const prevItem = filteredItems[currentIndexInList - 1] || filteredItems[filteredItems.length - 1];
+                      if (prevItem) {
+                        const fetchItemsDetails = async () => {
+                          try {
+                            const url = `${apiUrl}/api_zoho_items/view_item/${prevItem.fields.item_id}/`;
+                            const response = await fetchWithToken(url, 'GET', null, {}, apiUrl);
+                            setItem(response.data);
+                            setCoincidences(response.data.coincidences);
+                          } catch { }
+                        };
+                        fetchItemsDetails();
+                      }
+                    }} sx={{ color: '#000' }}>
                     <ArrowBackIos />
                   </IconButton>
                 </Tooltip>
@@ -567,21 +572,21 @@ const ItemsDetails = () => {
                     },
                   }}
                 >
-                  <IconButton 
-                  onClick={() => {
-                    const nextItem = filteredItems[currentIndexInList + 1] || filteredItems[0];
-                    if (nextItem) {
-                      const fetchItemsDetails = async () => {
-                        try {
-                          const url = `${apiUrl}/api_zoho_items/view_item/${nextItem.fields.item_id}/`;
-                          const response = await fetchWithToken(url, 'GET', null, {}, apiUrl);
-                          setItem(response.data);
-                          setCoincidences(response.data.coincidences);
-                        } catch { }
-                      };
-                      fetchItemsDetails();
-                    }
-                  }} sx={{ color: '#000' }}>
+                  <IconButton
+                    onClick={() => {
+                      const nextItem = filteredItems[currentIndexInList + 1] || filteredItems[0];
+                      if (nextItem) {
+                        const fetchItemsDetails = async () => {
+                          try {
+                            const url = `${apiUrl}/api_zoho_items/view_item/${nextItem.fields.item_id}/`;
+                            const response = await fetchWithToken(url, 'GET', null, {}, apiUrl);
+                            setItem(response.data);
+                            setCoincidences(response.data.coincidences);
+                          } catch { }
+                        };
+                        fetchItemsDetails();
+                      }
+                    }} sx={{ color: '#000' }}>
                     <ArrowForwardIos />
                   </IconButton>
                 </Tooltip>

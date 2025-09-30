@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
     Container,
     Grid,
@@ -27,7 +28,9 @@ import CustomFilter from '../../../Utils/components/CustomFilter/CustomFilter';
 const apiUrl = process.env.REACT_APP_ENVIRONMENT === 'DEV' ? process.env.REACT_APP_BACKEND_URL_DEV : process.env.REACT_APP_BACKEND_URL_PROD;
 const numberRows = parseInt(process.env.REACT_APP_DEFAULT_ROWS_PER_PAGE);
 
-const QbwcItemsList = ({ items, onSyncComplete }) => {
+const QbwcItemsList = ({ items, zohoItems, onSyncComplete }) => {
+
+    const navigate = useNavigate();
 
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(numberRows);
@@ -195,6 +198,7 @@ const QbwcItemsList = ({ items, onSyncComplete }) => {
         { id: 'qb_item', label: 'QB Item', colspan: 1, textAlign: 'left' },
         { id: 'qb_list_id', label: 'QB List ID', colspan: 1, textAlign: 'left' },
         { id: 'qb_item_type', label: 'QB Item Type', colspan: 1, textAlign: 'left' },
+        { id: 'zoho_item', label: 'Zoho Item', colspan: 1, textAlign: 'left' },
         { id: 'actions', label: 'Actions', colspan: 1, textAlign: 'center' }
     ];
 
@@ -212,6 +216,23 @@ const QbwcItemsList = ({ items, onSyncComplete }) => {
             visibility: true
         }
     ];
+
+    const handleViewItem = (item) => {
+        (async () => {
+            try {
+                const state = {
+                    item,
+                    items: zohoItems,
+                    filteredItems: zohoItems,
+                    filter: 'all',
+                };
+                localStorage.setItem('backNavigation', 'qbwc_items');
+                navigate('/integration/item_details', { state });
+            } catch (err) {
+                console.log(`Failed to fetch items: ${err}`);
+            } 
+        })();
+    };
 
     return (
         <Box
@@ -296,6 +317,24 @@ const QbwcItemsList = ({ items, onSyncComplete }) => {
                                                         : ''
                                                 }
                                             </TableCell>
+                                            {(() => {
+                                                const matchedZohoItem = zohoItems.find(zohoItem => zohoItem.fields.qb_list_id === item.fields.list_id);
+                                                return (
+                                                    <TableCell
+                                                        onClick={
+                                                            matchedZohoItem
+                                                                ? () => handleViewItem(matchedZohoItem)
+                                                                : null
+                                                        }
+                                                        sx={{ color: item.fields.list_id ? (matchedZohoItem ? 'green' : 'red') : 'red' }}
+                                                    >
+                                                        {item.fields.list_id
+                                                            ? (matchedZohoItem?.fields?.name || 'N/A')
+                                                            : 'N/A'
+                                                        }
+                                                    </TableCell>
+                                                );
+                                            })()}
                                             <TableCell align="center">
                                                 {renderForceSyncCheckbox(item, isSelected(item.fields.list_id))}
                                             </TableCell>

@@ -9,6 +9,7 @@ const apiUrl = process.env.REACT_APP_ENVIRONMENT === 'DEV' ? process.env.REACT_A
 
 const QbwcItemsListPage = () => {
     const [items, setItems] = useState([]);
+    const [zohoItems, setZohoItems] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const theme = useTheme();
@@ -30,6 +31,23 @@ const QbwcItemsListPage = () => {
 
     useEffect(() => {
         fetchItems();
+    }, []);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const url = `${apiUrl}/api_zoho_items/list_items/`;
+                const response = await fetchWithToken(url, 'GET', null, {}, apiUrl);
+                const jsonData = JSON.parse(response.data);
+                setZohoItems(jsonData);
+            } catch (error) {
+                console.error('Error fetching items:', error);
+                setError(`Failed to fetch items: ${error}`);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchData();
     }, []);
 
     if (loading) {
@@ -59,7 +77,11 @@ const QbwcItemsListPage = () => {
             {loading ? (
                 <CircularProgress />
             ) : (
-                <QbwcItemsList items={items} onSyncComplete={fetchItems} />
+                <QbwcItemsList
+                    items={items}
+                    zohoItems={zohoItems}
+                    onSyncComplete={fetchItems}
+                />
             )}
         </Box>
     );
