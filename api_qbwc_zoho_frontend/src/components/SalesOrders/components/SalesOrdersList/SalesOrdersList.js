@@ -188,25 +188,28 @@ const SalesOrdersList = ({ data, configData, onSyncComplete, filterDate, setFilt
         [onSyncComplete]
     );
 
-    const handleForceToSync = useCallback(() => {
-        if (selectedSalesOrders.length === 0) {
+    const handleForceToSync = useCallback((listSelected = null, message = null) => {
+        if (listSelected) {
+            setSelectedSalesOrders(listSelected);
+        }
+        else if (selectedSalesOrders.length === 0) {
             Swal.fire('Error!', 'Please select at least one sales Order to force sync.', 'error');
             return;
         }
         Swal.fire({
             title: 'Are you sure?',
-            text: 'Do you want to force sync selected sales Orders?',
+            text: message || 'Do you want to force sync selected sales Orders?',
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#3085d6',
             cancelButtonColor: '#d33',
-            confirmButtonText: 'Yes, force to sync!',
+            confirmButtonText: 'Yes, do it!',
         }).then((result) => {
             if (!result.isConfirmed) return;
             (async () => {
                 try {
-                    const url = `${apiUrl}/api_quickbook_soap/force_to_sync_ajax/salesOrders/`;
-                    const params = { salesOrders: selectedSalesOrders, username: localStorage.getItem('username') };
+                    const url = `${apiUrl}/api_quickbook_soap/force_to_sync_ajax/sales_orders/`;
+                    const params = { elements: listSelected || selectedSalesOrders, username: localStorage.getItem('username') };
                     const response = await fetchWithToken(url, 'POST', params, {}, apiUrl);
                     if (response.data.status === 'success') {
                         Swal.fire('Success!', 'Selected sales Orders have been forced to sync.', 'success').then(() => {
@@ -240,8 +243,8 @@ const SalesOrdersList = ({ data, configData, onSyncComplete, filterDate, setFilt
             if (!result.isConfirmed) return;
             (async () => {
                 try {
-                    const url = `${apiUrl}/api_quickbook_soap/unsync_ajax/salesOrders/`;
-                    const params = { salesOrders: selectedSalesOrders, username: localStorage.getItem('username') };
+                    const url = `${apiUrl}/api_quickbook_soap/unsync_ajax/sales_orders/`;
+                    const params = { elements: selectedSalesOrders, username: localStorage.getItem('username') };
                     const response = await fetchWithToken(url, 'POST', params, {}, apiUrl);
                     if (response.data.status === 'success') {
                         Swal.fire('Success!', 'Selected sales Orders have been unsynced.', 'success').then(() => {
@@ -697,7 +700,7 @@ const SalesOrdersList = ({ data, configData, onSyncComplete, filterDate, setFilt
 
                                         <TableCell
                                             align="center"
-                                            onClick={() => (salesOrder.fields.force_to_sync || salesOrder.fields.inserted_in_qb) && handleViewSalesOrder(salesOrder)}
+                                            onClick={() => (salesOrder.fields.force_to_sync || salesOrder.fields.inserted_in_qb) && handleForceToSync([salesOrder.fields.salesorder_id], `Unforce sync sales order ${salesOrder.fields.salesorder_number}?`)}
                                         >
                                             {!salesOrder.fields.force_to_sync ? (
                                                 renderForceSyncCheckbox(salesOrder, isItemSelected)

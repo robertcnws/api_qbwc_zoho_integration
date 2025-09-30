@@ -160,19 +160,20 @@ def force_to_sync_one_invoice_ajax(request):
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
-def force_to_sync_invoices_ajax(request):
+def force_to_sync_ajax(request, kind):
     valid_token = api_zoho_views.validateJWTTokenRequest(request)
     if valid_token:
         try:
             data = json.loads(request.body)
-            list_id = data.get('invoices', [])
+            list_id = data.get('elements', [])
             username = data.get('username', '')
+            class_obj = ZohoFullInvoice if kind == 'invoices' else ZohoFullSalesOrder
             print(f"List ID: {list_id}")
             for invoice in list_id:
-                invoice_model = get_object_or_404(ZohoFullInvoice, invoice_id=invoice)
-                invoice_model.force_to_sync = True
+                invoice_model = get_object_or_404(class_obj, invoice_id=invoice) if kind == 'invoices' else get_object_or_404(class_obj, salesorder_id=invoice)
+                invoice_model.force_to_sync = not invoice_model.force_to_sync
                 invoice_model.save()
-                api_zoho_views.manage_api_tracking_log(username, 'force_to_sync_invoices', request.META.get('REMOTE_ADDR'), 'Forced to sync invoices')
+                api_zoho_views.manage_api_tracking_log(username, f'force_to_sync_{kind}', request.META.get('REMOTE_ADDR'), f'Forced to sync {kind}')
             return JsonResponse({'status': 'success'}, status=200)
         except Exception as e:
             logger.error(f"An error occurred: {e}")
@@ -182,19 +183,20 @@ def force_to_sync_invoices_ajax(request):
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
-def unsync_invoices_ajax(request):
+def unsync_ajax(request, kind):
     valid_token = api_zoho_views.validateJWTTokenRequest(request)
     if valid_token:
         try:
             data = json.loads(request.body)
-            list_id = data.get('invoices', [])
+            list_id = data.get('elements', [])
             username = data.get('username', '')
+            class_obj = ZohoFullInvoice if kind == 'invoices' else ZohoFullSalesOrder
             print(f"List ID: {list_id}")
             for invoice in list_id:
-                invoice_model = get_object_or_404(ZohoFullInvoice, invoice_id=invoice)
-                invoice_model.inserted_in_qb = False
+                invoice_model = get_object_or_404(class_obj, invoice_id=invoice) if kind == 'invoices' else get_object_or_404(class_obj, salesorder_id=invoice)
+                invoice_model.inserted_in_qb = not invoice_model.inserted_in_qb
                 invoice_model.save()
-                api_zoho_views.manage_api_tracking_log(username, 'unsync_invoices', request.META.get('REMOTE_ADDR'), 'Unsync invoices')
+                api_zoho_views.manage_api_tracking_log(username, f'unsync_{kind}', request.META.get('REMOTE_ADDR'), f'Unsync {kind}')
             return JsonResponse({'status': 'success'}, status=200)
         except Exception as e:
             logger.error(f"An error occurred: {e}")

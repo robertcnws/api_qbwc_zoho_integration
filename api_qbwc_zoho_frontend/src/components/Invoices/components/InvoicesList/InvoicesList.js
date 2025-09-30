@@ -32,7 +32,7 @@ import Swal from 'sweetalert2';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
-import { RadioButtonCheckedOutlined, UndoRounded } from '@mui/icons-material';
+import { RadioButtonCheckedOutlined, SignalCellularNullTwoTone, UndoRounded } from '@mui/icons-material';
 
 import { stableSort, fetchWithToken, getComparatorUndefined } from '../../../../utils';
 import { EmptyRecordsCell } from '../../../Utils/components/EmptyRecordsCell/EmptyRecordsCell';
@@ -69,7 +69,7 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
     const today = dayjs();
     const oneYearAgo = today.subtract(1, 'year');
 
-    
+
 
     // Restaurar estado inicial
     useEffect(() => {
@@ -190,25 +190,28 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
         [onSyncComplete]
     );
 
-    const handleForceToSync = useCallback(() => {
-        if (selectedInvoices.length === 0) {
+    const handleForceToSync = useCallback((listSelected = null, message = null) => {
+        if (listSelected) {
+            setSelectedInvoices(listSelected);
+        }
+        else if (selectedInvoices.length === 0) {
             Swal.fire('Error!', 'Please select at least one invoice to force sync.', 'error');
             return;
         }
         Swal.fire({
             title: 'Are you sure?',
-            text: 'Do you want to force sync selected invoices?',
+            text: message || 'Do you want to force sync selected invoices?',
             icon: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#3085d6',
             cancelButtonColor: '#d33',
-            confirmButtonText: 'Yes, force to sync!',
+            confirmButtonText: 'Yes, do it!',
         }).then((result) => {
             if (!result.isConfirmed) return;
             (async () => {
                 try {
-                    const url = `${apiUrl}/api_quickbook_soap/force_to_sync_invoices_ajax/`;
-                    const params = { invoices: selectedInvoices, username: localStorage.getItem('username') };
+                    const url = `${apiUrl}/api_quickbook_soap/force_to_sync_ajax/invoices/`;
+                    const params = { elements: listSelected || selectedInvoices, username: localStorage.getItem('username') };
                     const response = await fetchWithToken(url, 'POST', params, {}, apiUrl);
                     if (response.data.status === 'success') {
                         Swal.fire('Success!', 'Selected invoices have been forced to sync.', 'success').then(() => {
@@ -242,8 +245,8 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
             if (!result.isConfirmed) return;
             (async () => {
                 try {
-                    const url = `${apiUrl}/api_quickbook_soap/unsync_invoices_ajax/`;
-                    const params = { invoices: selectedInvoices, username: localStorage.getItem('username') };
+                    const url = `${apiUrl}/api_quickbook_soap/unsync_ajax/invoices/`;
+                    const params = { elements: selectedInvoices, username: localStorage.getItem('username') };
                     const response = await fetchWithToken(url, 'POST', params, {}, apiUrl);
                     if (response.data.status === 'success') {
                         Swal.fire('Success!', 'Selected invoices have been unsynced.', 'success').then(() => {
@@ -411,7 +414,9 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
         }
         return (
             <Tooltip title="SYNCED" arrow sx={{ '& .MuiTooltip-tooltip': { backgroundColor: '#000', color: '#fff' } }}>
-                <CheckCircleIcon sx={{ color: 'success.main' }} />
+                <CheckCircleIcon
+                    sx={{ color: 'success.main' }}
+                />
             </Tooltip>
         );
     };
@@ -699,7 +704,7 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
 
                                         <TableCell
                                             align="center"
-                                            onClick={() => (invoice.fields.force_to_sync || invoice.fields.inserted_in_qb) && handleViewInvoice(invoice)}
+                                            onClick={() => (invoice.fields.force_to_sync || invoice.fields.inserted_in_qb) && handleForceToSync([invoice.fields.invoice_id], `Unforce sync invoice ${invoice.fields.invoice_number}?`)}
                                         >
                                             {!invoice.fields.force_to_sync ? (
                                                 renderForceSyncCheckbox(invoice, isItemSelected)
