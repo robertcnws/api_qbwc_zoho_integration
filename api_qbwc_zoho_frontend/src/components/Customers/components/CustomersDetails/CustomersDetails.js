@@ -35,6 +35,7 @@ import { AlertLoading } from '../../../Utils/components/AlertLoading/AlertLoadin
 import { AlertError } from '../../../Utils/components/AlertError/AlertError';
 import TableCustomPagination from '../../../Utils/components/TableCustomPagination/TableCustomPagination';
 import CustomFilter from '../../../Utils/components/CustomFilter/CustomFilter';
+import { ArrowBackIos, ArrowForward, ArrowForwardIos } from '@mui/icons-material';
 
 const apiUrl =
   process.env.REACT_APP_ENVIRONMENT === 'DEV'
@@ -81,6 +82,13 @@ const CustomersDetails = () => {
   const [showListQbCustomers, setShowListQbCustomers] = useState(true);
 
   const [searchSelectTerm, setSearchSelectTerm] = useState('');
+
+  const [currentIndexInList, setCurrentIndexInList] = useState(-1);
+
+  useEffect(() => {
+    const index = filteredCustomers.findIndex((i) => (customer ? i.fields.contact_id === customer.contact_id : false));
+    setCurrentIndexInList(index);
+  }, [customer, filteredCustomers]);
 
   // Helpers
   const filterCustomers = (flt, term) => {
@@ -497,6 +505,48 @@ const CustomersDetails = () => {
                       </IconButton>
                     </Tooltip>
                   )}
+                <Tooltip
+                  title="Previous in List Customers"
+                  arrow
+                  sx={{
+                    '& .MuiTooltip-tooltip': {
+                      backgroundColor: '#000',
+                      color: '#fff',
+                      fontSize: '0.875rem',
+                    },
+                  }}
+                >
+                  <IconButton
+                    onClick={async () => {
+                      const prevItem = filteredCustomers[currentIndexInList - 1] || filteredCustomers[filteredCustomers.length - 1];
+                      if (prevItem) {
+                        await handleViewCustomer(prevItem.fields.contact_id);
+                      }
+                    }} sx={{ color: '#000' }}>
+                    <ArrowBackIos />
+                  </IconButton>
+                </Tooltip>
+                <Tooltip
+                  title="Next in List Customers"
+                  arrow
+                  sx={{
+                    '& .MuiTooltip-tooltip': {
+                      backgroundColor: '#000',
+                      color: '#fff',
+                      fontSize: '0.875rem',
+                    },
+                  }}
+                >
+                  <IconButton
+                    onClick={async () => {
+                      const nextItem = filteredCustomers[currentIndexInList + 1] || filteredCustomers[0];
+                      if (nextItem) {
+                        await handleViewCustomer(nextItem.fields.contact_id);
+                      }
+                    }} sx={{ color: '#000' }}>
+                    <ArrowForwardIos />
+                  </IconButton>
+                </Tooltip>
                 <Tooltip
                   title="Back to List Customers"
                   arrow

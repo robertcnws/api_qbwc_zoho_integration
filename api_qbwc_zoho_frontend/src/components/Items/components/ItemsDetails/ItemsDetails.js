@@ -35,6 +35,7 @@ import { AlertLoading } from '../../../Utils/components/AlertLoading/AlertLoadin
 import { AlertError } from '../../../Utils/components/AlertError/AlertError';
 import TableCustomPagination from '../../../Utils/components/TableCustomPagination/TableCustomPagination';
 import CustomFilter from '../../../Utils/components/CustomFilter/CustomFilter';
+import { ArrowBackIos, ArrowForward, ArrowForwardIos, ArrowForwardOutlined } from '@mui/icons-material';
 
 const apiUrl =
   process.env.REACT_APP_ENVIRONMENT === 'DEV'
@@ -79,6 +80,13 @@ const ItemsDetails = () => {
   const [showListQbItems, setShowListQbItems] = useState(true);
 
   const [searchSelectTerm, setSearchSelectTerm] = useState('');
+
+  const [currentIndexInList, setCurrentIndexInList] = useState(-1);
+
+  useEffect(() => {
+    const index = filteredItems.findIndex((i) => (item ? i.fields.item_id === item.item_id : false));
+    setCurrentIndexInList(index);
+  }, [item, filteredItems]);
 
   // --- Helpers
   const filterItems = (flt, term) => {
@@ -366,8 +374,8 @@ const ItemsDetails = () => {
     <Box
       sx={{
         width: '100%',
-        px: { xs: 1.5, md: 2 },
-        py: { xs: 1.5, md: 2 },
+        px: 0,
+        py: 0,
         display: 'flex',
         flexDirection: 'column',
         gap: 2,
@@ -517,6 +525,66 @@ const ItemsDetails = () => {
                       </IconButton>
                     </Tooltip>
                   )}
+
+                  <Tooltip
+                  title="Previous in List Items"
+                  arrow
+                  sx={{
+                    '& .MuiTooltip-tooltip': {
+                      backgroundColor: '#000',
+                      color: '#fff',
+                      fontSize: '0.875rem',
+                    },
+                  }}
+                >
+                  <IconButton 
+                  onClick={() => {
+                    const prevItem = filteredItems[currentIndexInList - 1] || filteredItems[filteredItems.length - 1];
+                    if (prevItem) {
+                      const fetchItemsDetails = async () => {
+                        try {
+                          const url = `${apiUrl}/api_zoho_items/view_item/${prevItem.fields.item_id}/`;
+                          const response = await fetchWithToken(url, 'GET', null, {}, apiUrl);
+                          setItem(response.data);
+                          setCoincidences(response.data.coincidences);
+                        } catch { }
+                      };
+                      fetchItemsDetails();
+                    }
+                  }} sx={{ color: '#000' }}>
+                    <ArrowBackIos />
+                  </IconButton>
+                </Tooltip>
+
+                <Tooltip
+                  title="Next in List Items"
+                  arrow
+                  sx={{
+                    '& .MuiTooltip-tooltip': {
+                      backgroundColor: '#000',
+                      color: '#fff',
+                      fontSize: '0.875rem',
+                    },
+                  }}
+                >
+                  <IconButton 
+                  onClick={() => {
+                    const nextItem = filteredItems[currentIndexInList + 1] || filteredItems[0];
+                    if (nextItem) {
+                      const fetchItemsDetails = async () => {
+                        try {
+                          const url = `${apiUrl}/api_zoho_items/view_item/${nextItem.fields.item_id}/`;
+                          const response = await fetchWithToken(url, 'GET', null, {}, apiUrl);
+                          setItem(response.data);
+                          setCoincidences(response.data.coincidences);
+                        } catch { }
+                      };
+                      fetchItemsDetails();
+                    }
+                  }} sx={{ color: '#000' }}>
+                    <ArrowForwardIos />
+                  </IconButton>
+                </Tooltip>
                 <Tooltip
                   title="Back to List Items"
                   arrow

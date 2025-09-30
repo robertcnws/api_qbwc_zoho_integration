@@ -69,6 +69,8 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
     const today = dayjs();
     const oneYearAgo = today.subtract(1, 'year');
 
+    
+
     // Restaurar estado inicial
     useEffect(() => {
         const handleStorageChange = () => {

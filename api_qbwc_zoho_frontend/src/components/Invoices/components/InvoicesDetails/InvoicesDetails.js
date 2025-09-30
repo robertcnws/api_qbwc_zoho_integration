@@ -15,7 +15,7 @@ import {
   IconButton,
   Tooltip,
 } from '@mui/material';
-import { Sync } from '@mui/icons-material';
+import { ArrowBackIos, ArrowForwardIos, Sync } from '@mui/icons-material';
 import LinkIcon from '@mui/icons-material/Link';
 import DeleteIcon from '@mui/icons-material/Delete';
 import CloseIcon from '@mui/icons-material/Close';
@@ -94,20 +94,20 @@ const InvoicesDetails = () => {
         flt === 'all'
           ? true
           : flt === 'not_processed'
-          ? !f.inserted_in_qb && !(f.customer_unmatched.length > 0) && !(f.items_unmatched.length > 0)
-          : flt === 'not_synced'
-          ? f.customer_unmatched.length > 0 || f.items_unmatched.length > 0
-          : flt === 'synced'
-          ? f.inserted_in_qb
-          : flt === 'forced_sync'
-          ? f.force_to_sync
-          : flt === 'not_forced_sync'
-          ? !f.force_to_sync
-          : flt === 'matched'
-          ? f.all_items_matched && f.all_customer_matched
-          : flt === 'not_matched'
-          ? !f.all_items_matched || !f.all_customer_matched
-          : true;
+            ? !f.inserted_in_qb && !(f.customer_unmatched.length > 0) && !(f.items_unmatched.length > 0)
+            : flt === 'not_synced'
+              ? f.customer_unmatched.length > 0 || f.items_unmatched.length > 0
+              : flt === 'synced'
+                ? f.inserted_in_qb
+                : flt === 'forced_sync'
+                  ? f.force_to_sync
+                  : flt === 'not_forced_sync'
+                    ? !f.force_to_sync
+                    : flt === 'matched'
+                      ? f.all_items_matched && f.all_customer_matched
+                      : flt === 'not_matched'
+                        ? !f.all_items_matched || !f.all_customer_matched
+                        : true;
 
       const q = (searchTerm || '').toLowerCase();
       const matchesSearch =
@@ -278,6 +278,13 @@ const InvoicesDetails = () => {
     marginBottomInDetails: '10px',
   };
 
+  const [currentIndexInList, setCurrentIndexInList] = useState(-1);
+
+  useEffect(() => {
+    const index = filteredInvoices?.findIndex((i) => (invoice ? i?.fields?.invoice_id === invoice?.invoice_id : false));
+    setCurrentIndexInList(index);
+  }, [invoice, filteredInvoices]);
+
   if (loading) return <AlertLoading isSmallScreen={false} message="Invoice Details" />;
   if (error) return <AlertError isSmallScreen={false} error={error} />;
 
@@ -371,15 +378,61 @@ const InvoicesDetails = () => {
                 {invoice.invoice_number}
               </Typography>
 
-              <Tooltip
-                title="Back to List Invoices"
-                arrow
-                sx={{ '& .MuiTooltip-tooltip': { backgroundColor: '#000', color: '#fff' } }}
-              >
-                <IconButton onClick={() => navigate('/integration/list_invoices')} sx={{ color: '#000' }}>
-                  <CloseIcon />
-                </IconButton>
-              </Tooltip>
+              <Box sx={{ display: 'flex', gap: 1 }}>
+                <Tooltip
+                  title="Previous in List Invoices"
+                  arrow
+                  sx={{
+                    '& .MuiTooltip-tooltip': {
+                      backgroundColor: '#000',
+                      color: '#fff',
+                      fontSize: '0.875rem',
+                    },
+                  }}
+                >
+                  <IconButton
+                    onClick={() => {
+                      const prevItem = filteredInvoices[currentIndexInList - 1] || filteredInvoices[filteredInvoices.length - 1];
+                      if (prevItem) {
+                        handleViewInvoice(prevItem.fields.invoice_id);
+                      }
+                    }} sx={{ color: '#000' }}>
+                    <ArrowBackIos />
+                  </IconButton>
+                </Tooltip>
+                <Tooltip
+                  title="Next in List Invoices"
+                  arrow
+                  sx={{
+                    '& .MuiTooltip-tooltip': {
+                      backgroundColor: '#000',
+                      color: '#fff',
+                      fontSize: '0.875rem',
+                    },
+                  }}
+                >
+                  <IconButton
+                    onClick={() => {
+                      const nextItem = filteredInvoices[currentIndexInList + 1] || filteredInvoices[0];
+                      if (nextItem) {
+                        handleViewInvoice(nextItem.fields.invoice_id);
+                      }
+                    }} sx={{ color: '#000' }}>
+                    <ArrowForwardIos />
+                  </IconButton>
+                </Tooltip>
+
+                <Tooltip
+                  title="Back to List Invoices"
+                  arrow
+                  sx={{ '& .MuiTooltip-tooltip': { backgroundColor: '#000', color: '#fff' } }}
+                >
+                  <IconButton onClick={() => navigate('/integration/list_invoices')} sx={{ color: '#000' }}>
+                    <CloseIcon />
+                  </IconButton>
+                </Tooltip>
+              </Box>
+
             </Box>
 
             {/* Tabla de detalle */}

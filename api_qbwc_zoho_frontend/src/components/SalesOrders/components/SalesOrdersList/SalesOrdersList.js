@@ -169,7 +169,7 @@ const SalesOrdersList = ({ data, configData, onSyncComplete, filterDate, setFilt
 
                 (async () => {
                     try {
-                        const url = `${apiUrl}/api_zoho_salesOrders/delete_salesOrder/${salesOrder.fields.salesOrder_id}/`;
+                        const url = `${apiUrl}/api_zoho_salesOrders/delete_sales_order/${salesOrder.fields.salesOrder_id}/`;
                         const body = { username: localStorage.getItem('username') };
                         const response = await fetchWithToken(url, 'POST', body, {}, apiUrl);
                         if (response.data.status === 'success') {
@@ -659,7 +659,7 @@ const SalesOrdersList = ({ data, configData, onSyncComplete, filterDate, setFilt
                                 ? sortedSalesOrders.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                                 : sortedSalesOrders
                             ).map((salesOrder, index) => {
-                                const isItemSelected = isSelected(salesOrder.fields.salesOrder_id);
+                                const isItemSelected = isSelected(salesOrder.fields.salesorder_id);
                                 const bg = index === hoveredRowIndex ? getRowBg(salesOrder, true) : getRowBg(salesOrder, false);
                                 return (
                                     <TableRow

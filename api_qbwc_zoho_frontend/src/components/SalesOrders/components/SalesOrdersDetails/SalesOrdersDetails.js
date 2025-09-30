@@ -15,7 +15,7 @@ import {
   IconButton,
   Tooltip,
 } from '@mui/material';
-import { Sync } from '@mui/icons-material';
+import { ArrowBackIos, ArrowForwardIos, Sync } from '@mui/icons-material';
 import LinkIcon from '@mui/icons-material/Link';
 import DeleteIcon from '@mui/icons-material/Delete';
 import CloseIcon from '@mui/icons-material/Close';
@@ -94,20 +94,20 @@ const SalesOrdersDetails = () => {
         flt === 'all'
           ? true
           : flt === 'not_processed'
-          ? !f.inserted_in_qb && !(f.customer_unmatched.length > 0) && !(f.items_unmatched.length > 0)
-          : flt === 'not_synced'
-          ? f.customer_unmatched.length > 0 || f.items_unmatched.length > 0
-          : flt === 'synced'
-          ? f.inserted_in_qb
-          : flt === 'forced_sync'
-          ? f.force_to_sync
-          : flt === 'not_forced_sync'
-          ? !f.force_to_sync
-          : flt === 'matched'
-          ? f.all_items_matched && f.all_customer_matched
-          : flt === 'not_matched'
-          ? !f.all_items_matched || !f.all_customer_matched
-          : true;
+            ? !f.inserted_in_qb && !(f.customer_unmatched.length > 0) && !(f.items_unmatched.length > 0)
+            : flt === 'not_synced'
+              ? f.customer_unmatched.length > 0 || f.items_unmatched.length > 0
+              : flt === 'synced'
+                ? f.inserted_in_qb
+                : flt === 'forced_sync'
+                  ? f.force_to_sync
+                  : flt === 'not_forced_sync'
+                    ? !f.force_to_sync
+                    : flt === 'matched'
+                      ? f.all_items_matched && f.all_customer_matched
+                      : flt === 'not_matched'
+                        ? !f.all_items_matched || !f.all_customer_matched
+                        : true;
 
       const q = (searchTerm || '').toLowerCase();
       const matchesSearch =
@@ -279,9 +279,17 @@ const SalesOrdersDetails = () => {
     marginBottomInDetails: '10px',
   };
 
+  const [currentIndexInList, setCurrentIndexInList] = useState(-1);
+
+  useEffect(() => {
+    const index = filteredSalesOrders?.findIndex((i) => (salesOrder ? i?.fields?.salesorder_id === salesOrder?.salesorder_id : false));
+    setCurrentIndexInList(index);
+  }, [salesOrder, filteredSalesOrders]);
+
+
   if (loading) return <AlertLoading isSmallScreen={false} message="Sales Order Details" />;
   if (error) return <AlertError isSmallScreen={false} error={error} />;
-
+  
   return (
     <Box sx={{ width: '100%', px: 0, py: 1 }}>
       {!salesOrder ? (
@@ -372,15 +380,60 @@ const SalesOrdersDetails = () => {
                 {salesOrder.salesorder_number}
               </Typography>
 
-              <Tooltip
-                title="Back to List Sales Orders"
-                arrow
-                sx={{ '& .MuiTooltip-tooltip': { backgroundColor: '#000', color: '#fff' } }}
-              >
-                <IconButton onClick={() => navigate('/integration/list_sales_orders')} sx={{ color: '#000' }}>
-                  <CloseIcon />
-                </IconButton>
-              </Tooltip>
+              <Box sx={{ display: 'flex', gap: 1 }}>
+                <Tooltip
+                  title="Previous in List Sales Orders"
+                  arrow
+                  sx={{
+                    '& .MuiTooltip-tooltip': {
+                      backgroundColor: '#000',
+                      color: '#fff',
+                      fontSize: '0.875rem',
+                    },
+                  }}
+                >
+                  <IconButton
+                    onClick={() => {
+                      const prevItem = filteredSalesOrders[currentIndexInList - 1] || filteredSalesOrders[filteredSalesOrders.length - 1];
+                      if (prevItem) {
+                        handleViewSalesOrder(prevItem.fields.salesorder_id);
+                      }
+                    }} sx={{ color: '#000' }}>
+                    <ArrowBackIos />
+                  </IconButton>
+                </Tooltip>
+                <Tooltip
+                  title="Next in List Sales Orders"
+                  arrow
+                  sx={{
+                    '& .MuiTooltip-tooltip': {
+                      backgroundColor: '#000',
+                      color: '#fff',
+                      fontSize: '0.875rem',
+                    },
+                  }}
+                >
+                  <IconButton
+                    onClick={() => {
+                      const nextItem = filteredSalesOrders[currentIndexInList + 1] || filteredSalesOrders[0];
+                      if (nextItem) {
+                        handleViewSalesOrder(nextItem.fields.salesorder_id);
+                      }
+                    }} sx={{ color: '#000' }}>
+                    <ArrowForwardIos />
+                  </IconButton>
+                </Tooltip>
+
+                <Tooltip
+                  title="Back to List Sales Orders"
+                  arrow
+                  sx={{ '& .MuiTooltip-tooltip': { backgroundColor: '#000', color: '#fff' } }}
+                >
+                  <IconButton onClick={() => navigate('/integration/list_sales_orders')} sx={{ color: '#000' }}>
+                    <CloseIcon />
+                  </IconButton>
+                </Tooltip>
+              </Box>
             </Box>
 
             {/* Tabla de detalle */}
