@@ -14,6 +14,7 @@ from datetime import date as date
 from api_zoho_customers.models import ZohoCustomer
 from api_zoho_items.models import ZohoItem
 from api_zoho_invoices.models import ZohoFullInvoice
+from api_zoho_sales_orders.models import ZohoFullSalesOrder
 from api_zoho.models import AppConfig
 from .models import QbItem, QbCustomer, QbLoading
 from .tasks import start_qbwc_query_request_task, authenticate_qbwc_request_task
@@ -68,6 +69,9 @@ def customer_query(request):
 def invoice_add_request(request):
     return start_qbwc_invoice_add_request(request)
 
+@csrf_exempt
+def sales_order_add_request(request):
+    return start_qbwc_sales_order_add_request(request)
 
 #############################################
 # Home page
@@ -156,19 +160,20 @@ def force_to_sync_one_invoice_ajax(request):
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
-def force_to_sync_invoices_ajax(request):
+def force_to_sync_ajax(request, kind):
     valid_token = api_zoho_views.validateJWTTokenRequest(request)
     if valid_token:
         try:
             data = json.loads(request.body)
-            list_id = data.get('invoices', [])
+            list_id = data.get('elements', [])
             username = data.get('username', '')
+            class_obj = ZohoFullInvoice if kind == 'invoices' else ZohoFullSalesOrder
             print(f"List ID: {list_id}")
             for invoice in list_id:
-                invoice_model = get_object_or_404(ZohoFullInvoice, invoice_id=invoice)
-                invoice_model.force_to_sync = True
+                invoice_model = get_object_or_404(class_obj, invoice_id=invoice) if kind == 'invoices' else get_object_or_404(class_obj, salesorder_id=invoice)
+                invoice_model.force_to_sync = not invoice_model.force_to_sync
                 invoice_model.save()
-                api_zoho_views.manage_api_tracking_log(username, 'force_to_sync_invoices', request.META.get('REMOTE_ADDR'), 'Forced to sync invoices')
+                api_zoho_views.manage_api_tracking_log(username, f'force_to_sync_{kind}', request.META.get('REMOTE_ADDR'), f'Forced to sync {kind}')
             return JsonResponse({'status': 'success'}, status=200)
         except Exception as e:
             logger.error(f"An error occurred: {e}")
@@ -178,19 +183,20 @@ def force_to_sync_invoices_ajax(request):
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
-def unsync_invoices_ajax(request):
+def unsync_ajax(request, kind):
     valid_token = api_zoho_views.validateJWTTokenRequest(request)
     if valid_token:
         try:
             data = json.loads(request.body)
-            list_id = data.get('invoices', [])
+            list_id = data.get('elements', [])
             username = data.get('username', '')
+            class_obj = ZohoFullInvoice if kind == 'invoices' else ZohoFullSalesOrder
             print(f"List ID: {list_id}")
             for invoice in list_id:
-                invoice_model = get_object_or_404(ZohoFullInvoice, invoice_id=invoice)
-                invoice_model.inserted_in_qb = False
+                invoice_model = get_object_or_404(class_obj, invoice_id=invoice) if kind == 'invoices' else get_object_or_404(class_obj, salesorder_id=invoice)
+                invoice_model.inserted_in_qb = not invoice_model.inserted_in_qb
                 invoice_model.save()
-                api_zoho_views.manage_api_tracking_log(username, 'unsync_invoices', request.META.get('REMOTE_ADDR'), 'Unsync invoices')
+                api_zoho_views.manage_api_tracking_log(username, f'unsync_{kind}', request.META.get('REMOTE_ADDR'), f'Unsync {kind}')
             return JsonResponse({'status': 'success'}, status=200)
         except Exception as e:
             logger.error(f"An error occurred: {e}")
@@ -476,15 +482,26 @@ def matched_customers(request):
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
-def matched_invoices(request):
+def matched(request, kind, filt):
     valid_token = api_zoho_views.validateJWTTokenRequest(request)
     if valid_token:
         # Obtener la fecha desde los parámetros de consulta, o usar la fecha actual si no se proporciona
         date_str = request.GET.get('date')
         date_date = parse_date(date_str) if date_str else date.today()
+        custom_item_ids = list(ZohoItem.objects.filter(is_custom=True).values_list('item_id', flat=True))
+        cond = Q()
+        for cid in custom_item_ids:
+            cond |= Q(line_items__contains=[{"item_id": cid}])
 
         # Agregar filtro de fecha para obtener solo las facturas del día
-        invoices = ZohoFullInvoice.objects.filter(date=date_date).order_by('-invoice_number')
+        if kind == 'invoices':
+            iterable = ZohoFullInvoice.objects.filter(date=date_date).order_by('-invoice_number')
+            if filt == 'stock':
+                iterable = iterable.exclude(cond)
+        elif kind == 'sales_orders':
+            iterable = ZohoFullSalesOrder.objects.filter(date=date_date).order_by('-salesorder_number')
+            if filt == 'custom':
+                iterable = iterable.filter(cond)
         
         pattern = r'^[A-Za-z0-9]{8}-[A-Za-z0-9]{10}$'
         all_items = ZohoItem.objects.filter(Q(qb_list_id__regex=pattern)).values_list('item_id', 'qb_list_id')
@@ -498,36 +515,37 @@ def matched_invoices(request):
         items_dict = {item['item_id']: item for item in all_items_data}
         customers_dict = {customer['contact_id']: customer for customer in all_customers_data}
 
-        for invoice in invoices:
-            for item in invoice.line_items:
+        for it in iterable:
+            for item in it.line_items:
                 item_id = item.get('item_id')
                 if item_id in items_dict:
                     item['qb_list_id'] = items_dict[item_id]['qb_list_id']
 
-            for item in invoice.items_unmatched:
+            for item in it.items_unmatched:
                 zoho_item_id = item.get('zoho_item_id')
                 if zoho_item_id in items_dict:
                     item['qb_list_id'] = items_dict[zoho_item_id]['qb_list_id']
 
-            customer_id = invoice.customer_id
+            customer_id = it.customer_id
             if customer_id in customers_dict:
                 qb_customer_list_id = customers_dict[customer_id]['qb_list_id']
 
-            for customer in invoice.customer_unmatched:
+            for customer in it.customer_unmatched:
                 zoho_customer_id = customer.get('zoho_customer_id')
                 if zoho_customer_id in customers_dict:
                     customer['qb_list_id'] = customers_dict[zoho_customer_id]['qb_list_id']
-            
-            cont_items = len(list(filter(lambda x: 'qb_list_id' in x, invoice.line_items)))
-                        
-            invoice.all_items_matched = cont_items == len(invoice.line_items)
-            invoice.all_customer_matched = qb_customer_list_id != ''
-            invoice.qb_customer_list_id = qb_customer_list_id
-            invoice.save()
+
+            # cont_items = len(list(filter(lambda x: 'qb_list_id' in x, it.line_items)))
+            cont_items = sum(1 for x in (it.line_items or []) if 'qb_list_id' in x)
+
+            it.all_items_matched = cont_items == len(it.line_items)
+            it.all_customer_matched = qb_customer_list_id != ''
+            it.qb_customer_list_id = qb_customer_list_id
+            it.save()
             qb_customer_list_id = ''
 
         # Calcular estadísticas basadas en las facturas del día
-        stats = invoices.aggregate(
+        stats = iterable.aggregate(
             matched_number=Count('id', filter=Q(inserted_in_qb=True)),
             total_items_unmatched=Count('id', filter=Q(items_unmatched__isnull=False, items_unmatched__gt=0)),
             total_customers_unmatched=Count('id', filter=Q(customer_unmatched__isnull=False, customer_unmatched__gt=0)),
@@ -542,7 +560,7 @@ def matched_invoices(request):
 
         # Serializar las facturas para la respuesta
         context = {
-            'invoices': serializers.serialize('json', invoices),
+            'elements': serializers.serialize('json', iterable),
             'matched_number': matched_number,
             'unmatched_number': unmatched_number,
             'unprocessed_number': unprocessed_number,
@@ -654,6 +672,28 @@ def match_one_customer_ajax(request):
 #############################################    
 # SOAP requests
 #############################################
+
+def start_qbwc_sales_order_add_request(request):
+    if request.method == 'POST':
+        xml_data = request.body.decode('utf-8')
+        response_xml = process_qbwc_sales_order_add_request(xml_data)
+        qb_loading = QbLoading.objects.filter(qb_module='sales_orders', qb_record_created=datetime.now(timezone.utc)).first()
+        app_config = AppConfig.objects.first()
+        api_zoho_views.manage_api_tracking_log(f'{app_config.qb_username} (From QBWC)', 'sync_sales_orders_to_qb', request.META.get('REMOTE_ADDR'), 'Sync sales orders to QuickBooks')
+
+        if not qb_loading:
+            qb_loading = create_qb_loading_instance('sales_orders')
+        else:
+            qb_loading.qb_record_updated = datetime.now(timezone.utc)
+        qb_loading.save()
+
+        message_notification = 'Sales orders have been synced to QuickBooks'
+        api_zoho_views.manage_notifications(message_notification)
+        
+        return HttpResponse(response_xml, content_type='text/xml')
+    else:
+        return HttpResponse(status=405)
+    
 
 def start_qbwc_invoice_add_request(request):
     if request.method == 'POST':
@@ -843,6 +883,28 @@ def process_qbwc_invoice_add_request(xml_data):
         elif 'sendRequestXML' in body and counter == 0:
             counter += 1
             response = soap_service.generate_invoice_add_response()
+        elif 'closeConnection' in body:
+            counter = 0
+            response = soap_service.generate_close_connection_response()
+        else:
+            response = soap_service.generate_unsupported_request_response()
+        return response
+    except Exception as e:
+        logger.error(f"Error processing request: {e}")
+        return soap_service.generate_error_response(str(e))
+    
+    
+def process_qbwc_sales_order_add_request(xml_data):
+    global counter
+    response = None
+    try:
+        xml_dict = xmltodict.parse(xml_data)
+        body = xml_dict['soap:Envelope']['soap:Body']
+        if 'authenticate' in body:
+            response = soap_service.handle_authenticate(body)
+        elif 'sendRequestXML' in body and counter == 0:
+            counter += 1
+            response = soap_service.generate_sales_order_add_response()
         elif 'closeConnection' in body:
             counter = 0
             response = soap_service.generate_close_connection_response()

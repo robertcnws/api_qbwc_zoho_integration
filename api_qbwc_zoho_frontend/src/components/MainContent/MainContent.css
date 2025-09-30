@@ -1,11 +1,4 @@
-.main-content {
-    margin-top: -15px; 
-    margin-bottom: -4px; 
-    margin-left: -262px; 
-    margin-right: -233px; /* Ancho del sidebar */
-    padding: 20px;
-    overflow-y: auto;
-}
+
 
 /* Header del Formulario */
 .form-header {
@@ -28,6 +21,4 @@
     padding: 10px;
     text-align: right;
     min-height: 20px;
-    margin-left: -30px;
-    margin-right: -25px
 }

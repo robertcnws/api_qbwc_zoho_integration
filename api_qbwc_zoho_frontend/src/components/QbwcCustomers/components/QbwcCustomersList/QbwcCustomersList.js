@@ -1,18 +1,19 @@
 import React, { useEffect, useState } from 'react';
-import { 
-  Container, 
-  Grid, 
-  Typography, 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableContainer, 
-  TableHead, 
+import {
+  Container,
+  Grid,
+  Typography,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
   TableRow,
   TableSortLabel,
   FormControl,
   FormControlLabel,
   Checkbox,
+  Box,
 } from '@mui/material';
 import DoNotDisturbIcon from '@mui/icons-material/DoNotDisturb';
 import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
@@ -71,7 +72,7 @@ const QbwcCustomersList = ({ customers, onSyncComplete }) => {
     //     setSearchTerm(event.target.value);
     //     setPage(0);
     // };
-    
+
 
     const isSelected = (customerId) => selectedCustomers.indexOf(customerId) !== -1;
 
@@ -96,7 +97,7 @@ const QbwcCustomersList = ({ customers, onSyncComplete }) => {
             { value: 'not_matched', label: 'Unmatched Customers' }
         ],
         hasSearch: false
-    }
+    };
 
     const renderForceSyncCheckbox = (customer, isSelected) => {
         if (filter !== 'matched'){
@@ -116,10 +117,10 @@ const QbwcCustomersList = ({ customers, onSyncComplete }) => {
         }
         else {
             return (
-                <Typography sx={{ color: 'success.main'}}>
+                <Typography sx={{ color: 'success.main' }}>
                     Matched
                 </Typography>
-            )
+            );
         }
     };
 
@@ -144,7 +145,7 @@ const QbwcCustomersList = ({ customers, onSyncComplete }) => {
         }).then(async (result) => {
             if (result.isConfirmed) {
                 try {
-                    const url = `${apiUrl}/api_quickbook_soap/never_match_customers_ajax/`
+                    const url = `${apiUrl}/api_quickbook_soap/never_match_customers_ajax/`;
                     const body = {
                         customers: selectedCustomers,
                         username: localStorage.getItem('username')
@@ -157,7 +158,7 @@ const QbwcCustomersList = ({ customers, onSyncComplete }) => {
                             'error'
                         );
                         return;
-                    }   
+                    }
                     else if (response.data.message === 'success') {
                         Swal.fire(
                             'Success!',
@@ -184,11 +185,11 @@ const QbwcCustomersList = ({ customers, onSyncComplete }) => {
       const search = customer.fields.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                      customer.fields.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
                      customer.fields.phone.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                     customer.fields.list_id.toLowerCase().includes(searchTerm.toLowerCase())
+                     customer.fields.list_id.toLowerCase().includes(searchTerm.toLowerCase());
       if (filter === 'all') return search;
-      if (filter === 'matched') return search && customer.fields.matched; 
-      if (filter === 'not_matched') return search && !customer.fields.matched; 
-      return false;             
+      if (filter === 'matched') return search && customer.fields.matched;
+      if (filter === 'not_matched') return search && !customer.fields.matched;
+      return false;
   });
 
   const sortedCustomers = stableSort(filteredCustomers, getComparator(order, orderBy));
@@ -201,30 +202,34 @@ const QbwcCustomersList = ({ customers, onSyncComplete }) => {
       { id: 'actions', label: 'Actions', colspan: 1, textAlign: 'center' }
   ];
 
-  const childrenNavigationRightButton = [ 
-    { 
-        label: 'Never Match Selected', 
-        icon: <DoNotDisturbIcon sx={{ marginRight: 1 }} />, 
+  const childrenNavigationRightButton = [
+    {
+        label: 'Never Match Selected',
+        icon: <DoNotDisturbIcon sx={{ marginRight: 1 }} />,
         onClick: handleNeverMatchCustomers,
-        visibility: filter !== 'matched' && selectedCustomers.length > 0 
+        visibility: filter !== 'matched' && selectedCustomers.length > 0
     },
-    { 
-        label: 'Back to QBWC', 
-        icon: <AccountBalanceWalletIcon sx={{ marginRight: 1 }} />, 
-        route: '/integration/qbwc', 
+    {
+        label: 'Back to QBWC',
+        icon: <AccountBalanceWalletIcon sx={{ marginRight: 1 }} />,
+        route: '/integration/qbwc',
         visibility: true
     }
  ];
 
   return (
-    <Container
-            maxWidth="xl"
+    <Box
             sx={{
-                marginLeft: '-29.4%',
-                minWidth: '88.3vw',
+                display: 'flex',
+                flexDirection: 'column',
+                width: '100%',
+                bgcolor: '#F9F9FB',
+                p: 0,
+                gap: 2,
+                overflowX: 'hidden',
             }}
         >
-        <Grid container spacing={2} alignItems="center" justifyContent="space-between" mb={3} sx={{ mt: '-3%'}}>
+        <Grid container spacing={2} alignItems="center" justifyContent="space-between" mb={3}>
             <Grid item container xs={5} justifyContent="flex-start">
                 <Grid item xs={5}>
                     <CustomFilter configCustomFilter={configCustomFilter} />
@@ -240,20 +245,20 @@ const QbwcCustomersList = ({ customers, onSyncComplete }) => {
                     </Alert>
                 </Grid> */}
             </Grid>
-            <Grid item xs={12} sx={{ mt: '-1%'}}>
-                <TableContainer style={{  maxHeight: '755px', minHeight: '755px', minWidth: 690 }}>
+            <Grid item xs={12}>
+                <TableContainer style={{  maxHeight: 700, minHeight: 700, minWidth: 690 }}>
                     <Table id="myTable" aria-label="customers table" stickyHeader>
-                        <TableHead sx={{ backgroundColor: '#e0e0e0' }}> 
+                        <TableHead sx={{ backgroundColor: '#e0e0e0' }}>
                             <TableRow>
                                 {columns.map((column) => (
                                     <TableCell key={column.id} colSpan={column.colspan}
-                                    sx={{ 
-                                        fontWeight: 'bold', 
-                                        color: '#6c7184', 
-                                        borderBottom: '1px solid #ddd', 
+                                    sx={{
+                                        fontWeight: 'bold',
+                                        color: '#6c7184',
+                                        borderBottom: '1px solid #ddd',
                                         borderTop: '1px solid #ddd',
                                         backgroundColor: '#f9f9fb',
-                                        padding: '5px 16px', 
+                                        padding: '5px 16px',
                                         textAlign: column.textAlign
                                         }}>
                                         <TableSortLabel
@@ -274,11 +279,11 @@ const QbwcCustomersList = ({ customers, onSyncComplete }) => {
                                             ? sortedCustomers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                                             : sortedCustomers
                                         ).map((customer, index) => (
-                                            <TableRow key={index} 
+                                            <TableRow key={index}
                                                 sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                                                style = {{ 
-                                                    cursor: 'pointer', 
-                                                    transition: 'background-color 0.3s ease',  
+                                                style = {{
+                                                    cursor: 'pointer',
+                                                    transition: 'background-color 0.3s ease',
                                                     backgroundColor: hoveredRowIndex === index ? '#F6F6FA' : '#FFFFFF'
                                                 }}
                                                 onMouseEnter={() => setHoveredRowIndex(index)}
@@ -294,12 +299,12 @@ const QbwcCustomersList = ({ customers, onSyncComplete }) => {
                                             </TableRow>
                                         ))
                                 )}
-                                <TableCustomPagination 
-                                    columnsLength={columns.length} 
-                                    data={filteredCustomers} 
-                                    page={page} 
-                                    rowsPerPage={rowsPerPage} 
-                                    handleChangePage={handleChangePage} 
+                                <TableCustomPagination
+                                    columnsLength={columns.length}
+                                    data={filteredCustomers}
+                                    page={page}
+                                    rowsPerPage={rowsPerPage}
+                                    handleChangePage={handleChangePage}
                                     handleChangeRowsPerPage={handleChangeRowsPerPage}
                                 />
                         </TableBody>
@@ -307,9 +312,9 @@ const QbwcCustomersList = ({ customers, onSyncComplete }) => {
                 </TableContainer>
             </Grid>
         </Grid>
-    </Container>
+    </Box>
 );
 
-}
+};
 
 export default QbwcCustomersList;

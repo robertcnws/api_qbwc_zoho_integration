@@ -95,7 +95,7 @@ const NavigationRightButton = ({ children }) => {
         }
       </Menu>
     </Grid>
-  )
+  );
 
 };
 

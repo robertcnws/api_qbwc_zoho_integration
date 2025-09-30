@@ -13,15 +13,13 @@ export const AlertError = ({ isSmallScreen, error, redirect }) => {
 
     return (
         <>
-            <Alert 
-            severity="error" 
-            xs={12} 
+            <Alert
+            severity="error"
+            xs={12}
             sx={{
                 mt: 3,
                 p: 1,
-                marginLeft: isSmallScreen ? '0' : '-19%',
                 transition: 'margin-left 0.3s ease',
-                minWidth: '83.5vw',
             }}
             action={
                 redirect ? (
@@ -40,5 +38,5 @@ export const AlertError = ({ isSmallScreen, error, redirect }) => {
                 {error}
             </Alert>
         </>
-    )
-}
+    );
+};

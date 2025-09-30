@@ -17,7 +17,7 @@ import {
   TextField
 } from '@mui/material';
 import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
-import GroupIcon from '@mui/icons-material/Group'
+import GroupIcon from '@mui/icons-material/Group';
 import Swal from 'sweetalert2';
 import { stableSort, getComparatorUndefined, fetchWithToken } from '../../../../utils';
 import { EmptyRecordsCell } from '../../../Utils/components/EmptyRecordsCell/EmptyRecordsCell';
@@ -74,7 +74,7 @@ const QbwcSimilarCustomersList = ({ similarCustomers, onSyncComplete }) => {
               contact_id: zoho_customer_id,
               action: 'match',
               username: localStorage.getItem('username')
-            }
+            };
             const response = await fetchWithToken(url, 'POST', body, {}, apiUrl);
             if (response.status === 200) {
               Swal.fire('Matched!', 'Customer has been matched.', 'success').then(() => {
@@ -87,7 +87,7 @@ const QbwcSimilarCustomersList = ({ similarCustomers, onSyncComplete }) => {
           } catch (error) {
             Swal.fire('Error!', `Error matching customers for the customer: ${error}`, 'error');
           }
-        }
+        };
         matchOneCustomerAjax();
       }
     });
@@ -107,9 +107,9 @@ const QbwcSimilarCustomersList = ({ similarCustomers, onSyncComplete }) => {
     customer.qb_customer_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     customer.qb_customer_email.toLowerCase().includes(searchTerm.toLowerCase()) ||
     customer.qb_customer_phone.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    customer.coincidences_by_order.some(coincidence => 
+    customer.coincidences_by_order.some(coincidence =>
       coincidence.zoho_customer.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      coincidence.email.toLowerCase().includes(searchTerm.toLowerCase()) || 
+      coincidence.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
       coincidence.phone.toLowerCase().includes(searchTerm.toLowerCase())
     )
   );
@@ -117,9 +117,9 @@ const QbwcSimilarCustomersList = ({ similarCustomers, onSyncComplete }) => {
   const renderTableRows = (customers) => {
     return customers.map((customer, index) => (
       customer.coincidences_by_order ? customer.coincidences_by_order.map((coincidence, subIndex) => (
-        <TableRow key={`${index}-${subIndex}`} 
+        <TableRow key={`${index}-${subIndex}`}
           sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-          style={{ 
+          style={{
             cursor: 'pointer',
             transition: 'background-color 0.3s ease',
             backgroundColor: hoveredRowIndex === `${index}-${subIndex}` ? '#f8d7da' : '#FFFFFF'
@@ -137,7 +137,7 @@ const QbwcSimilarCustomersList = ({ similarCustomers, onSyncComplete }) => {
                 {customer.qb_customer_phone}
             </TableCell>
           <TableCell style={{ backgroundColor: subIndex === 0 ? '#f8d7da' : '#FFFFFF' }}>
-            Name: <b>{coincidence.zoho_customer}</b><br /> 
+            Name: <b>{coincidence.zoho_customer}</b><br />
             Company Name: <b>{coincidence.zoho_company_name ? `${coincidence.zoho_company_name}` : '---'}</b><br />
             (ID: <b>{coincidence.zoho_customer_id}</b>)
           </TableCell>
@@ -173,22 +173,22 @@ const QbwcSimilarCustomersList = ({ similarCustomers, onSyncComplete }) => {
     )) : null
     ));
   };
-  
+
 
   const sortedCustomers = stableSort(filteredCustomers, getComparatorUndefined(order, orderBy));
   const paginatedCustomers = sortedCustomers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
-  const childrenNavigationRightButton = [ 
-    { 
-        label: 'Matched Customers', 
-        icon: <GroupIcon sx={{ marginRight: 1 }} />, 
+  const childrenNavigationRightButton = [
+    {
+        label: 'Matched Customers',
+        icon: <GroupIcon sx={{ marginRight: 1 }} />,
         route: '/integration/qbwc/customers/matched',
         visibility: true
     },
-    { 
-        label: 'Back to QBWC', 
-        icon: <AccountBalanceWalletIcon sx={{ marginRight: 1 }} />, 
-        route: '/integration/qbwc', 
+    {
+        label: 'Back to QBWC',
+        icon: <AccountBalanceWalletIcon sx={{ marginRight: 1 }} />,
+        route: '/integration/qbwc',
         visibility: true
     }
  ];
@@ -245,13 +245,13 @@ const QbwcSimilarCustomersList = ({ similarCustomers, onSyncComplete }) => {
           <TableHead sx={{ backgroundColor: '#e0e0e0' }}>
             <TableRow>
               {columns.map((column) => (
-                <TableCell key={column.id} 
-                sx={{ 
-                  fontWeight: 'bold', 
-                  color: '#6c7184', 
-                  borderBottom: '1px solid #ddd', 
+                <TableCell key={column.id}
+                sx={{
+                  fontWeight: 'bold',
+                  color: '#6c7184',
+                  borderBottom: '1px solid #ddd',
                   borderTop: '1px solid #ddd',
-                  backgroundColor: '#f9f9fb' 
+                  backgroundColor: '#f9f9fb'
                   }}>
                   <TableSortLabel
                     active={orderBy === column.id}

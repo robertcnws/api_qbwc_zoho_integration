@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Container, Grid, Typography, CircularProgress, ListItem, Tooltip } from '@mui/material';
+import { Container, Grid, Typography, CircularProgress, ListItem, Tooltip, Box } from '@mui/material';
 import IconButton from '@mui/material/IconButton';
 import CloseIcon from '@mui/icons-material/Close';
 import People from '@mui/icons-material/People';
@@ -15,7 +15,7 @@ const QbwcGetting = () => {
     const gettingData = async (module, objects, setLoading) => {
         setLoading(true);
         navigate(`/integration/qbwc/${objects}/${module}`);
-    }
+    };
 
     const handleListCustomers = () => gettingData('list', 'customers', setLoadingCustomers);
     const handleListItems = () => gettingData('list', 'items', setLoadingItems);
@@ -27,34 +27,17 @@ const QbwcGetting = () => {
     const handleNeverMatchItems = () => gettingData('never_match', 'items', setLoadingItems);
 
     return (
-        <Container
-            component="main"
-            maxWidth="md"
+        <Box
             sx={{
-                mt: '0%',
-                bgcolor: '#f0f0f9',
-                boxShadow: 1,
-                borderRadius: 1,
-                minWidth: '87.5vw',
-                minHeight: '90vh',
-                marginLeft: '-22%',
+                display: 'flex',
+                flexDirection: 'column',
+                width: '100%',
+                bgcolor: '#F9F9FB',
+                p: 0,
+                gap: 2,
+                overflowX: 'hidden',
             }}
         >
-            {/* <Typography
-                variant="h6"
-                align="center"
-                gutterBottom
-                sx={{
-                    borderBottom: '2px solid #2196F3',
-                    paddingBottom: '8px',
-                    marginBottom: '20px',
-                    textTransform: 'uppercase',
-                    color: '#212529',
-                    fontWeight: 'bold',
-                }}
-            >
-                Reading Data from QuickBooks
-            </Typography> */}
 
             <Grid container alignItems="center" justifyContent="center">
                 <Grid item xs={11} sx={{ textAlign: 'center' }}>
@@ -191,7 +174,7 @@ const QbwcGetting = () => {
                 </Grid>
             </Grid>
 
-        </Container>
+        </Box>
     );
 };
 

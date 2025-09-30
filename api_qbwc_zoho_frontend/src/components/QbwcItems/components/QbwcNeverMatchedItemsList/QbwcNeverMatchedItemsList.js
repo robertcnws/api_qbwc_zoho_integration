@@ -1,19 +1,20 @@
 import React, { useEffect, useState } from 'react';
-import { 
-  Container, 
-  Grid, 
-  Typography, 
-  Alert, 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableContainer, 
-  TableHead, 
+import {
+  Container,
+  Grid,
+  Typography,
+  Alert,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
   TableRow,
   TableSortLabel,
   FormControl,
   FormControlLabel,
-  Checkbox
+  Checkbox,
+  Box
 } from '@mui/material';
 import UndoIcon from '@mui/icons-material/Undo';
 import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
@@ -117,7 +118,7 @@ const QbwcNeverMatchedItemsList = ({ neverMatchedItems, onSyncComplete }) => {
     }).then(async (result) => {
         if (result.isConfirmed) {
             try {
-                const url = `${apiUrl}/api_quickbook_soap/never_match_items_ajax/`
+                const url = `${apiUrl}/api_quickbook_soap/never_match_items_ajax/`;
                 const body = {
                     items: selectedNeverMatchedItems,
                     to_match: true,
@@ -131,7 +132,7 @@ const QbwcNeverMatchedItemsList = ({ neverMatchedItems, onSyncComplete }) => {
                         'error'
                     );
                     return;
-                }   
+                }
                 else if (response.data.message === 'success') {
                     Swal.fire(
                         'Success!',
@@ -167,30 +168,34 @@ const QbwcNeverMatchedItemsList = ({ neverMatchedItems, onSyncComplete }) => {
       { id: 'actions', label: 'Actions', colspan: 1, textAlign: 'center' }
   ];
 
-  const childrenNavigationRightButton = [ 
-    { 
-        label: 'Undo Never Match', 
-        icon: <UndoIcon sx={{ marginRight: 1 }} />, 
+  const childrenNavigationRightButton = [
+    {
+        label: 'Undo Never Match',
+        icon: <UndoIcon sx={{ marginRight: 1 }} />,
         onClick: handleNeverMatchItems,
-        visibility: selectedNeverMatchedItems.length > 0 
+        visibility: selectedNeverMatchedItems.length > 0
     },
-    { 
-        label: 'Back to QBWC', 
-        icon: <AccountBalanceWalletIcon sx={{ marginRight: 1 }} />, 
-        route: '/integration/qbwc', 
+    {
+        label: 'Back to QBWC',
+        icon: <AccountBalanceWalletIcon sx={{ marginRight: 1 }} />,
+        route: '/integration/qbwc',
         visibility: true
     }
  ];
 
   return (
-    <Container
-            maxWidth="xl"
+    <Box
             sx={{
-                marginLeft: '-29.4%',
-                minWidth: '88.3vw',
+                display: 'flex',
+                flexDirection: 'column',
+                width: '100%',
+                bgcolor: '#F9F9FB',
+                p: 0,
+                gap: 2,
+                overflowX: 'hidden',
             }}
         >
-        <Grid container spacing={2} alignItems="center" justifyContent="space-between" mb={3} sx={{ mt: '-3%'}}>
+        <Grid container spacing={2} alignItems="center" justifyContent="space-between" mb={3}>
             <Grid item xs={6}>
                 <Typography
                     variant="h6"
@@ -215,20 +220,20 @@ const QbwcNeverMatchedItemsList = ({ neverMatchedItems, onSyncComplete }) => {
                     </Alert>
                 </Grid>
             </Grid>
-            <Grid item xs={12} sx={{ mt: '-1%'}}>
-                <TableContainer style={{ maxHeight: '760px', minWidth: 690 }}>
+            <Grid item xs={12}>
+                <TableContainer style={{ maxHeight: 650, minHeight: 650, minWidth: 690 }}>
                     <Table id="myTable" aria-label="items table" stickyHeader>
-                        <TableHead sx={{ backgroundColor: '#e0e0e0' }}> 
+                        <TableHead sx={{ backgroundColor: '#e0e0e0' }}>
                             <TableRow>
                                 {columns.map((column) => (
                                     <TableCell key={column.id} colSpan={column.colspan}
-                                    sx={{ 
-                                        fontWeight: 'bold', 
-                                        color: '#6c7184', 
-                                        borderBottom: '1px solid #ddd', 
-                                        borderTop: '1px solid #ddd', 
+                                    sx={{
+                                        fontWeight: 'bold',
+                                        color: '#6c7184',
+                                        borderBottom: '1px solid #ddd',
+                                        borderTop: '1px solid #ddd',
                                         backgroundColor: '#f9f9fb',
-                                        padding: '5px 16px', 
+                                        padding: '5px 16px',
                                         textAlign: column.textAlign
                                     }}>
                                         <TableSortLabel
@@ -250,11 +255,11 @@ const QbwcNeverMatchedItemsList = ({ neverMatchedItems, onSyncComplete }) => {
                                     ? sortedNeverMatchedItems.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                                     : sortedNeverMatchedItems
                                 ).map((item, index) => (
-                                    <TableRow key={index} 
+                                    <TableRow key={index}
                                     sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                                    style = {{ 
-                                        cursor: 'pointer', 
-                                        transition: 'background-color 0.3s ease',  
+                                    style = {{
+                                        cursor: 'pointer',
+                                        transition: 'background-color 0.3s ease',
                                         backgroundColor: hoveredRowIndex === index ? '#F6F6FA' : '#FFFFFF'
                                     }}
                                     onMouseEnter={() => setHoveredRowIndex(index)}
@@ -281,9 +286,9 @@ const QbwcNeverMatchedItemsList = ({ neverMatchedItems, onSyncComplete }) => {
                 </TableContainer>
             </Grid>
         </Grid>
-    </Container>
+    </Box>
 );
 
-}
+};
 
 export default QbwcNeverMatchedItemsList;

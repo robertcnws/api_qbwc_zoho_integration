@@ -15,6 +15,7 @@ import {
     TablePagination,
     TextField,
     TableSortLabel,
+    Box,
 } from '@mui/material';
 import { Link } from 'react-router-dom';
 import Swal from 'sweetalert2';
@@ -65,13 +66,13 @@ const QbwcMatchedCustomersList = ({ matchedCustomers, onSyncComplete }) => {
             if (result.isConfirmed) {
                 const unmatchOneCustomerAjax = async () => {
                     try {
-                        const url = `${apiUrl}/api_zoho_customers/match_one_customer_ajax/`
+                        const url = `${apiUrl}/api_zoho_customers/match_one_customer_ajax/`;
                         const data = {
                             contact_id: customer.zoho_customer_id,
                             qb_customer_list_id: customer.qb_customer_list_id,
                             action: 'unmatch',
                             username: localStorage.getItem('username'),
-                        }
+                        };
                         const response = await fetchWithToken(url, 'POST', data, {}, apiUrl);
                         if (response.data.status === 'success') {
                             Swal.fire({
@@ -121,15 +122,15 @@ const QbwcMatchedCustomersList = ({ matchedCustomers, onSyncComplete }) => {
     ];
 
     return (
-        <Container
-            maxWidth="xl"
+        <Box
             sx={{
-                marginLeft: '-10%',
-                marginTop: '-6%',
-                transition: 'margin-left 0.3s ease',
-                minHeight: '100vh',
-                minWidth: '88vw',
-                padding: 1,
+                display: 'flex',
+                flexDirection: 'column',
+                width: '100%',
+                bgcolor: '#F9F9FB',
+                p: 0,
+                gap: 2,
+                overflowX: 'hidden',
             }}
         >
             <Grid container spacing={2} alignItems="center" justifyContent="space-between" mb={3}>
@@ -172,7 +173,7 @@ const QbwcMatchedCustomersList = ({ matchedCustomers, onSyncComplete }) => {
                 </Grid>
                 <Grid item xs={12}>
                     <TableContainer component={Paper}>
-                        <Table id="myTable" aria-label="customers table" sx={{ minWidth: 650 }}>
+                        <Table id="myTable" aria-label="customers table" sx={{ maxHeight: 700, minHeight: 700, minWidth: 650 }}>
                             <TableHead sx={{ backgroundColor: '#e0e0e0' }}>
                                 <TableRow>
                                     {columns.map((column) => (
@@ -232,9 +233,9 @@ const QbwcMatchedCustomersList = ({ matchedCustomers, onSyncComplete }) => {
                     />
                 </Grid>
             </Grid>
-        </Container>
+        </Box>
     );
 
-}
+};
 
 export default QbwcMatchedCustomersList;

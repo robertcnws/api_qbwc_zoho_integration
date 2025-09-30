@@ -5,6 +5,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.middleware.csrf import get_token
 from django.core import serializers
 from django.forms.models import model_to_dict
+from django.shortcuts import get_object_or_404
 from django.db.models import Q, Count
 from django.db.models.functions import TruncMonth, TruncDate
 import requests
@@ -18,6 +19,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import ensure_csrf_cookie
 from datetime import datetime, timezone, timedelta
+from django.utils import timezone as dj_timezone
 from .models import AppConfig, ZohoLoading, LoginUser, ApiTrackingLogs, Notification, UserNotification
 from .forms import AppConfigForm
 from .backup_db import create_backup
@@ -449,10 +451,12 @@ def zoho_loading(request):
         zoho_loading_items = ZohoLoading.objects.filter(zoho_module='items').order_by('-zoho_record_created').first()
         zoho_loading_invoices = ZohoLoading.objects.filter(zoho_module='invoices').order_by('-zoho_record_created').first()
         zoho_loading_customers = ZohoLoading.objects.filter(zoho_module='customers').order_by('-zoho_record_created').first()
+        zoho_loading_sales_orders = ZohoLoading.objects.filter(zoho_module='sales_orders').order_by('-zoho_record_created').first()
         context = {
             'zoho_loading_items': model_to_dict(zoho_loading_items) if zoho_loading_items else {},
             'zoho_loading_invoices': model_to_dict(zoho_loading_invoices) if zoho_loading_invoices else {},
             'zoho_loading_customers': model_to_dict(zoho_loading_customers) if zoho_loading_customers else {},
+            'zoho_loading_sales_orders': model_to_dict(zoho_loading_sales_orders) if zoho_loading_sales_orders else {},
         }
         return JsonResponse(context)
     
@@ -519,7 +523,8 @@ def manage_notifications(message):
         notification.notification_module = 'invoices' if 'invoice' in message.lower() else \
                                             'items' if 'item' in message.lower() else \
                                             'customers' if 'customer' in message.lower() else \
-                                            'backup' if 'backup' in message.lower() else 'general'
+                                            'backup' if 'backup' in message.lower() else \
+                                            'sales_orders' if 'sales order' in message.lower() else 'general'
         notification.save()
         
         users = LoginUser.objects.filter(is_active=True)
@@ -540,25 +545,43 @@ def manage_notifications(message):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def list_notifications(request):
-    valid_token = validateJWTTokenRequest(request)
-    if valid_token:
-        username = request.GET.get('username')
-        user = LoginUser.objects.filter(username=username).first()
-        notifications = UserNotification.objects.filter(user=user).order_by('-notification__notification_modified') 
-        quantity_unread = notifications.filter(is_read=False).count()   
-        list_notifications = []
-        for notification in notifications:
-            value = {
-                'notification_id': notification.id,
-                'notification_message': notification.notification.notification_message,
-                'notification_created': notification.notification.notification_created.strftime('%Y-%m-%d'),
-                'notification_modified': notification.notification.notification_modified.strftime('%Y-%m-%d %H:%M:%S'),
-                'notification_module': notification.notification.notification_module,   
-                'notification_is_read': notification.is_read
-            }
-            list_notifications.append(value)
-        return JsonResponse({'data': list_notifications, 'quantity_unread': quantity_unread}, safe=False, status=200)
-    return JsonResponse({'error': 'Invalid JWT Token'}, status=401)
+    if not validateJWTTokenRequest(request):
+        return JsonResponse({'error': 'Invalid JWT Token'}, status=401)
+
+    username = request.GET.get('username')
+    if not username:
+        return JsonResponse({'error': 'username is required'}, status=400)
+
+    user = get_object_or_404(LoginUser, username=username)
+
+    now = dj_timezone.now()
+    start_dt = now - timedelta(days=7)
+
+    notifications = (
+        UserNotification.objects
+        .select_related('notification')
+        .filter(
+            user=user,
+            notification__notification_modified__gte=start_dt
+        )
+        .order_by('-notification__notification_modified')
+    )
+
+    quantity_unread = notifications.filter(is_read=False).count()
+
+    data = []
+    for n in notifications:
+        notif = n.notification
+        data.append({
+            'notification_id': n.id,
+            'notification_message': notif.notification_message,
+            'notification_created': notif.notification_created.strftime('%Y-%m-%d'),
+            'notification_modified': notif.notification_modified.strftime('%Y-%m-%d %H:%M:%S'),
+            'notification_module': notif.notification_module,
+            'notification_is_read': n.is_read,
+        })
+
+    return JsonResponse({'data': data, 'quantity_unread': quantity_unread}, safe=False, status=200)
 
 
 #############################################

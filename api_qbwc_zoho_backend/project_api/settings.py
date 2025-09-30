@@ -79,6 +79,7 @@ PATH_FROM_BACKUP_DB = env('PATH_FROM_BACKUP_DB_DEV') if ENVIRONMENT == 'DEV' els
 PATH_TO_BACKUP_DB = env('PATH_TO_BACKUP_DB')
 TERMS = env('TERMS')
 TEMPLATE_INVOICE_NAME = env('TEMPLATE_INVOICE_NAME_DEV') if ENVIRONMENT == 'DEV' else env('TEMPLATE_INVOICE_NAME_QA') if ENVIRONMENT == 'QA' else env('TEMPLATE_INVOICE_NAME_PROD')
+TEMPLATE_SALES_ORDER_NAME = env('TEMPLATE_SALES_ORDER_NAME_DEV') if ENVIRONMENT == 'DEV' else env('TEMPLATE_SALES_ORDER_NAME_QA') if ENVIRONMENT == 'QA' else env('TEMPLATE_SALES_ORDER_NAME_PROD')
 DISCOUNT_ITEM_ID = env('DISCOUNT_ITEM_ID')
 # CELERY
 CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL', 'redis://localhost:6379/0')
@@ -102,6 +103,10 @@ DJANGO_SUPERUSER_PASSWORD = os.getenv('DJANGO_SUPERUSER_PASSWORD', '')
 LOGINUSER_USERNAME = os.getenv('LOGINUSER_USERNAME', '')
 LOGINUSER_EMAIL = os.getenv('LOGINUSER_EMAIL', '')
 LOGINUSER_PASSWORD = os.getenv('LOGINUSER_PASSWORD', '')
+
+API_MAIN_DATA_URL = os.getenv('API_MAIN_DATA_URL', 'https://main-load-data.newwindowsystem.net/api/manage')
+API_USER_DATA_URL = os.getenv('API_USER_DATA_URL', 'https://main-load-data.newwindowsystem.net/api/manage')
+API_MAIN_DATA_TOKEN = os.getenv('API_MAIN_DATA_TOKEN', '')
 
 CSRF_TRUSTED_ORIGINS = [
     'http://localhost:3000',
@@ -186,6 +191,7 @@ INSTALLED_APPS = [
     'api_zoho_invoices',
     'api_quickbook_soap',
     'api_zoho_statistics',
+    'api_zoho_sales_orders',
 ]
 
 REST_FRAMEWORK = {

@@ -13,6 +13,7 @@ class ZohoItem(models.Model):
     created_time = models.DateTimeField()
     last_modified_time = models.DateTimeField()
     qb_list_id = models.CharField(max_length=50, blank=True, null=True)
+    is_custom = models.BooleanField(default=False)
     
     def save(self, *args, **kwargs):
         if self.pk:  # Si el objeto ya existe (tiene una clave primaria)

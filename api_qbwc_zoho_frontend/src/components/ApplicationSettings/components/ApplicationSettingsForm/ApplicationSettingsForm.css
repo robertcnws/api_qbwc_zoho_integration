@@ -32,15 +32,6 @@
     cursor: pointer;
 }
 
-.main-content {
-    margin-top: -15px; /* Altura del topbar del sitio */
-    margin-bottom: -4px; /* Altura del footer del sitio */
-    margin-left: -262px; /* Ancho del sidebar */
-    margin-right: -233px; /* Ancho del sidebar */
-    padding: 20px;
-    overflow-y: auto;
-}
-
 /* Header del Formulario */
 .form-header {
     position: sticky;

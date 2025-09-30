@@ -71,7 +71,7 @@ const Topbar = ({ handleLogout }) => {
     const [drawerOpen, setDrawerOpen] = useState(false);
 
     const handleClose = () => {
-        setDrawerOpen(false)
+        setDrawerOpen(false);
     };
 
     const toggleDrawer = (open, drawingUser) => (event) => {
@@ -98,7 +98,7 @@ const Topbar = ({ handleLogout }) => {
             const notification_unread = data.filter(item => !item.notification_is_read);
             if (quantityUnread === 1) {
                 toast.info(`${notification_unread[0].notification_message} on ${notification_unread[0].notification_modified}`, {
-                    position: "top-center",
+                    position: 'top-center',
                     autoClose: 5000,
                     hideProgressBar: false,
                     closeOnClick: true,
@@ -113,7 +113,7 @@ const Topbar = ({ handleLogout }) => {
                 });
             } else {
                 toast.info(`You have ${quantityUnread} new notifications`, {
-                    position: "top-center",
+                    position: 'top-center',
                     autoClose: 5000,
                     hideProgressBar: false,
                     closeOnClick: true,
@@ -139,6 +139,9 @@ const Topbar = ({ handleLogout }) => {
             setVisibleSearch(true);
         } else if (currentPath.includes('list_invoices')) {
             setLabelSearch('Search Invoices (/)');
+            setVisibleSearch(true);
+        } else if (currentPath.includes('list_sales_orders')) {
+            setLabelSearch('Search Sales Orders (/)');
             setVisibleSearch(true);
         } else if (currentPath.includes('qbwc/customers/list')) {
             setLabelSearch('Search QB Customers (/)');
@@ -187,6 +190,8 @@ const Topbar = ({ handleLogout }) => {
             navigate('/integration/list_items');
         } else if (option === 'Invoices') {
             navigate('/integration/list_invoices');
+        } else if (option === 'Sales Orders') {
+            navigate('/integration/list_sales_orders');
         } else if (option === 'QB Customers') {
             navigate('/integration/qbwc/customers/list');
         } else if (option === 'QB Items') {
@@ -213,7 +218,7 @@ const Topbar = ({ handleLogout }) => {
     const logout = () => {
         handleClose();
         handleLogout();
-    }
+    };
 
     const handleCheckNotification = async (notification) => {
         const data = {
@@ -225,10 +230,10 @@ const Topbar = ({ handleLogout }) => {
             if (notification.notification_module !== 'backup') {
                 navigate(`/integration/list_${notification.notification_module}`);
             } else {
-                navigate(`/integration/download_backup_db`);
+                navigate('/integration/download_backup_db');
             }
         }
-    }
+    };
 
     const handleFilterChange = event => {
         setFilter(event.target.value);
@@ -253,10 +258,10 @@ const Topbar = ({ handleLogout }) => {
     };
 
     return (
-        <>
+        <Box sx={{ display: 'flex', flexDirection: 'row' }}>
             <Toolbar
                 sx={{
-                    bgcolor: '#f7f7fe', position: 'relative', border: '1px solid #ddd', marginLeft: '225px', maxWidth: 'calc(96vw - 225px)',
+                    bgcolor: '#f7f7fe', border: '1px solid #ddd', marginLeft: 0, width: '100%',
                 }}>
                 <Box sx={{ flexGrow: 1 }}>
                     {visibleSearch && (
@@ -316,6 +321,7 @@ const Topbar = ({ handleLogout }) => {
                             'Customers',
                             'Items',
                             'Invoices',
+                            'Sales Orders',
                             'QB Customers',
                             'QB Items',
                             'QB Never Match Customers',
@@ -594,7 +600,7 @@ const Topbar = ({ handleLogout }) => {
 
                 </Box>
             </Drawer>
-        </>
+        </Box>
     );
 };
 

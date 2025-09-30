@@ -27,6 +27,8 @@ import DownloadBackupList from './components/DownloadBackupList/DownloadBackupLi
 import UsersListPage from './components/Users/components/UsersListPage/UsersListPage';
 import UsersFormContainer from './components/Users/components/UsersFormContainer/UsersFormContainer';
 import LoggingListPage from './components/Logging/components/LoggingListPage/LoggingListPage';
+import SalesOrdersListPage from './components/SalesOrders/components/SalesOrdersListPage/SalesOrdersListPage';
+import SalesOrdersDetails from './components/SalesOrders/components/SalesOrdersDetails/SalesOrdersDetails';
 
 const HomeRedirect = () => {
   const { isAuthenticated } = useAuth();
@@ -34,7 +36,7 @@ const HomeRedirect = () => {
   if (isAuthenticated) {
     const redirectPath = localStorage.getItem('redirectPath') || '/integration';
     localStorage.removeItem('redirectPath');
-    return <Navigate to={redirectPath} />;
+    return <Navigate to={redirectPath} replace />;
   }
 
   return <LoginForm />;
@@ -91,6 +93,8 @@ const App = () => {
           <Route path="customer_details" element={<CustomersDetails />} />
           <Route path="list_invoices" element={<InvoicesListPage />} />
           <Route path="invoice_details" element={<InvoicesDetails />} />
+          <Route path="list_sales_orders" element={<SalesOrdersListPage />} />
+          <Route path="sales_order_details" element={<SalesOrdersDetails />} />
           <Route path="qbwc" element={<QbwcGetting />} />
           <Route path="qbwc/items/list" element={<QbwcItemsListPage />} />
           <Route path="qbwc/customers/list" element={<QbwcCustomersListPage />} />

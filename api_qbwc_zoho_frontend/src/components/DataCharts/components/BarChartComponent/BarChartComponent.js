@@ -36,7 +36,7 @@ const BarChartComponent = ({ data }) => {
           borderWidth: 1,
         }
       ],
-  }
+  };
 
 
   const options = {

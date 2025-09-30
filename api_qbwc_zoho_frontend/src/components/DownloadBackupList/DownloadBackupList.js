@@ -12,6 +12,7 @@ import {
     TableRow,
     TableSortLabel,
     IconButton,
+    Box,
 } from '@mui/material';
 import Tooltip from '@mui/material/Tooltip';
 import HomeIcon from '@mui/icons-material/Home';
@@ -119,15 +120,18 @@ const DownloadBackupList = () => {
     ];
 
     return (
-        <Container
-            maxWidth="xl"
+        <Box
             sx={{
-                marginLeft: '-23.2%',
-                minWidth: '88.4vw',
+                display: 'flex',
+                flexDirection: 'column',
+                width: '100%',
+                bgcolor: '#F9F9FB',
+                p: 0,
+                gap: 2,
+                overflowX: 'hidden',
             }}
-
         >
-            <Grid container spacing={2} alignItems="center" justifyContent="space-between" mb={3} sx={{ mt: '0.5%' }}>
+            <Grid container spacing={2} alignItems="center" justifyContent="space-between" mb={3}>
                 <Grid item xs={6}>
                     <Typography
                         variant="h6"
@@ -153,7 +157,7 @@ const DownloadBackupList = () => {
                     </Grid>
                 </Grid>
                 <Grid item xs={12} sx={{ mt: '-1%' }}>
-                    <TableContainer style={{ maxHeight: '695px', minHeight: '695px', minWidth: 690 }}>
+                    <TableContainer style={{ maxHeight: 650, minHeight: 650, minWidth: 690 }}>
                         <Table id="myTable" aria-label="items table" stickyHeader>
                             <TableHead sx={{ backgroundColor: '#e0e0e0' }}>
                                 <TableRow>
@@ -253,9 +257,9 @@ const DownloadBackupList = () => {
                     </TableContainer>
                 </Grid>
             </Grid>
-        </Container>
+        </Box>
     );
 
-}
+};
 
 export default DownloadBackupList;

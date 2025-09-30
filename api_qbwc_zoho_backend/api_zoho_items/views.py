@@ -104,12 +104,12 @@ def view_item(request, item_id):
         
         pattern = r'^[A-Za-z0-9]{8}-[A-Za-z0-9]{10}$'
 
-        zoho_item = ZohoItem.objects.get(item_id=item_id)
-
-        # Consultar los datos necesarios de las tablas
+        zoho_item = ZohoItem.objects.filter(item_id=item_id).first()
+        if not zoho_item:
+            return JsonResponse({'error': 'Item not found'}, status=404)
+        
         qb_items = QbItem.objects.filter(matched=False, never_match=False).values_list('list_id', 'name')
-
-        # Convertir a DataFrames de Pandas
+        
         qb_df = pd.DataFrame(list(qb_items), columns=['list_id', 'name'])
 
         # Preparar arrays para comparación
@@ -267,6 +267,21 @@ def load_items(request):
         return JsonResponse({'message': 'Items loaded successfully'}, status=200)
     
     return JsonResponse({'error': 'Invalid JWT Token'}, status=401)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def set_custom_item(request, item_id):
+    valid_token = api_zoho_views.validateJWTTokenRequest(request)
+    if valid_token:
+        try:
+            item = get_object_or_404(ZohoItem, item_id=item_id)
+            item.is_custom = not item.is_custom
+            item.save()
+            return JsonResponse({'status': 'success', 'is_custom': item.is_custom})
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+    return JsonResponse({'status': 'error', 'message': 'Invalid token'}, status=401)
 
     
 

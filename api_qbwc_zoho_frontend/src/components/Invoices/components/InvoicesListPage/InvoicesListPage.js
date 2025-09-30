@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { Container, useMediaQuery, useTheme } from '@mui/material';
+import { Box, Container, useMediaQuery, useTheme } from '@mui/material';
 import InvoicesList from '../InvoicesList/InvoicesList';
 import dayjs from 'dayjs';
 import { AlertLoading } from '../../../Utils/components/AlertLoading/AlertLoading';
@@ -18,55 +18,58 @@ const InvoicesListPage = () => {
     const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'));
 
     const fetchInvoices = useCallback(async () => {
-                try {
-                    const url = `${apiUrl}/api_quickbook_soap/matched_invoices/`
-                    const params = {
-                    	date: filterDate.format('YYYY-MM-DD')
-                    }
-                    const response = await fetchWithToken(url, 'GET', params, {}, apiUrl);
-                    const data = response.data;
-                    const config = {
-                        matchedNumber: data.matched_number,
-                        unmatchedNumber: data.unmatched_number,
-                        unprocessedNumber: data.unprocessed_number,
-                    }
-                    const invoices = JSON.parse(data.invoices);
-                    setInvoices(invoices);
-                    setConfigData(config);
-                } catch (error) {
-                    console.error('Error fetching invoices:', error);
-                    setError(error); 
-                } finally {
-                    setLoading(false);
-                }
-    }, [filterDate]);  
+        try {
+            // const url = `${apiUrl}/api_quickbook_soap/matched/invoices/stock/`;
+            const url = `${apiUrl}/api_quickbook_soap/matched/invoices/null/`;
+            const params = {
+                date: filterDate.format('YYYY-MM-DD')
+            };
+            const response = await fetchWithToken(url, 'GET', params, {}, apiUrl);
+            const data = response.data;
+            const config = {
+                matchedNumber: data.matched_number,
+                unmatchedNumber: data.unmatched_number,
+                unprocessedNumber: data.unprocessed_number,
+            };
+            const invoices = JSON.parse(data.elements);
+            setInvoices(invoices);
+            setConfigData(config);
+        } catch (error) {
+            console.error('Error fetching invoices:', error);
+            setError(error);
+        } finally {
+            setLoading(false);
+        }
+    }, [filterDate]);
 
     useEffect(() => {
         fetchInvoices();
         const intervalId = setInterval(fetchInvoices, 5000);
         return () => clearInterval(intervalId);
-    }, [fetchInvoices]); 
+    }, [fetchInvoices]);
 
-    if (loading) return <AlertLoading isSmallScreen={isSmallScreen} message='Invoices List'/>;
+    if (loading) return <AlertLoading isSmallScreen={isSmallScreen} message='Invoices List' />;
     if (error) return <AlertError isSmallScreen={isSmallScreen} error={error} />;
 
     return (
-        <Container maxWidth="lg"
+        <Box
             sx={{
-                mt: 5,
-                p: 2,
-                marginLeft: isSmallScreen ? '0' : '3%',
-                transition: 'margin-left 0.3s ease',
+                display: 'flex',
+                flexDirection: 'column',
+                width: '100%',
+                bgcolor: '#F9F9FB',
+                p: 0,
+                gap: 2,
             }}
         >
             <InvoicesList
                 data={{ invoices }}
                 configData={configData}
                 onSyncComplete={fetchInvoices}
-                filterDate={filterDate} 
-                setFilterDate={setFilterDate} 
+                filterDate={filterDate}
+                setFilterDate={setFilterDate}
             />
-        </Container>
+        </Box>
     );
 };
 

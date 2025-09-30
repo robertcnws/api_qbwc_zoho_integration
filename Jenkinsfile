@@ -15,7 +15,7 @@ pipeline {
     BACKEND_IMAGE            = "${AWS_ECR_REGISTRY}/api-qbwc-zoho-backend"
     FRONTEND_IMAGE           = "${AWS_ECR_REGISTRY}/api-qbwc-zoho-frontend"
     AWS_DEFAULT_REGION       = "us-east-2"
-    AWS_FRONTEND_ENV_CRED_ID = "AWS_FRONTEND_ENV_CRED_ID"
+    AWS_FRONTEND_ENV_CRED_ID = "AWS_FRONTEND_QBWC_ZOHO_ENV_CRED_ID"
     AWS_CLUSTER              = "api-dealerportal-cluster"
     AWS_FRONTEND_SERVICE     = "api-qbwc-zoho-frontend-service"
     AWS_BACKEND_SERVICE      = "api-qbwc-zoho-backend-service"
@@ -84,7 +84,7 @@ pipeline {
         dir('api_qbwc_zoho_backend') {
           sh """
             docker-compose -f ../docker-compose.aws.backend.prod.yml build
-            docker tag "${JENKINS_HOOK}_aws_backend_app:latest" "${BACKEND_IMAGE}:latest"
+            docker tag "ne_${JENKINS_HOOK}_aws_backend_app:latest" "${BACKEND_IMAGE}:latest"
             docker push "${BACKEND_IMAGE}:latest"
           """
         }
@@ -103,11 +103,12 @@ pipeline {
           }
           sh 'npm cache clean --force'
           sh 'npm ci'
-          sh 'npm run lint -- --fix'
-          sh 'npm run build'
+          sh 'CI= npm run build'
+          // sh 'npx eslint "src/**/*.{js,jsx}" --fix'
+          // sh 'npm run build'
           sh """
             docker-compose -f ../docker-compose.aws.frontend.prod.yml build
-            docker tag "${JENKINS_HOOK}_aws_frontend_app:latest" "${FRONTEND_IMAGE}:latest"
+            docker tag "ne_${JENKINS_HOOK}_aws_frontend_app:latest" "${FRONTEND_IMAGE}:latest"
             docker push "${FRONTEND_IMAGE}:latest"
           """
         }

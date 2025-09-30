@@ -108,8 +108,9 @@ def view_customer(request, customer_id):
         pattern = r'^[A-Za-z0-9]{8}-[A-Za-z0-9]{10}$'
         
         zoho_customer = ZohoCustomer.objects.filter(contact_id=customer_id).first()
-
-        # Consultar los datos necesarios de las tablas
+        if not zoho_customer:
+            return JsonResponse({'error': 'Customer not found'}, status=404)
+        
         qb_customers = QbCustomer.objects.filter(matched=False, never_match=False).values_list('list_id', 'name', 'email', 'phone')
 
         # Convertir a DataFrames de Pandas

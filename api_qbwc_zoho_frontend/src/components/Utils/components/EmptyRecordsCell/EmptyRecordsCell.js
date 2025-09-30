@@ -12,4 +12,4 @@ export const EmptyRecordsCell = ({ columns, isColspanTable=false }) => {
       </TableCell>
     </TableRow>
   );
-}
+};
