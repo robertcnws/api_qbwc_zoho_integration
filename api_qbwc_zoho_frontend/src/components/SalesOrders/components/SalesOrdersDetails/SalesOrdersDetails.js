@@ -54,6 +54,7 @@ const SalesOrdersDetails = () => {
   const [rowsPerPage, setRowsPerPage] = useState(numberRows);
   const [searchSelectTerm, setSearchSelectTerm] = useState('');
   const [hovered, setHovered] = useState(false);
+  const coll = new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' });
 
   const handleDeleteSalesOrder = useCallback((inv) => {
     if (!inv) return;
@@ -545,7 +546,7 @@ const SalesOrdersDetails = () => {
                     </TableCell>
                     <TableCell sx={{ border: 'none' }}>
                       {salesOrder.line_items.length > 0 ? (
-                        <TableContainer component={Paper} elevation={0} sx={{ maxHeight: 400 }}>
+                        <TableContainer component={Paper} elevation={0} sx={{ maxHeight: 300 }}>
                           <Table size="small" stickyHeader>
                             <TableHead>
                               <TableRow sx={{ borderBottom: '1px solid', borderColor: 'divider' }}>
@@ -558,7 +559,16 @@ const SalesOrdersDetails = () => {
                               </TableRow>
                             </TableHead>
                             <TableBody>
-                              {salesOrder.line_items.map((it, idx) => (
+                              {salesOrder.line_items.sort((a, b) => {
+                                const A = a.qb_list_id;
+                                const B = b.qb_list_id;
+                                const aIsNil = A == null || A === '';
+                                const bIsNil = B == null || B === '';
+                                if (aIsNil && bIsNil) return 0;
+                                if (aIsNil) return -1;
+                                if (bIsNil) return 1;
+                                return coll.compare(String(A), String(B));
+                              }).map((it, idx) => (
                                 <TableRow
                                   key={idx}
                                   sx={{
