@@ -602,7 +602,7 @@ def generate_sales_order_add_response():
                 if counter_items_with_list_id == len(sales_orders[i].line_items):
                     if items_xml != '':
                         sales_tax_list_id = settings.SALES_TAX_LIST_ID
-                        template = settings.TEMPLATE_INVOICE_NAME
+                        template = settings.TEMPLATE_SALES_ORDER_NAME
                         data_xml += f'''<SalesOrderAddRq requestID="{i + 2}">
                                         <SalesOrderAdd>
                                             <CustomerRef>
