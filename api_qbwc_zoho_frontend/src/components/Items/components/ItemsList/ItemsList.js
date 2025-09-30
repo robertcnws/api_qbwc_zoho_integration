@@ -128,18 +128,18 @@ const ItemsList = ({ items }) => {
         setPage(0);
     };
 
-    const filteredItems = items.filter(item => {
+    const filteredItems = items?.filter(item => {
 
-        const matchesSearchTerm = item.fields.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            item.fields.sku.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            item.fields.rate.toString().includes(searchTerm.toLowerCase()) ||
-            item.fields.qb_list_id.toString().includes(searchTerm.toLowerCase()) ||
-            item.fields.item_id.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesSearchTerm = item?.fields?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            item?.fields?.sku?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            item?.fields?.rate?.toString().includes(searchTerm.toLowerCase()) ||
+            item?.fields?.qb_list_id?.toString().includes(searchTerm.toLowerCase()) ||
+            item?.fields?.item_id?.toLowerCase().includes(searchTerm.toLowerCase());
 
         if (filter === 'all') return matchesSearchTerm;
-        if (filter === 'matched') return matchesSearchTerm && item.fields.qb_list_id && item.fields.qb_list_id !== '';
-        if (filter === 'unmatched') return matchesSearchTerm && (!item.fields.qb_list_id || item.fields.qb_list_id === '');
-        if (filter === 'custom') return matchesSearchTerm && item.fields.is_custom === true;
+        if (filter === 'matched') return matchesSearchTerm && item?.fields?.qb_list_id && item?.fields?.qb_list_id !== '';
+        if (filter === 'unmatched') return matchesSearchTerm && (!item?.fields?.qb_list_id || item?.fields?.qb_list_id === '');
+        if (filter === 'custom') return matchesSearchTerm && item?.fields?.is_custom === true;
 
         return matchesSearchTerm;
     });

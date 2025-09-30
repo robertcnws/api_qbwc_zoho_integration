@@ -15,6 +15,7 @@ import {
     FormControlLabel,
     Checkbox,
     Box,
+    Tooltip,
 } from '@mui/material';
 import DoNotDisturbIcon from '@mui/icons-material/DoNotDisturb';
 import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
@@ -183,9 +184,12 @@ const QbwcItemsList = ({ items, zohoItems, onSyncComplete }) => {
     };
 
     const filteredItems = items.filter(item => {
+        const zItem = zohoItems.find(zohoItem => zohoItem.fields.qb_list_id === item.fields.list_id);
         const search = item.fields.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
             item.fields.list_id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            item.fields.item_type.toLowerCase().includes(searchTerm.toLowerCase());
+            item.fields.item_type.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            zItem?.fields?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            zItem?.fields?.sku?.toLowerCase().includes(searchTerm.toLowerCase());
         if (filter === 'all') return search;
         if (filter === 'matched') return search && item.fields.matched;
         if (filter === 'not_matched') return search && !item.fields.matched;
@@ -230,7 +234,7 @@ const QbwcItemsList = ({ items, zohoItems, onSyncComplete }) => {
                 navigate('/integration/item_details', { state });
             } catch (err) {
                 console.log(`Failed to fetch items: ${err}`);
-            } 
+            }
         })();
     };
 
@@ -319,6 +323,9 @@ const QbwcItemsList = ({ items, zohoItems, onSyncComplete }) => {
                                             </TableCell>
                                             {(() => {
                                                 const matchedZohoItem = zohoItems.find(zohoItem => zohoItem.fields.qb_list_id === item.fields.list_id);
+                                                const cellColor = item.fields.list_id
+                                                    ? (matchedZohoItem ? 'green' : 'red')
+                                                    : 'red';
                                                 return (
                                                     <TableCell
                                                         onClick={
@@ -326,12 +333,14 @@ const QbwcItemsList = ({ items, zohoItems, onSyncComplete }) => {
                                                                 ? () => handleViewItem(matchedZohoItem)
                                                                 : null
                                                         }
-                                                        sx={{ color: item.fields.list_id ? (matchedZohoItem ? 'green' : 'red') : 'red' }}
+                                                        sx={{ color: cellColor }}
                                                     >
-                                                        {item.fields.list_id
-                                                            ? (matchedZohoItem?.fields?.name || 'N/A')
-                                                            : 'N/A'
-                                                        }
+                                                        <Tooltip title={matchedZohoItem ? 'Go to Zoho Item Details' : ''} arrow>
+                                                            {item.fields.list_id
+                                                                ? (matchedZohoItem?.fields?.name || 'N/A')
+                                                                : 'N/A'
+                                                            }
+                                                        </Tooltip>
                                                     </TableCell>
                                                 );
                                             })()}
