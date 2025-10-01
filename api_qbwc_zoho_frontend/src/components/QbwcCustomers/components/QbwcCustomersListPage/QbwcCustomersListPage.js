@@ -9,6 +9,7 @@ const apiUrl = process.env.REACT_APP_ENVIRONMENT === 'DEV' ? process.env.REACT_A
 
 const QbwcCustomersListPage = () => {
     const [customers, setCustomers] = useState([]);
+    const [zohoCustomers, setZohoCustomers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const theme = useTheme();
@@ -33,7 +34,20 @@ const QbwcCustomersListPage = () => {
         fetchCustomers();
     }, []);
 
-
+    useEffect(() => {
+        const fetchZohoCustomers = async () => {
+            try {
+                const url = `${apiUrl}/api_zoho_customers/list_customers/`;
+                const response = await fetchWithToken(url, 'GET', null, {}, apiUrl);
+                const jsonData = JSON.parse(response.data);
+                setZohoCustomers(jsonData);
+            } catch (error) {
+                console.error('Error fetching Zoho customers:', error);
+                setError(`Failed to fetch Zoho customers: ${error}`);
+            }
+        };
+        fetchZohoCustomers();
+    }, []);
 
     if (loading) {
         return (
@@ -62,7 +76,11 @@ const QbwcCustomersListPage = () => {
             {loading ? (
                 <CircularProgress />
             ) : (
-                <QbwcCustomersList customers={customers} onSyncComplete={fetchCustomers} />
+                <QbwcCustomersList
+                    customers={customers}
+                    zohoCustomers={zohoCustomers}
+                    onSyncComplete={fetchCustomers}
+                />
             )}
         </Box>
     );

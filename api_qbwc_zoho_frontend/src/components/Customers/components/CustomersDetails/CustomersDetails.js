@@ -341,6 +341,8 @@ const CustomersDetails = () => {
         filter: JSON.parse(localStorage.getItem('filterSalesOrders')),
       };
       navigate(`/integration/${localStorage.getItem('backNavigation')}`, { state });
+    } else if (localStorage.getItem('backNavigation') === 'qbwc_customers') {
+      navigate('/integration/qbwc/customers/list');
     } else {
       navigate(-1);
     }
@@ -517,9 +519,11 @@ const CustomersDetails = () => {
 
               <Box sx={{ display: 'flex', gap: 1 }}>
                 {(localStorage.getItem('backNavigation') === 'invoice_details' ||
+                  localStorage.getItem('backNavigation') === 'qbwc_customers' ||
                   localStorage.getItem('backNavigation') === 'sales_order_details') && (
                     <Tooltip
-                      title={`Go Back to ${localStorage.getItem('backNavigation') === 'invoice_details' ? 'Invoice' : 'Sales Order'} Details`}
+                      title={`Go Back to ${localStorage.getItem('backNavigation') === 'invoice_details' ? 'Invoice' :
+                        localStorage.getItem('backNavigation') === 'qbwc_customers' ? 'QBWC Customers' : 'Sales Order'} Details`}
                       arrow
                       sx={{
                         '& .MuiTooltip-tooltip': {

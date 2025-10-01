@@ -720,6 +720,7 @@ def start_qbwc_invoice_add_request(request):
 def start_qbwc_query_request(request, query_object_name, list_of_objects):
     # query_object_name = 'Item' if query_object_name == 'ItemNonInventory' else query_object_name
     if request.method == 'POST':
+        BATCH_SIZE = 1000
         module = ''
         xml_data = request.body.decode('utf-8')
         if f'{query_object_name}Ret' in xml_data:
@@ -764,48 +765,106 @@ def start_qbwc_query_request(request, query_object_name, list_of_objects):
                     
                     save_items_in_batches(items_to_save)
 
+                # elif query_object_name == 'Customer':
+                #     module = 'customers'
+                #     existing_customers_ids = set(QbCustomer.objects.values_list('list_id', flat=True))
+                #     customers_to_save = [
+                #         QbCustomer(
+                #             list_id=customer['ListID'],
+                #             name=customer.get('FullName', ''),
+                #             email=customer.get('Email', '').lower() if customer.get('Email', '') else '',
+                #             phone=api_zoho_views.clean_phone_number(customer.get('Phone', '')) if customer.get('Phone', '') else '',
+                #         )
+                #         for customer in list_of_objects
+                #         if customer['ListID'] not in existing_customers_ids
+                #     ]
+                #     # customers_to_update = [
+                #     #     customer for customer in list_of_objects
+                #     #     if customer['ListID'] in existing_customers_ids
+                #     # ]
+                #     # count_updated = 0
+                #     # for customer in customers_to_update:
+                #     #     existing_customer = QbCustomer.objects.filter(list_id=customer['ListID']).first()
+                #     #     if existing_customer:
+                #     #         updated = False
+                #     #         if existing_customer.name != customer.get('FullName', ''):
+                #     #             existing_customer.name = customer.get('FullName', '')
+                #     #             updated = True
+                #     #         email = customer.get('Email', '').lower() if customer.get('Email', '') else ''
+                #     #         if existing_customer.email != email:
+                #     #             existing_customer.email = email
+                #     #             updated = True
+                #     #         phone = api_zoho_views.clean_phone_number(customer.get('Phone', '')) if customer.get('Phone', '') else ''
+                #     #         if existing_customer.phone != phone:
+                #     #             existing_customer.phone = phone
+                #     #             updated = True
+                #     #         if updated:
+                #     #             try:
+                #     #                 existing_customer.save()
+                #     #                 count_updated += 1
+                #     #             except IntegrityError as e:
+                #     #                 logger.error(f"Failed to update customer with list_id {existing_customer.list_id}: {e}")
+                #     # ajusta según tu RDS/CPU
+
                 elif query_object_name == 'Customer':
                     module = 'customers'
-                    existing_customers_ids = set(QbCustomer.objects.values_list('list_id', flat=True))
-                    customers_to_save = [
-                        QbCustomer(
-                            list_id=customer['ListID'],
-                            name=customer.get('FullName', ''),
-                            email=customer.get('Email', '').lower() if customer.get('Email', '') else '',
-                            phone=api_zoho_views.clean_phone_number(customer.get('Phone', '')) if customer.get('Phone', '') else '',
-                        )
-                        for customer in list_of_objects
-                        if customer['ListID'] not in existing_customers_ids
-                    ]
-                    # customers_to_update = [
-                    #     customer for customer in list_of_objects
-                    #     if customer['ListID'] in existing_customers_ids
-                    # ]
-                    # count_updated = 0
-                    # for customer in customers_to_update:
-                    #     existing_customer = QbCustomer.objects.filter(list_id=customer['ListID']).first()
-                    #     if existing_customer:
-                    #         updated = False
-                    #         if existing_customer.name != customer.get('FullName', ''):
-                    #             existing_customer.name = customer.get('FullName', '')
-                    #             updated = True
-                    #         email = customer.get('Email', '').lower() if customer.get('Email', '') else ''
-                    #         if existing_customer.email != email:
-                    #             existing_customer.email = email
-                    #             updated = True
-                    #         phone = api_zoho_views.clean_phone_number(customer.get('Phone', '')) if customer.get('Phone', '') else ''
-                    #         if existing_customer.phone != phone:
-                    #             existing_customer.phone = phone
-                    #             updated = True
-                    #         if updated:
-                    #             try:
-                    #                 existing_customer.save()
-                    #                 count_updated += 1
-                    #             except IntegrityError as e:
-                    #                 logger.error(f"Failed to update customer with list_id {existing_customer.list_id}: {e}")
-                    logger.info(f"Number of {query_object_name} to save: {len(customers_to_save)}")
-                    # logger.info(f"Number of {query_object_name} updated: {count_updated}")
-                    save_customers_in_batches(customers_to_save)
+                    
+                    existing_map = QbCustomer.objects.in_bulk(field_name='list_id') 
+
+                    to_create = []
+                    to_update = []
+
+                    def norm_email(v):
+                        v = v or ''
+                        return v.lower()
+
+                    def norm_phone(v):
+                        v = v or ''
+                        return api_zoho_views.clean_phone_number(v) if v else ''
+
+                    for raw in list_of_objects:
+                        list_id = raw['ListID']
+                        name    = raw.get('FullName', '') or ''
+                        email   = norm_email(raw.get('Email', ''))
+                        phone   = norm_phone(raw.get('Phone', ''))
+
+                        existing = existing_map.get(list_id)
+                        if existing is None:
+                            to_create.append(QbCustomer(
+                                list_id=list_id,
+                                name=name,
+                                email=email,
+                                phone=phone,
+                            ))
+                        else:
+                            changed = False
+                            if existing.name != name:
+                                existing.name = name; changed = True
+                            if existing.email != email:
+                                existing.email = email; changed = True
+                            if existing.phone != phone:
+                                existing.phone = phone; changed = True
+                            if changed:
+                                to_update.append(existing)
+                    
+                    with transaction.atomic():
+                        if to_create:
+                            QbCustomer.objects.bulk_create(
+                                to_create,
+                                batch_size=BATCH_SIZE,
+                                ignore_conflicts=True,  
+                            )
+                        if to_update:
+                            QbCustomer.objects.bulk_update(
+                                to_update,
+                                fields=['name', 'email', 'phone'],
+                                batch_size=BATCH_SIZE,
+                            )
+
+                    count_updated = len(to_update)
+                    logger.info(f"Number of {query_object_name} to save: {len(to_create)}")
+                    logger.info(f"Number of {query_object_name} updated: {count_updated}")
+                    # save_customers_in_batches(customers_to_save)
 
         if module:
             qb_loading = QbLoading.objects.filter(qb_module=module, qb_record_created=datetime.now(timezone.utc)).first()
