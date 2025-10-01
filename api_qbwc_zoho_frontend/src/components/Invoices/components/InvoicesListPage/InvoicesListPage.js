@@ -19,8 +19,8 @@ const InvoicesListPage = () => {
 
     const fetchInvoices = useCallback(async () => {
         try {
-            // const url = `${apiUrl}/api_quickbook_soap/matched/invoices/stock/`;
-            const url = `${apiUrl}/api_quickbook_soap/matched/invoices/null/`;
+            const url = `${apiUrl}/api_quickbook_soap/matched/invoices/stock/`;
+            // const url = `${apiUrl}/api_quickbook_soap/matched/invoices/null/`;
             const params = {
                 date: filterDate.format('YYYY-MM-DD')
             };
