@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useLayoutEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
   Box,
@@ -55,6 +55,10 @@ const SalesOrdersDetails = () => {
   const [searchSelectTerm, setSearchSelectTerm] = useState('');
   const [hovered, setHovered] = useState(false);
   const coll = new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' });
+
+  const containerRef = useRef(null);
+  const selectedRowRef = useRef(null);
+  const [selectedId, setSelectedId] = useState(null);
 
   const handleDeleteSalesOrder = useCallback((inv) => {
     if (!inv) return;
@@ -287,10 +291,28 @@ const SalesOrdersDetails = () => {
     setCurrentIndexInList(index);
   }, [salesOrder, filteredSalesOrders]);
 
+  useEffect(() => {
+    setSelectedId(salesOrder?.salesorder_id ?? null);
+  }, [salesOrder]);
+
+  useLayoutEffect(() => {
+    if (!filteredSalesOrders || selectedId == null || rowsPerPage <= 0) return;
+    const idx = filteredSalesOrders.findIndex(r => r.fields.salesorder_id === selectedId);
+    if (idx < 0) return;
+    const targetPage = Math.floor(idx / rowsPerPage);
+    if (targetPage !== page) setPage(targetPage);
+  }, [selectedId, filteredSalesOrders, rowsPerPage]);
+
+  useLayoutEffect(() => {
+    const rowEl = selectedRowRef.current;
+    if (!rowEl) return;
+    rowEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }, [selectedId, page]);
+
 
   if (loading) return <AlertLoading isSmallScreen={false} message="Sales Order Details" />;
   if (error) return <AlertError isSmallScreen={false} error={error} />;
-  
+
   return (
     <Box sx={{ width: '100%', px: 0, py: 1 }}>
       {!salesOrder ? (
@@ -322,31 +344,37 @@ const SalesOrdersDetails = () => {
               <CustomFilter configCustomFilter={configCustomFilter} date={salesOrder.date} />
             </Box>
 
-            <TableContainer sx={{ flex: 1, borderTop: '1px solid', borderColor: 'divider' }}>
+            <TableContainer ref={containerRef} sx={{ flex: 1, borderTop: '1px solid', borderColor: 'divider' }}>
               <Table size="small" aria-label="filtered sales orders table" stickyHeader>
                 <TableBody>
                   {filteredSalesOrders && filteredSalesOrders.length > 0 ? (
                     (rowsPerPage > 0
                       ? filteredSalesOrders.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                       : filteredSalesOrders
-                    ).map((fi, idx) => (
-                      <TableRow
-                        key={fi.fields.salesorder_id || idx}
-                        sx={{
-                          cursor: 'pointer',
-                          backgroundColor: getBackgroundColor(fi),
-                        }}
-                        onClick={() => handleViewSalesOrder(fi.fields.salesorder_id)}
-                      >
-                        <TableCell sx={{ py: 1.25 }}>
-                          <b>{fi.fields.salesorder_number}</b>
-                          <br />
-                          Date: <b>{fi.fields.date || '--'}</b>
-                          <br />
-                          Client: <b>{fi.fields.customer_name}</b>
-                        </TableCell>
-                      </TableRow>
-                    ))
+                    ).map((fi, idx) => {
+                      const isSelected = fi.fields.salesorder_id === selectedId;
+                      return (
+                        <TableRow
+                          key={fi.fields.salesorder_id || idx}
+                          hover
+                          ref={isSelected ? selectedRowRef : null}
+                          data-row-id={fi.fields.salesorder_id}
+                          sx={{
+                            cursor: 'pointer',
+                            backgroundColor: getBackgroundColor(fi),
+                          }}
+                          onClick={() => handleViewSalesOrder(fi.fields.salesorder_id)}
+                        >
+                          <TableCell sx={{ py: 1.25 }}>
+                            <b>{fi.fields.salesorder_number}</b>
+                            <br />
+                            Date: <b>{fi.fields.date || '--'}</b>
+                            <br />
+                            Client: <b>{fi.fields.customer_name}</b>
+                          </TableCell>
+                        </TableRow>
+                      )
+                    })
                   ) : (
                     <TableRow>
                       <TableCell>No items found.</TableCell>

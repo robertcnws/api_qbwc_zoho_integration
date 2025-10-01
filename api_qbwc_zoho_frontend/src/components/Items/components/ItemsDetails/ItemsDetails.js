@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useLayoutEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
   Box,
@@ -82,6 +82,10 @@ const ItemsDetails = () => {
   const [searchSelectTerm, setSearchSelectTerm] = useState('');
 
   const [currentIndexInList, setCurrentIndexInList] = useState(-1);
+
+  const containerRef = useRef(null);
+  const selectedRowRef = useRef(null);
+  const [selectedId, setSelectedId] = useState(null);
 
   useEffect(() => {
     const index = filteredItems.findIndex((i) => (item ? i.fields.item_id === item.item_id : false));
@@ -189,30 +193,6 @@ const ItemsDetails = () => {
     setShowListQbItems(filtered.length > 0);
   }, [searchTermQbItems, qbItems]);
 
-  const handleSelectQbItem = (qbItem) => {
-    setSearchTermQbItems(`${qbItem.fields.name} (ID: ${qbItem.fields.list_id})`);
-    setQbSelectedItem(qbItem);
-  };
-
-  const handleSearchQbItem = (e) => {
-    setQbSelectedItem(null);
-    setSearchTermQbItems(e.target.value);
-  };
-
-  const handleClearSearch = () => {
-    setQbSelectedItem(null);
-    setSearchTermQbItems('');
-  };
-
-  const rowRenderer = ({ key, index, style }) => {
-    const it = filteredQbItems[index];
-    return (
-      <StyledMenuItem key={key} style={style} value={it.fields.list_id} onClick={() => handleSelectQbItem(it)}>
-        {it.fields.name}
-      </StyledMenuItem>
-    );
-  };
-
   const handleBackNavigation = () => {
     if (localStorage.getItem('backNavigation') === 'invoice_details') {
       const invoice = JSON.parse(localStorage.getItem('invoice'));
@@ -234,7 +214,7 @@ const ItemsDetails = () => {
         filter: JSON.parse(localStorage.getItem('filterSalesOrders')),
       };
       navigate(`/integration/${localStorage.getItem('backNavigation')}`, { state });
-    } else if (localStorage.getItem('backNavigation') === 'qbwc_items') {      
+    } else if (localStorage.getItem('backNavigation') === 'qbwc_items') {
       navigate('/integration/qbwc/items/list');
     } else {
       navigate(-1);
@@ -369,6 +349,24 @@ const ItemsDetails = () => {
     marginBottomInDetails: '11px',
   };
 
+  useEffect(() => {
+    setSelectedId(item?.item_id ?? null);
+  }, [item]);
+
+  useLayoutEffect(() => {
+    if (!filteredItems || selectedId == null || rowsPerPage <= 0) return;
+    const idx = filteredItems.findIndex(r => r.fields.item_id === selectedId);
+    if (idx < 0) return;
+    const targetPage = Math.floor(idx / rowsPerPage);
+    if (targetPage !== page) setPage(targetPage);
+  }, [selectedId, filteredItems, rowsPerPage]);
+
+  useLayoutEffect(() => {
+    const rowEl = selectedRowRef.current;
+    if (!rowEl) return;
+    rowEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }, [selectedId, page]);
+
   if (loading) return <AlertLoading isSmallScreen={isSmallScreen} message="Item Details" />;
   if (error) return <AlertError isSmallScreen={isSmallScreen} error={error} redirect={handleBackNavigation} />;
 
@@ -419,54 +417,59 @@ const ItemsDetails = () => {
               <CustomFilter configCustomFilter={configCustomFilter} />
             </Box>
 
-            <TableContainer sx={{ flex: 1, minHeight: 300, maxHeight: LIST_MIN_HEIGHT }}>
+            <TableContainer ref={containerRef} sx={{ flex: 1, minHeight: 300, maxHeight: LIST_MIN_HEIGHT }}>
               <Table size="small" aria-label="filtered items table">
                 <TableBody>
                   {filteredItems && filteredItems.length > 0 ? (
                     (rowsPerPage > 0
                       ? filteredItems.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                       : filteredItems
-                    ).map((row, idx) => (
-                      <TableRow
-                        key={`${row.fields.item_id}-${idx}`}
-                        hover
-                        onClick={() => {
-                          const fetchItemsDetails = async () => {
-                            try {
-                              const url = `${apiUrl}/api_zoho_items/view_item/${row.fields.item_id}/`;
-                              const response = await fetchWithToken(url, 'GET', null, {}, apiUrl);
-                              setItem(response.data);
-                              setCoincidences(response.data.coincidences);
-                            } catch { }
-                          };
-                          fetchItemsDetails();
-                        }}
-                        sx={{
-                          cursor: 'pointer',
-                          backgroundColor: getBackgroundColor(row),
-                        }}
-                      >
-                        <TableCell sx={{ py: 1.25 }}>
-                          <b>{row.fields.item_name}</b>
-                          {row.fields.sku && (
-                            <>
-                              <br />
-                              <Typography variant="caption" color="text.secondary">
-                                SKU: {row.fields.sku}
-                              </Typography>
-                            </>
-                          )}
-                          {row.fields.rate && (
-                            <>
-                              <br />
-                              <Typography variant="caption" color="text.secondary">
-                                Rate: $ {row.fields.rate}
-                              </Typography>
-                            </>
-                          )}
-                        </TableCell>
-                      </TableRow>
-                    ))
+                    ).map((row, idx) => {
+                      const isSelected = row.fields.item_id === selectedId;
+                      return (
+                        <TableRow
+                          key={`${row.fields.item_id}-${idx}`}
+                          hover
+                          ref={isSelected ? selectedRowRef : null}
+                          data-row-id={row.fields.item_id}
+                          onClick={() => {
+                            const fetchItemsDetails = async () => {
+                              try {
+                                const url = `${apiUrl}/api_zoho_items/view_item/${row.fields.item_id}/`;
+                                const response = await fetchWithToken(url, 'GET', null, {}, apiUrl);
+                                setItem(response.data);
+                                setCoincidences(response.data.coincidences);
+                              } catch { }
+                            };
+                            fetchItemsDetails();
+                          }}
+                          sx={{
+                            cursor: 'pointer',
+                            backgroundColor: getBackgroundColor(row),
+                          }}
+                        >
+                          <TableCell sx={{ py: 1.25 }}>
+                            <b>{row.fields.item_name}</b>
+                            {row.fields.sku && (
+                              <>
+                                <br />
+                                <Typography variant="caption" color="text.secondary">
+                                  SKU: {row.fields.sku}
+                                </Typography>
+                              </>
+                            )}
+                            {row.fields.rate && (
+                              <>
+                                <br />
+                                <Typography variant="caption" color="text.secondary">
+                                  Rate: $ {row.fields.rate}
+                                </Typography>
+                              </>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      )
+                    })
                   ) : (
                     <TableRow>
                       <TableCell>No items found.</TableCell>

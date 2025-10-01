@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useLayoutEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
   Box,
@@ -55,6 +55,10 @@ const InvoicesDetails = () => {
   const [searchSelectTerm, setSearchSelectTerm] = useState('');
   const [hovered, setHovered] = useState(false);
   const coll = new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' });
+
+  const containerRef = useRef(null);
+  const selectedRowRef = useRef(null);
+  const [selectedId, setSelectedId] = useState(null);
 
   const handleDeleteInvoice = useCallback((inv) => {
     if (!inv) return;
@@ -286,6 +290,24 @@ const InvoicesDetails = () => {
     setCurrentIndexInList(index);
   }, [invoice, filteredInvoices]);
 
+  useEffect(() => {
+    setSelectedId(invoice?.invoice_id ?? null);
+  }, [invoice]);
+
+  useLayoutEffect(() => {
+    if (!filteredInvoices || selectedId == null || rowsPerPage <= 0) return;
+    const idx = filteredInvoices.findIndex(r => r.fields.invoice_id === selectedId);
+    if (idx < 0) return;
+    const targetPage = Math.floor(idx / rowsPerPage);
+    if (targetPage !== page) setPage(targetPage);
+  }, [selectedId, filteredInvoices, rowsPerPage]);
+
+  useLayoutEffect(() => {
+    const rowEl = selectedRowRef.current;
+    if (!rowEl) return;
+    rowEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }, [selectedId, page]);
+
   if (loading) return <AlertLoading isSmallScreen={false} message="Invoice Details" />;
   if (error) return <AlertError isSmallScreen={false} error={error} />;
 
@@ -320,31 +342,37 @@ const InvoicesDetails = () => {
               <CustomFilter configCustomFilter={configCustomFilter} date={invoice.date} />
             </Box>
 
-            <TableContainer sx={{ flex: 1, borderTop: '1px solid', borderColor: 'divider' }}>
+            <TableContainer ref={containerRef} sx={{ flex: 1, borderTop: '1px solid', borderColor: 'divider' }}>
               <Table size="small" aria-label="filtered invoices table" stickyHeader>
                 <TableBody>
                   {filteredInvoices && filteredInvoices.length > 0 ? (
                     (rowsPerPage > 0
                       ? filteredInvoices.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                       : filteredInvoices
-                    ).map((fi, idx) => (
-                      <TableRow
-                        key={fi.fields.invoice_id || idx}
-                        sx={{
-                          cursor: 'pointer',
-                          backgroundColor: getBackgroundColor(fi),
-                        }}
-                        onClick={() => handleViewInvoice(fi.fields.invoice_id)}
-                      >
-                        <TableCell sx={{ py: 1.25 }}>
-                          <b>{fi.fields.invoice_number}</b>
-                          <br />
-                          Date: <b>{fi.fields.date || '--'}</b>
-                          <br />
-                          Client: <b>{fi.fields.customer_name}</b>
-                        </TableCell>
-                      </TableRow>
-                    ))
+                    ).map((fi, idx) => {
+                      const isSelected = fi.fields.invoice_id === selectedId;
+                      return (
+                        <TableRow
+                          key={fi.fields.invoice_id || idx}
+                          hover
+                          ref={isSelected ? selectedRowRef : null}
+                          data-row-id={fi.fields.invoice_id}
+                          sx={{
+                            cursor: 'pointer',
+                            backgroundColor: getBackgroundColor(fi),
+                          }}
+                          onClick={() => handleViewInvoice(fi.fields.invoice_id)}
+                        >
+                          <TableCell sx={{ py: 1.25 }}>
+                            <b>{fi.fields.invoice_number}</b>
+                            <br />
+                            Date: <b>{fi.fields.date || '--'}</b>
+                            <br />
+                            Client: <b>{fi.fields.customer_name}</b>
+                          </TableCell>
+                        </TableRow>
+                      )
+                    })
                   ) : (
                     <TableRow>
                       <TableCell>No items found.</TableCell>

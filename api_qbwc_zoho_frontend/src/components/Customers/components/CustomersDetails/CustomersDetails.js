@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useLayoutEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
   Box,
@@ -84,6 +84,10 @@ const CustomersDetails = () => {
   const [searchSelectTerm, setSearchSelectTerm] = useState('');
 
   const [currentIndexInList, setCurrentIndexInList] = useState(-1);
+
+  const containerRef = useRef(null);
+  const selectedRowRef = useRef(null);
+  const [selectedId, setSelectedId] = useState(null);
 
   useEffect(() => {
     const index = filteredCustomers.findIndex((i) => (customer ? i.fields.contact_id === customer.contact_id : false));
@@ -357,6 +361,26 @@ const CustomersDetails = () => {
     marginBottomInDetails: '0',
   };
 
+
+  useEffect(() => {
+    setSelectedId(customer?.contact_id ?? null);
+  }, [customer]);
+
+  useLayoutEffect(() => {
+    if (!filteredCustomers || selectedId == null || rowsPerPage <= 0) return;
+    const idx = filteredCustomers.findIndex(r => r.fields.contact_id === selectedId);
+    if (idx < 0) return;
+    const targetPage = Math.floor(idx / rowsPerPage);
+    if (targetPage !== page) setPage(targetPage);
+  }, [selectedId, filteredCustomers, rowsPerPage]);
+
+  useLayoutEffect(() => {
+    const rowEl = selectedRowRef.current;
+    if (!rowEl) return;
+    rowEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }, [selectedId, page]);
+
+
   if (loading) return <AlertLoading isSmallScreen={isSmallScreen} message="Customer Details" />;
   if (error) return <AlertError isSmallScreen={isSmallScreen} error={error} />;
 
@@ -407,44 +431,49 @@ const CustomersDetails = () => {
               <CustomFilter configCustomFilter={configCustomFilter} />
             </Box>
 
-            <TableContainer sx={{ flex: 1, minHeight: 300, maxHeight: LIST_MIN_HEIGHT }}>
+            <TableContainer ref={containerRef} sx={{ flex: 1, minHeight: 300, maxHeight: LIST_MIN_HEIGHT }}>
               <Table size="small" aria-label="filtered customers table">
                 <TableBody>
                   {filteredCustomers && filteredCustomers.length > 0 ? (
                     (rowsPerPage > 0
                       ? filteredCustomers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                       : filteredCustomers
-                    ).map((row, idx) => (
-                      <TableRow
-                        key={`${row.fields.contact_id}-${idx}`}
-                        hover
-                        onClick={() => handleViewCustomer(row.fields.contact_id)}
-                        sx={{
-                          cursor: 'pointer',
-                          backgroundColor: getBackgroundColor(row),
-                        }}
-                      >
-                        <TableCell sx={{ py: 1.25 }}>
-                          <b>{row.fields.contact_name}</b>
-                          {row.fields.email && (
-                            <>
-                              <br />
-                              <Typography variant="caption" color="text.secondary">
-                                Email: {row.fields.email}
-                              </Typography>
-                            </>
-                          )}
-                          {row.fields.company_name && (
-                            <>
-                              <br />
-                              <Typography variant="caption" color="text.secondary">
-                                Company: {row.fields.company_name}
-                              </Typography>
-                            </>
-                          )}
-                        </TableCell>
-                      </TableRow>
-                    ))
+                    ).map((row, idx) => {
+                      const isSelected = row.fields.contact_id === selectedId;
+                      return (
+                        <TableRow
+                          key={`${row.fields.contact_id}-${idx}`}
+                          hover
+                          ref={isSelected ? selectedRowRef : null}
+                          data-row-id={row.fields.contact_id}
+                          onClick={() => handleViewCustomer(row.fields.contact_id)}
+                          sx={{
+                            cursor: 'pointer',
+                            backgroundColor: getBackgroundColor(row),
+                          }}
+                        >
+                          <TableCell sx={{ py: 1.25 }}>
+                            <b>{row.fields.contact_name}</b>
+                            {row.fields.email && (
+                              <>
+                                <br />
+                                <Typography variant="caption" color="text.secondary">
+                                  Email: {row.fields.email}
+                                </Typography>
+                              </>
+                            )}
+                            {row.fields.company_name && (
+                              <>
+                                <br />
+                                <Typography variant="caption" color="text.secondary">
+                                  Company: {row.fields.company_name}
+                                </Typography>
+                              </>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      )
+                    })
                   ) : (
                     <TableRow>
                       <TableCell>No customers found.</TableCell>
