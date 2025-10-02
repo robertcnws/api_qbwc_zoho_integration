@@ -81,20 +81,7 @@ TERMS = env('TERMS')
 TEMPLATE_INVOICE_NAME = env('TEMPLATE_INVOICE_NAME_DEV') if ENVIRONMENT == 'DEV' else env('TEMPLATE_INVOICE_NAME_QA') if ENVIRONMENT == 'QA' else env('TEMPLATE_INVOICE_NAME_PROD')
 TEMPLATE_SALES_ORDER_NAME = env('TEMPLATE_SALES_ORDER_NAME_DEV') if ENVIRONMENT == 'DEV' else env('TEMPLATE_SALES_ORDER_NAME_QA') if ENVIRONMENT == 'QA' else env('TEMPLATE_SALES_ORDER_NAME_PROD')
 DISCOUNT_ITEM_ID = env('DISCOUNT_ITEM_ID')
-# CELERY
-CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL', 'redis://localhost:6379/0')
-CELERY_RESULT_BACKEND = os.getenv('CELERY_RESULT_BACKEND', 'redis://localhost:6379/0')
-CELERY_ACCEPT_CONTENT = ['json']
-CELERY_TASK_SERIALIZER = 'json'
-CELERY_RESULT_SERIALIZER = 'json'
-CELERY_TIMEZONE = 'UTC'
-CELERY_BEAT_SCHEDULE = {
-    'execute-load-invoices-periodic-task': {
-        'task': 'api_zoho_invoices.tasks.load_invoices_periodic_task',
-        # 'schedule': crontab(minute='*/1'), 
-        'schedule': crontab(hour=8, minute=30)
-    },
-}
+
 
 DJANGO_SETTINGS_MODULE = os.getenv('DJANGO_SETTINGS_MODULE', 'project_api.settings')
 DJANGO_SUPERUSER_USERNAME = os.getenv('DJANGO_SUPERUSER_USERNAME', '')
@@ -314,4 +301,20 @@ MEDIA_ROOT = BACKUP_DIR
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 DATA_UPLOAD_MAX_MEMORY_SIZE = 52428800  # 50 MB en bytes
+
+
+# CELERY
+CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL', 'redis://localhost:6379/0')
+CELERY_RESULT_BACKEND = os.getenv('CELERY_RESULT_BACKEND', 'redis://localhost:6379/0')
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'UTC'
+CELERY_BEAT_SCHEDULE = {
+    'execute-load-invoices-periodic-task': {
+        'task': 'api_zoho_invoices.tasks.load_invoices_periodic_task',
+        # 'schedule': crontab(minute='*/1'), 
+        'schedule': crontab(hour=8, minute=30)
+    },
+}
 
