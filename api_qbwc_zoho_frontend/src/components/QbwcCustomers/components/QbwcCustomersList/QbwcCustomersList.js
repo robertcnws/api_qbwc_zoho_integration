@@ -29,7 +29,11 @@ import CustomFilter from '../../../Utils/components/CustomFilter/CustomFilter';
 const apiUrl = process.env.REACT_APP_ENVIRONMENT === 'DEV' ? process.env.REACT_APP_BACKEND_URL_DEV : process.env.REACT_APP_BACKEND_URL_PROD;
 const numberRows = parseInt(process.env.REACT_APP_DEFAULT_ROWS_PER_PAGE);
 
-const QbwcCustomersList = ({ customers, zohoCustomers, onSyncComplete }) => {
+const QbwcCustomersList = ({ 
+    customers, 
+    // zohoCustomers, 
+    onSyncComplete 
+}) => {
 
     const navigate = useNavigate();
 
@@ -186,15 +190,15 @@ const QbwcCustomersList = ({ customers, zohoCustomers, onSyncComplete }) => {
 
 
     const filteredCustomers = customers.filter(customer => {
-        const zCustomer = zohoCustomers?.find(zohoC => zohoC.fields.qb_list_id === customer.fields.list_id);
+        // const zCustomer = zohoCustomers?.find(zohoC => zohoC.fields.qb_list_id === customer.fields.list_id);
         const search = customer.fields.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
             customer.fields.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
             customer.fields.phone.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            customer.fields.list_id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            zCustomer?.fields.contact_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            zCustomer?.fields.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            zCustomer?.fields.company_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            zCustomer?.fields.phone.toLowerCase().includes(searchTerm.toLowerCase());
+            customer.fields.list_id.toLowerCase().includes(searchTerm.toLowerCase())
+            // zCustomer?.fields.contact_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            // zCustomer?.fields.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            // zCustomer?.fields.company_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            // zCustomer?.fields.phone.toLowerCase().includes(searchTerm.toLowerCase());
         if (filter === 'all') return search;
         if (filter === 'matched') return search && customer.fields.matched;
         if (filter === 'not_matched') return search && !customer.fields.matched;
@@ -208,7 +212,7 @@ const QbwcCustomersList = ({ customers, zohoCustomers, onSyncComplete }) => {
         { id: 'qb_email', label: 'QB Email', colspan: 1, textAlign: 'left' },
         { id: 'qb_phone', label: 'QB Phone', colspan: 1, textAlign: 'left' },
         { id: 'qb_list_id', label: 'QB List ID', colspan: 1, textAlign: 'left' },
-        { id: 'zoho_customer', label: 'Zoho Customer', colspan: 1, textAlign: 'left' },
+        // { id: 'zoho_customer', label: 'Zoho Customer', colspan: 1, textAlign: 'left' },
         { id: 'actions', label: 'Actions', colspan: 1, textAlign: 'center' }
     ];
 
@@ -227,22 +231,22 @@ const QbwcCustomersList = ({ customers, zohoCustomers, onSyncComplete }) => {
         }
     ];
 
-    const handleViewCustomer = (c) => {
-        (async () => {
-            try {
-                const state = {
-                    customer: c,
-                    customers: zohoCustomers,
-                    filteredCustomers: zohoCustomers,
-                    filter: 'all',
-                };
-                localStorage.setItem('backNavigation', 'qbwc_customers');
-                navigate('/integration/customer_details', { state });
-            } catch (err) {
-                console.log(`Failed to fetch items: ${err}`);
-            }
-        })();
-    };
+    // const handleViewCustomer = (c) => {
+    //     (async () => {
+    //         try {
+    //             const state = {
+    //                 customer: c,
+    //                 customers: zohoCustomers,
+    //                 filteredCustomers: zohoCustomers,
+    //                 filter: 'all',
+    //             };
+    //             localStorage.setItem('backNavigation', 'qbwc_customers');
+    //             navigate('/integration/customer_details', { state });
+    //         } catch (err) {
+    //             console.log(`Failed to fetch items: ${err}`);
+    //         }
+    //     })();
+    // };
 
     return (
         <Box
@@ -320,7 +324,7 @@ const QbwcCustomersList = ({ customers, zohoCustomers, onSyncComplete }) => {
                                         <TableCell>{customer.fields.email}</TableCell>
                                         <TableCell>{customer.fields.phone}</TableCell>
                                         <TableCell>{customer.fields.list_id}</TableCell>
-                                        {(() => {
+                                        {/* {(() => {
                                             const matchedZohoCustomer = zohoCustomers.find(zohoItem => zohoItem.fields.qb_list_id === customer.fields.list_id);
                                             const cellColor = customer.fields.list_id
                                                 ? (matchedZohoCustomer ? 'green' : 'red')
@@ -342,7 +346,7 @@ const QbwcCustomersList = ({ customers, zohoCustomers, onSyncComplete }) => {
                                                     </Tooltip>
                                                 </TableCell>
                                             );
-                                        })()}
+                                        })()} */}
                                         <TableCell align="center">
                                             {renderForceSyncCheckbox(customer, isSelected(customer.fields.list_id))}
                                         </TableCell>
