@@ -778,6 +778,8 @@ def start_qbwc_query_request(request, query_object_name, list_of_objects):
                         for customer in list_of_objects
                         if customer['ListID'] not in existing_customers_ids
                     ]
+                    if len(customers_to_save) > 0:
+                        QbCustomer.objects.bulk_create(customers_to_save, ignore_conflicts=True, batch_size=BATCH_SIZE)
                     customers_to_update = [
                         customer for customer in list_of_objects
                         if customer['ListID'] in existing_customers_ids
