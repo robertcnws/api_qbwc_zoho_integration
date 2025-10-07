@@ -27,16 +27,16 @@ services:
     depends_on:
       - redis
 
-  react_app:
-    build:
-      context: ./api_qbwc_zoho_frontend
-    container_name: react_app
-    volumes:
-      - ./api_qbwc_zoho_frontend/build:/app/build 
-    env_file:
-      - ./api_qbwc_zoho_frontend/.env
-    networks:
-      - api_qbwc_zoho_network
+  # react_app:
+  #   build:
+  #     context: ./api_qbwc_zoho_frontend
+  #   container_name: react_app
+  #   volumes:
+  #     - ./api_qbwc_zoho_frontend/build:/app/build 
+  #   env_file:
+  #     - ./api_qbwc_zoho_frontend/.env
+  #   networks:
+  #     - api_qbwc_zoho_network
 
   postgres_server:
     image: postgres:16.0
@@ -53,25 +53,22 @@ services:
     networks:
       - api_qbwc_zoho_network
 
-  nginx_server:
-    build:
-      context: ./api_qbwc_zoho_backend/nginx
-    container_name: nginx_server
-    ports:
-      - "80:80"
-      - "443:443"
-    # extra_hosts:
-    #   - "api-integration-qbwc-zoho.nws.com:10.1.10.216"
-    volumes:
-      - ./api_qbwc_zoho_backend/nginx/nginx_react_django.conf:/etc/nginx/nginx.conf:ro
-      - ./api_qbwc_zoho_backend/nginx/certificates:/etc/nginx/certificates:ro
-      - ./api_qbwc_zoho_frontend/build:/usr/share/nginx/html 
-    depends_on:
-      - django_app
-      - react_app
-    networks:
-      - api_qbwc_zoho_network
-        # ipv4_address: 10.1.10.216
+  # nginx_server:
+  #   build:
+  #     context: ./api_qbwc_zoho_backend/nginx
+  #   container_name: nginx_server
+  #   ports:
+  #     - "80:80"
+  #     - "443:443"
+  #   volumes:
+  #     - ./api_qbwc_zoho_backend/nginx/nginx_react_django.conf:/etc/nginx/nginx.conf:ro
+  #     - ./api_qbwc_zoho_backend/nginx/certificates:/etc/nginx/certificates:ro
+  #     - ./api_qbwc_zoho_frontend/build:/usr/share/nginx/html 
+  #   depends_on:
+  #     - django_app
+  #     - react_app
+  #   networks:
+  #     - api_qbwc_zoho_network
 
   redis:
     image: redis:latest

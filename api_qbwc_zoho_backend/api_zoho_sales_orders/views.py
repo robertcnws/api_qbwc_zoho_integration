@@ -123,7 +123,8 @@ def load_sales_orders(request, task_job=False):
         date_to_query = handle_option_date(data.get('option', None), today, yesterday)
         if not date_to_query:
             return JsonResponse({'error': 'Invalid date format. Use yyyy-MM-dd format.'}, status=400)
-        response = fetch_sales_orders(date_to_query)
+        # response = fetch_sales_orders(date_to_query)
+        response = fetch_sales_orders_to_qbwc(date_to_query)
         logger.debug(f"Fetched {response.get('count', 0)} sales orders from Main Load Data System")
         if 'error' in response:
             return JsonResponse({'error': response['error']}, status=500)
@@ -224,6 +225,46 @@ def main_load_config_headers():
 #############################################
 # FETCH SALES ORDERS
 #############################################
+
+def fetch_sales_orders_to_qbwc(date_to_query: str | None):
+    headers = main_load_config_headers()
+    headers.setdefault("Content-Type", "application/json")
+    url = f"{settings.API_ROOT_DATA_URL}/zoho/load_sales_orders_to_qbwc/{settings.ZOHO_ORG_ID}/"
+
+    payload = {
+        "is_recent": True,
+        "page": 1,
+    }
+    if date_to_query:
+        payload["date"] = date_to_query
+
+    items_to_get = []
+    session = requests.Session()
+
+    while True:
+        try:
+            response = session.post(url, headers=headers, json=payload, timeout=60)
+            response.raise_for_status()
+
+            body = response.json()
+            items_confirmed = list(body.get("data", []))
+            items_to_get.extend(items_confirmed)
+            next_flag = body.get("next")
+            next_page = body.get("next_page")
+
+            if next_page:
+                payload["page"] = next_page
+            elif next_flag is True:
+                payload["page"] = payload.get("page", 1) + 1
+            else:
+                break
+
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Error fetching sales orders: {e}")
+            return {"error": "Failed to fetch sales orders to reward points"}
+
+    return {"count": len(items_to_get), "results": items_to_get}
+
 
 def fetch_sales_orders(date_to_query):
     print(f"Fetching sales orders with data: {date_to_query}")
@@ -327,7 +368,7 @@ def create_sales_order_instance(data):
             created_time=nz_datetime(get('created_time')),
             last_modified_time=nz_datetime(get('last_modified_time')),
 
-            zoho_org_id=nz_str(get('zoho_org_id', '')),
+            zoho_org_id=nz_str(get('zoho_org_id', '') or settings.ZOHO_ORG_ID),
             reference_number=nz_str(get('reference_number', None)) or None,
 
             inserted_in_qb=nz_bool(get('inserted_in_qb', False)),
@@ -415,7 +456,7 @@ def edit_sales_order_instance(existing_order, new_order):
         existing_order.last_modified_time = nz_datetime(get('last_modified_time', existing_order.last_modified_time))
 
         # Org / referencia
-        existing_order.zoho_org_id = nz_str(get('zoho_org_id', existing_order.zoho_org_id))
+        existing_order.zoho_org_id = nz_str(get('zoho_org_id', existing_order.zoho_org_id) or settings.ZOHO_ORG_ID)
         existing_order.reference_number = nz_str(get('reference_number', existing_order.reference_number)) or None
 
         # Flags internos

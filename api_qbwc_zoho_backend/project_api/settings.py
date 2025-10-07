@@ -91,7 +91,9 @@ LOGINUSER_USERNAME = os.getenv('LOGINUSER_USERNAME', '')
 LOGINUSER_EMAIL = os.getenv('LOGINUSER_EMAIL', '')
 LOGINUSER_PASSWORD = os.getenv('LOGINUSER_PASSWORD', '')
 
-API_MAIN_DATA_URL = os.getenv('API_MAIN_DATA_URL', 'https://main-load-data.newwindowsystem.net/api/manage')
+ZOHO_ORG_ID = os.getenv('ZOHO_ORG_ID', '')
+API_ROOT_DATA_URL = os.getenv('API_ROOT_DATA_URL', 'https://main-load-data.newwindowsystem.net/api')
+API_MAIN_DATA_URL = os.getenv('API_MAIN_DATA_URL', 'https://main-load-data.newwindowsystem.net/api/consume')
 API_USER_DATA_URL = os.getenv('API_USER_DATA_URL', 'https://main-load-data.newwindowsystem.net/api/manage')
 API_MAIN_DATA_TOKEN = os.getenv('API_MAIN_DATA_TOKEN', '')
 
