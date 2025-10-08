@@ -99,7 +99,6 @@ def generate_customer_query_response(from_modified: str):
 def generate_item_query_response(query_object_name: str, from_modified: str):
     logger.info("Generating item query response for %s with FromModifiedDate: %s", query_object_name, from_modified)
     data_xml = f'''<{query_object_name}QueryRq requestID="2">
-                    <FromModifiedDate>{from_modified}</FromModifiedDate>
                     <IncludeRetElement>ListID</IncludeRetElement>
                     <IncludeRetElement>Name</IncludeRetElement>
                   </{query_object_name}QueryRq>''' 
