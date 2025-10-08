@@ -174,6 +174,30 @@ def generate_error_response(error_message):
     </soap:Envelope>'''
     return response_xml
 
+def generate_empty_request_response():
+    return '''<?xml version="1.0" encoding="utf-8"?>
+            <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:qb="http://developer.intuit.com/">
+            <soap:Header/>
+            <soap:Body>
+                <qb:sendRequestXMLResponse>
+                <qb:sendRequestXMLResult></qb:sendRequestXMLResult>
+                </qb:sendRequestXMLResponse>
+            </soap:Body>
+            </soap:Envelope>'''
+
+def generate_receive_response(percent='100'):
+    # receiveResponseXML debe devolver un entero (string) 0..100
+    return f'''<?xml version="1.0" encoding="utf-8"?>
+                <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:qb="http://developer.intuit.com/">
+                <soap:Header/>
+                <soap:Body>
+                    <qb:receiveResponseXMLResponse>
+                    <qb:receiveResponseXMLResult>{percent}</qb:receiveResponseXMLResult>
+                    </qb:receiveResponseXMLResponse>
+                </soap:Body>
+                </soap:Envelope>'''
+
+
 ##############################################
 ############### Add Elements #################
 ##############################################

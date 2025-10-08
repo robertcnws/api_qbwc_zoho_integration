@@ -721,101 +721,237 @@ def start_qbwc_invoice_add_request(request):
 # def start_qbwc_query_request(request, query_object_name, list_of_objects):
 #     helpers_qbwc.start_qbwc_query_request(request, query_object_name, list_of_objects)
 
+# def start_qbwc_query_request(request, query_object_name, list_of_objects):
+#     # query_object_name = 'Item' if query_object_name == 'ItemNonInventory' else query_object_name
+#     if request.method == 'POST':
+#         BATCH_SIZE = 1000
+#         module = ''
+#         xml_data = request.body.decode('utf-8')
+#         if f'{query_object_name}Ret' in xml_data:
+#             xml_dict = xmltodict.parse(xml_data)
+#             response_xml = xml_dict['soap:Envelope']['soap:Body']['receiveResponseXML']['response']
+#             data_dict = xmltodict.parse(response_xml)
+#             if f'{query_object_name}QueryRs' in xml_data:
+#                 elements_query_rs = data_dict['QBXML']['QBXMLMsgsRs'][f'{query_object_name}QueryRs'][f'{query_object_name}Ret']
+#                 list_of_objects = [elem for elem in elements_query_rs] if isinstance(elements_query_rs, list) else [elements_query_rs]
+#                 logger.info(f"Number of {query_object_name} detected: {len(list_of_objects)}")
+
+#                 if query_object_name in ['ItemInventory','ItemSalesTax', 'ItemService', 'ItemNonInventory', 'Item', 'ItemInventoryPart', 'ItemDiscount']:
+#                     module = 'items'
+#                     existing_items_ids = set(QbItem.objects.values_list('list_id', flat=True))
+#                     items_to_save = [
+#                         QbItem(
+#                             list_id=item.get('ListID', ''), 
+#                             name=item.get('Name', ''), 
+#                             item_type=query_object_name
+#                         )
+#                         for item in list_of_objects
+#                         if item.get('ListID', '') not in existing_items_ids
+#                     ]
+#                     items_to_update = [
+#                         item for item in list_of_objects
+#                         if item.get('ListID', '') in existing_items_ids
+#                     ]
+#                     count_updated = 0
+#                     for item in items_to_update:
+#                         existing_item = QbItem.objects.filter(list_id=item.get('ListID', '')).first()
+#                         if existing_item and existing_item.name != item.get('Name', ''):
+#                             existing_item.name = item.get('Name', '')
+#                             existing_item.item_type = query_object_name
+#                             try:
+#                                 existing_item.save()
+#                                 count_updated += 1
+#                             except IntegrityError as e:
+#                                 logger.error(f"Failed to update item with list_id {existing_item.list_id}: {e}")
+                            
+#                     logger.info(f"Number of {query_object_name} to save: {len(items_to_save)}")
+#                     logger.info(f"Number of {query_object_name} updated: {count_updated}")
+                    
+#                     save_items_in_batches(items_to_save)
+
+#                 elif query_object_name == 'Customer':
+#                     module = 'customers'
+#                     existing_customers_ids = set(QbCustomer.objects.values_list('list_id', flat=True))
+#                     customers_to_save = [
+#                         QbCustomer(
+#                             list_id=customer['ListID'],
+#                             name=customer.get('FullName', ''),
+#                             email=customer.get('Email', '').lower() if customer.get('Email', '') else '',
+#                             phone=api_zoho_views.clean_phone_number(customer.get('Phone', '')) if customer.get('Phone', '') else '',
+#                         )
+#                         for customer in list_of_objects
+#                         if customer['ListID'] not in existing_customers_ids
+#                     ]
+#                     if len(customers_to_save) > 0:
+#                         QbCustomer.objects.bulk_create(customers_to_save, ignore_conflicts=True, batch_size=BATCH_SIZE)
+#                     customers_to_update = [
+#                         customer for customer in list_of_objects
+#                         if customer['ListID'] in existing_customers_ids
+#                     ]
+#                     count_updated = 0
+#                     for customer in customers_to_update:
+#                         existing_customer = QbCustomer.objects.filter(list_id=customer['ListID']).first()
+#                         if existing_customer:
+#                             updated = False
+#                             if existing_customer.name != customer.get('FullName', ''):
+#                                 existing_customer.name = customer.get('FullName', '')
+#                                 updated = True
+#                             email = customer.get('Email', '').lower() if customer.get('Email', '') else ''
+#                             if existing_customer.email != email:
+#                                 existing_customer.email = email
+#                                 updated = True
+#                             phone = api_zoho_views.clean_phone_number(customer.get('Phone', '')) if customer.get('Phone', '') else ''
+#                             if existing_customer.phone != phone:
+#                                 existing_customer.phone = phone
+#                                 updated = True
+#                             if updated:
+#                                 try:
+#                                     existing_customer.save()
+#                                     count_updated += 1
+#                                 except IntegrityError as e:
+#                                     logger.error(f"Failed to update customer with list_id {existing_customer.list_id}: {e}")
+#                     # ajusta según tu RDS/CPU
+               
+#                     logger.info(f"Number of {query_object_name} to save: {len(customers_to_save)}")
+#                     logger.info(f"Number of {query_object_name} updated: {count_updated}")
+#                     # save_customers_in_batches(customers_to_save)
+
+#         if module:
+#             qb_loading = QbLoading.objects.filter(qb_module=module, qb_record_created=datetime.now(timezone.utc)).first()
+#             if not qb_loading:
+#                 qb_loading = create_qb_loading_instance(module)
+#             else:
+#                 qb_loading.qb_record_updated = datetime.now(timezone.utc)
+#             qb_loading.save()
+#             app_config = AppConfig.objects.first()
+#             api_zoho_views.manage_api_tracking_log(f'{app_config.qb_username} (From QBWC)', f'load_{module}_from_qb', request.META.get('REMOTE_ADDR'), f'Load {module} from QuickBooks')
+#             logger.info(f"QB Loading instance created/updated for module {module}")
+#             logger.info(f"Task done: {qb_loading}")
+#             module_object = re.sub(r'([a-z])([A-Z])', r'\1 \2', query_object_name)
+#             message_notification = f'All {module_object} have been loaded from QuickBooks'
+#             api_zoho_views.manage_notifications(message_notification)
+
+#         response_xml = process_qbwc_query_request(xml_data, query_object_name)
+#         return HttpResponse(response_xml, content_type='text/xml')
+#     else:
+#         return HttpResponse(status=405)
+
+
 def start_qbwc_query_request(request, query_object_name, list_of_objects):
-    # query_object_name = 'Item' if query_object_name == 'ItemNonInventory' else query_object_name
     if request.method == 'POST':
         BATCH_SIZE = 1000
         module = ''
         xml_data = request.body.decode('utf-8')
-        if f'{query_object_name}Ret' in xml_data:
+        
+        try:
             xml_dict = xmltodict.parse(xml_data)
             response_xml = xml_dict['soap:Envelope']['soap:Body']['receiveResponseXML']['response']
+        except Exception:
+            response_xml = '' 
+        
+        if response_xml and f'{query_object_name}QueryRs' in response_xml:
             data_dict = xmltodict.parse(response_xml)
-            if f'{query_object_name}QueryRs' in xml_data:
-                elements_query_rs = data_dict['QBXML']['QBXMLMsgsRs'][f'{query_object_name}QueryRs'][f'{query_object_name}Ret']
-                list_of_objects = [elem for elem in elements_query_rs] if isinstance(elements_query_rs, list) else [elements_query_rs]
-                logger.info(f"Number of {query_object_name} detected: {len(list_of_objects)}")
+            query_rs = data_dict['QBXML']['QBXMLMsgsRs'][f'{query_object_name}QueryRs']
+            
+            elements_ret = query_rs.get(f'{query_object_name}Ret')
+            if not elements_ret:
+                logger.info(f"No hay {query_object_name}Ret en esta página de QBXML.")
+                elements = []
+            else:
+                elements = elements_ret if isinstance(elements_ret, list) else [elements_ret]
 
-                if query_object_name in ['ItemInventory','ItemSalesTax', 'ItemService', 'ItemNonInventory', 'Item', 'ItemInventoryPart', 'ItemDiscount']:
-                    module = 'items'
-                    existing_items_ids = set(QbItem.objects.values_list('list_id', flat=True))
-                    items_to_save = [
-                        QbItem(
-                            list_id=item.get('ListID', ''), 
-                            name=item.get('Name', ''), 
-                            item_type=query_object_name
-                        )
-                        for item in list_of_objects
-                        if item.get('ListID', '') not in existing_items_ids
-                    ]
-                    items_to_update = [
-                        item for item in list_of_objects
-                        if item.get('ListID', '') in existing_items_ids
-                    ]
-                    count_updated = 0
-                    for item in items_to_update:
-                        existing_item = QbItem.objects.filter(list_id=item.get('ListID', '')).first()
-                        if existing_item and existing_item.name != item.get('Name', ''):
-                            existing_item.name = item.get('Name', '')
-                            existing_item.item_type = query_object_name
-                            try:
-                                existing_item.save()
-                                count_updated += 1
-                            except IntegrityError as e:
-                                logger.error(f"Failed to update item with list_id {existing_item.list_id}: {e}")
-                            
-                    logger.info(f"Number of {query_object_name} to save: {len(items_to_save)}")
-                    logger.info(f"Number of {query_object_name} updated: {count_updated}")
-                    
-                    save_items_in_batches(items_to_save)
+            list_of_objects = elements
+            logger.info(f"Number of {query_object_name} detected: {len(list_of_objects)}")
 
-                elif query_object_name == 'Customer':
-                    module = 'customers'
-                    existing_customers_ids = set(QbCustomer.objects.values_list('list_id', flat=True))
-                    customers_to_save = [
-                        QbCustomer(
-                            list_id=customer['ListID'],
-                            name=customer.get('FullName', ''),
-                            email=customer.get('Email', '').lower() if customer.get('Email', '') else '',
-                            phone=api_zoho_views.clean_phone_number(customer.get('Phone', '')) if customer.get('Phone', '') else '',
-                        )
-                        for customer in list_of_objects
-                        if customer['ListID'] not in existing_customers_ids
-                    ]
-                    if len(customers_to_save) > 0:
-                        QbCustomer.objects.bulk_create(customers_to_save, ignore_conflicts=True, batch_size=BATCH_SIZE)
-                    customers_to_update = [
-                        customer for customer in list_of_objects
-                        if customer['ListID'] in existing_customers_ids
-                    ]
-                    count_updated = 0
-                    for customer in customers_to_update:
-                        existing_customer = QbCustomer.objects.filter(list_id=customer['ListID']).first()
-                        if existing_customer:
-                            updated = False
-                            if existing_customer.name != customer.get('FullName', ''):
-                                existing_customer.name = customer.get('FullName', '')
-                                updated = True
-                            email = customer.get('Email', '').lower() if customer.get('Email', '') else ''
-                            if existing_customer.email != email:
-                                existing_customer.email = email
-                                updated = True
-                            phone = api_zoho_views.clean_phone_number(customer.get('Phone', '')) if customer.get('Phone', '') else ''
-                            if existing_customer.phone != phone:
-                                existing_customer.phone = phone
-                                updated = True
-                            if updated:
-                                try:
-                                    existing_customer.save()
-                                    count_updated += 1
-                                except IntegrityError as e:
-                                    logger.error(f"Failed to update customer with list_id {existing_customer.list_id}: {e}")
-                    # ajusta según tu RDS/CPU
-               
-                    logger.info(f"Number of {query_object_name} to save: {len(customers_to_save)}")
-                    logger.info(f"Number of {query_object_name} updated: {count_updated}")
-                    # save_customers_in_batches(customers_to_save)
+            # ---------------- ITEMS ----------------
+            if query_object_name in ['ItemInventory','ItemSalesTax','ItemService','Item','ItemNonInventory','ItemInventoryPart','ItemDiscount']:
+                module = 'items'
+                existing_items_ids = set(QbItem.objects.values_list('list_id', flat=True))
 
+                items_to_save = [
+                    QbItem(
+                        list_id=item.get('ListID', ''),
+                        name=item.get('Name', '') or '',
+                        item_type=query_object_name
+                    )
+                    for item in list_of_objects
+                    if item and item.get('ListID', '') and item.get('ListID') not in existing_items_ids
+                ]
+                
+                ids_needed = [i.get('ListID') for i in list_of_objects if i and i.get('ListID')]
+                existing_map = {o.list_id: o for o in QbItem.objects.filter(list_id__in=ids_needed)}
+
+                items_to_update_objs = []
+                for item in list_of_objects:
+                    if not item: continue
+                    lid = item.get('ListID')
+                    if not lid or lid not in existing_items_ids: continue
+                    obj = existing_map.get(lid)
+                    if not obj: continue
+                    changed = False
+                    new_name = item.get('Name', '') or ''
+                    if obj.name != new_name:
+                        obj.name = new_name; changed = True
+                    if obj.item_type != query_object_name:
+                        obj.item_type = query_object_name; changed = True
+                    if changed:
+                        items_to_update_objs.append(obj)
+
+                if items_to_save:
+                    QbItem.objects.bulk_create(items_to_save, ignore_conflicts=True, batch_size=BATCH_SIZE)
+                if items_to_update_objs:
+                    for i in range(0, len(items_to_update_objs), BATCH_SIZE):
+                        QbItem.objects.bulk_update(items_to_update_objs[i:i+BATCH_SIZE], fields=['name','item_type'], batch_size=BATCH_SIZE)
+
+                logger.info(f"[ITEMS] to save: {len(items_to_save)} | to update: {len(items_to_update_objs)}")
+
+            # ---------------- CUSTOMERS ----------------
+            elif query_object_name == 'Customer':
+                module = 'customers'
+                existing_customers_ids = set(QbCustomer.objects.values_list('list_id', flat=True))
+
+                customers_to_save = []
+                ids_needed = []
+                for c in list_of_objects:
+                    if not c: continue
+                    lid = c.get('ListID')
+                    if not lid: continue
+                    ids_needed.append(lid)
+                    if lid not in existing_customers_ids:
+                        customers_to_save.append(QbCustomer(
+                            list_id=lid,
+                            name=(c.get('FullName','') or ''),
+                            email=(c.get('Email') or '').lower(),
+                            phone=api_zoho_views.clean_phone_number(c.get('Phone','') or '')
+                        ))
+
+                if customers_to_save:
+                    QbCustomer.objects.bulk_create(customers_to_save, ignore_conflicts=True, batch_size=BATCH_SIZE)
+
+                existing_map = {o.list_id: o for o in QbCustomer.objects.filter(list_id__in=ids_needed)}
+                customers_to_update_objs = []
+                for c in list_of_objects:
+                    if not c: continue
+                    lid = c.get('ListID')
+                    if not lid or lid not in existing_customers_ids: continue
+                    obj = existing_map.get(lid)
+                    if not obj: continue
+                    changed = False
+                    new_name = (c.get('FullName','') or '')
+                    new_email = (c.get('Email') or '').lower()
+                    new_phone = api_zoho_views.clean_phone_number(c.get('Phone','') or '')
+                    if obj.name != new_name: obj.name = new_name; changed = True
+                    if obj.email != new_email: obj.email = new_email; changed = True
+                    if obj.phone != new_phone: obj.phone = new_phone; changed = True
+                    if changed:
+                        customers_to_update_objs.append(obj)
+
+                if customers_to_update_objs:
+                    for i in range(0, len(customers_to_update_objs), BATCH_SIZE):
+                        QbCustomer.objects.bulk_update(customers_to_update_objs[i:i+BATCH_SIZE], fields=['name','email','phone'], batch_size=BATCH_SIZE)
+
+                logger.info(f"[CUSTOMERS] to save: {len(customers_to_save)} | to update: {len(customers_to_update_objs)}")
+        
         if module:
             qb_loading = QbLoading.objects.filter(qb_module=module, qb_record_created=datetime.now(timezone.utc)).first()
             if not qb_loading:
@@ -830,11 +966,12 @@ def start_qbwc_query_request(request, query_object_name, list_of_objects):
             module_object = re.sub(r'([a-z])([A-Z])', r'\1 \2', query_object_name)
             message_notification = f'All {module_object} have been loaded from QuickBooks'
             api_zoho_views.manage_notifications(message_notification)
-
+        
         response_xml = process_qbwc_query_request(xml_data, query_object_name)
         return HttpResponse(response_xml, content_type='text/xml')
     else:
         return HttpResponse(status=405)
+
     
 
 def save_items_in_batches(items_to_save, batch_size=100):
@@ -866,32 +1003,41 @@ def save_customers_in_batches(customers_to_save, batch_size=100):
                 except IntegrityError as e:
                     logger.error(f"Failed to save customer {customer.list_id}: {e}")
                     
-
+                    
 def process_qbwc_query_request(xml_data, query_object_name):
     global counter
-    global soap_customers
     response = None
     try:
         xml_dict = xmltodict.parse(xml_data)
         body = xml_dict['soap:Envelope']['soap:Body']
-        
-        logger.info("SOAP Body keys: %s", list(body.keys()))
+
+        logger.debug("SOAP Body keys: %s", list(body.keys()))
 
         if helpers_qbwc._has_op(body, 'authenticate'):
             response = soap_service.handle_authenticate(body)
 
-        elif helpers_qbwc._has_op(body, 'sendRequestXML') and counter == 0:
-            counter += 1
-            from_modified = helpers_qbwc._get_last_sync_iso(query_object_name)
-            logger.info("sendRequestXML first call. FromModifiedDate=%s", from_modified)
+        elif helpers_qbwc._has_op(body, 'sendRequestXML'):
+            if counter == 0:
+                counter = 1
+                from_modified = helpers_qbwc._get_last_sync_iso(query_object_name)
+                logger.info("sendRequestXML first call. FromModifiedDate=%s", from_modified)
 
-            if query_object_name in ['ItemInventory', 'ItemSalesTax', 'ItemService', 'Item',
-                                     'ItemNonInventory', 'ItemInventoryPart', 'ItemDiscount']:
-                response = soap_service.generate_item_query_response(query_object_name, from_modified)
+                if query_object_name in ['ItemInventory', 'ItemSalesTax', 'ItemService', 'Item',
+                                         'ItemNonInventory', 'ItemInventoryPart', 'ItemDiscount']:
+                    response = soap_service.generate_item_query_response(query_object_name, from_modified)
+                else:
+                    response = soap_service.generate_customer_query_response(from_modified)
             else:
-                response = soap_service.generate_customer_query_response(from_modified)
+                logger.info("sendRequestXML: no more requests. Returning empty request.")
+                response = soap_service.generate_empty_request_response()
+
+        elif helpers_qbwc._has_op(body, 'receiveResponseXML'):
+            logger.info("receiveResponseXML: return 100 (done).")
+            counter = 0
+            response = soap_service.generate_receive_response(percent='100')
 
         elif helpers_qbwc._has_op(body, 'closeConnection'):
+            logger.debug("Handling closeConnection")
             counter = 0
             response = soap_service.generate_close_connection_response()
 
@@ -902,11 +1048,51 @@ def process_qbwc_query_request(xml_data, query_object_name):
 
     except Exception as e:
         logger.error(f"Error processing request: {e}")
-        try:
-            counter = 0
-        except Exception:
-            pass
+        counter = 0
         return soap_service.generate_error_response(str(e))
+
+                    
+
+# def process_qbwc_query_request(xml_data, query_object_name):
+#     global counter
+#     global soap_customers
+#     response = None
+#     try:
+#         xml_dict = xmltodict.parse(xml_data)
+#         body = xml_dict['soap:Envelope']['soap:Body']
+        
+#         logger.info("SOAP Body keys: %s", list(body.keys()))
+
+#         if helpers_qbwc._has_op(body, 'authenticate'):
+#             response = soap_service.handle_authenticate(body)
+
+#         elif helpers_qbwc._has_op(body, 'sendRequestXML') and counter == 0:
+#             counter += 1
+#             from_modified = helpers_qbwc._get_last_sync_iso(query_object_name)
+#             logger.info("sendRequestXML first call. FromModifiedDate=%s", from_modified)
+
+#             if query_object_name in ['ItemInventory', 'ItemSalesTax', 'ItemService', 'Item',
+#                                      'ItemNonInventory', 'ItemInventoryPart', 'ItemDiscount']:
+#                 response = soap_service.generate_item_query_response(query_object_name, from_modified)
+#             else:
+#                 response = soap_service.generate_customer_query_response(from_modified)
+
+#         elif helpers_qbwc._has_op(body, 'closeConnection'):
+#             counter = 0
+#             response = soap_service.generate_close_connection_response()
+
+#         else:
+#             response = soap_service.generate_unsupported_request_response()
+
+#         return response
+
+#     except Exception as e:
+#         logger.error(f"Error processing request: {e}")
+#         try:
+#             counter = 0
+#         except Exception:
+#             pass
+#         return soap_service.generate_error_response(str(e))
 
     
 
