@@ -853,6 +853,12 @@ def start_qbwc_query_request(request, query_object_name, list_of_objects):
             data_dict = xmltodict.parse(response_xml)
             query_rs = data_dict['QBXML']['QBXMLMsgsRs'][f'{query_object_name}QueryRs']
             
+            status_code = query_rs.get('@statusCode')
+            status_sev  = query_rs.get('@statusSeverity')
+            status_msg  = query_rs.get('@statusMessage')
+            logger.info("%sQueryRs statusCode=%s severity=%s message=%s",
+                        query_object_name, status_code, status_sev, status_msg)
+            
             elements_ret = query_rs.get(f'{query_object_name}Ret')
             if not elements_ret:
                 logger.info(f"No hay {query_object_name}Ret en esta página de QBXML.")
