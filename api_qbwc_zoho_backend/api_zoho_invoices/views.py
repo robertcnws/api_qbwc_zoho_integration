@@ -230,10 +230,11 @@ def process_fetched_invoices(invoices_to_get, invoices_ids_saved):
         if new_invoice.invoice_id not in invoices_ids_saved:
             invoices_to_save.append(new_invoice)
         else:
-            existing_invoice = ZohoFullInvoice.objects.get(invoice_id=new_invoice.invoice_id)
-            updated_invoice = edit_invoice_instance(existing_invoice, new_invoice)
-            if updated_invoice:
-                invoices_to_update.append(updated_invoice)
+            existing_invoice = ZohoFullInvoice.objects.filter(invoice_id=new_invoice.invoice_id).first()
+            if existing_invoice:
+                updated_invoice = edit_invoice_instance(existing_invoice, new_invoice)
+                if updated_invoice:
+                    invoices_to_update.append(updated_invoice)
     return invoices_to_save, invoices_to_update
 
 # Guardar las facturas en la base de datos en lotes
