@@ -142,10 +142,11 @@ def load_invoices(request, task_job=False):
         # Procesar las facturas de forma paralela
         invoices_to_save = fetch_full_invoices_parallel(invoice_ids, headers)
 
-        invoices_to_save = process_fetched_invoices(invoices_to_save, invoices_ids_saved)
+        invoices_to_save, invoices_to_update = process_fetched_invoices(invoices_to_save, invoices_ids_saved)
         save_invoices_in_batches(invoices_to_save)
+        update_invoices_in_batches(invoices_to_update)
 
-        if invoices_to_save:
+        if invoices_to_save or invoices_to_update:
             ip_address = request.META.get('REMOTE_ADDR')
             update_zoho_loading(username, ip_address)
             api_zoho_views.manage_notifications("Invoices have been loaded successfully from Zoho Books")
@@ -240,6 +241,26 @@ def save_invoices_in_batches(invoices, batch_size=100):
     for i in range(0, len(invoices), batch_size):
         with transaction.atomic():
             ZohoFullInvoice.objects.bulk_create(invoices[i:i + batch_size])
+            
+            
+def update_invoices_in_batches(invoices, batch_size=100):
+    for i in range(0, len(invoices), batch_size):
+        with transaction.atomic():
+            ZohoFullInvoice.objects.bulk_update(invoices[i:i + batch_size], fields=[
+                'invoice_number', 'date', 'due_date', 'customer_id', 'customer_name', 'email', 'status',
+                'recurring_invoice_id', 'payment_terms', 'payment_terms_label', 'payment_reminder_enabled',
+                'payment_discount', 'credits_applied', 'payment_made', 'reference_number', 'line_items',
+                'allow_partial_payments', 'price_precision', 'sub_total', 'tax_total', 'discount_total',
+                'discount_percent', 'discount', 'discount_applied_on_amount', 'discount_type',
+                'tax_override_preference', 'is_discount_before_tax', 'adjustment', 'adjustment_description',
+                'total', 'balance', 'is_inclusive_tax', 'sub_total_inclusive_of_tax', 'contact_category',
+                'tax_rounding', 'taxes', 'tds_calculation_type', 'last_payment_date', 'contact_persons',
+                'salesorder_id', 'salesorder_number', 'salesorders', 'contact_persons_details',
+                'created_time', 'last_modified_time', 'created_date', 'created_by_name', 'estimate_id',
+                'customer_default_billing_address',  'notes',  'terms','billing_address','shipping_address',
+                'contact'
+            ])
+            
 
 # Actualizar el registro de carga de Zoho
 def update_zoho_loading(username, ip_address):
