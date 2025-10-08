@@ -20,5 +20,5 @@ def _get_last_sync_iso(query_object_name: str) -> str:
         base = row.qb_record_updated or row.qb_record_created
     if not base:
         base = datetime(2000, 1, 1, tzinfo=timezone.utc)
-    dt = (base - timedelta(minutes=2)).astimezone(timezone.utc)
+    dt = (base - timedelta(days=3)).astimezone(timezone.utc)
     return dt.strftime('%Y-%m-%dT%H:%M:%S%z')
