@@ -865,7 +865,7 @@ def save_customers_in_batches(customers_to_save, batch_size=100):
                     customer.save()
                 except IntegrityError as e:
                     logger.error(f"Failed to save customer {customer.list_id}: {e}")
-    
+                    
 
 def process_qbwc_query_request(xml_data, query_object_name):
     global counter
@@ -874,24 +874,67 @@ def process_qbwc_query_request(xml_data, query_object_name):
     try:
         xml_dict = xmltodict.parse(xml_data)
         body = xml_dict['soap:Envelope']['soap:Body']
-        if 'authenticate' in body:
+        
+        logger.info("SOAP Body keys: %s", list(body.keys()))
+
+        if helpers_qbwc._has_op(body, 'authenticate'):
             response = soap_service.handle_authenticate(body)
-        elif 'sendRequestXML' in body and counter == 0:
+
+        elif helpers_qbwc._has_op(body, 'sendRequestXML') and counter == 0:
             counter += 1
             from_modified = helpers_qbwc._get_last_sync_iso(query_object_name)
-            if query_object_name in ['ItemInventory', 'ItemSalesTax', 'ItemService', 'Item', 'ItemNonInventory', 'ItemInventoryPart', 'ItemDiscount']:
+            logger.info("sendRequestXML first call. FromModifiedDate=%s", from_modified)
+
+            if query_object_name in ['ItemInventory', 'ItemSalesTax', 'ItemService', 'Item',
+                                     'ItemNonInventory', 'ItemInventoryPart', 'ItemDiscount']:
                 response = soap_service.generate_item_query_response(query_object_name, from_modified)
             else:
                 response = soap_service.generate_customer_query_response(from_modified)
-        elif 'closeConnection' in body:
+
+        elif helpers_qbwc._has_op(body, 'closeConnection'):
             counter = 0
             response = soap_service.generate_close_connection_response()
+
         else:
             response = soap_service.generate_unsupported_request_response()
+
         return response
+
     except Exception as e:
         logger.error(f"Error processing request: {e}")
+        try:
+            counter = 0
+        except Exception:
+            pass
         return soap_service.generate_error_response(str(e))
+
+    
+
+# def process_qbwc_query_request(xml_data, query_object_name):
+#     global counter
+#     global soap_customers
+#     response = None
+#     try:
+#         xml_dict = xmltodict.parse(xml_data)
+#         body = xml_dict['soap:Envelope']['soap:Body']
+#         if 'authenticate' in body:
+#             response = soap_service.handle_authenticate(body)
+#         elif 'sendRequestXML' in body and counter == 0:
+#             counter += 1
+#             from_modified = helpers_qbwc._get_last_sync_iso(query_object_name)
+#             if query_object_name in ['ItemInventory', 'ItemSalesTax', 'ItemService', 'Item', 'ItemNonInventory', 'ItemInventoryPart', 'ItemDiscount']:
+#                 response = soap_service.generate_item_query_response(query_object_name, from_modified)
+#             else:
+#                 response = soap_service.generate_customer_query_response(from_modified)
+#         elif 'closeConnection' in body:
+#             counter = 0
+#             response = soap_service.generate_close_connection_response()
+#         else:
+#             response = soap_service.generate_unsupported_request_response()
+#         return response
+#     except Exception as e:
+#         logger.error(f"Error processing request: {e}")
+#         return soap_service.generate_error_response(str(e))
     
     
 def create_xml_response(task_id):

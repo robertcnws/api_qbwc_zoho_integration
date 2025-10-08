@@ -22,3 +22,17 @@ def _get_last_sync_iso(query_object_name: str) -> str:
         base = datetime(2000, 1, 1, tzinfo=timezone.utc)
     dt = (base - timedelta(days=3)).astimezone(timezone.utc)
     return dt.strftime('%Y-%m-%dT%H:%M:%S%z')
+
+def _has_op(body_dict, local_name: str) -> bool:
+    for k in body_dict.keys():
+        kk = str(k)
+        if kk.endswith(local_name) or kk.split(':')[-1] == local_name or kk.split('}')[-1] == local_name:
+            return True
+    return False
+
+def _get_op_key(body_dict, local_name: str):
+    for k in body_dict.keys():
+        kk = str(k)
+        if kk.endswith(local_name) or kk.split(':')[-1] == local_name or kk.split('}')[-1] == local_name:
+            return k
+    return None
