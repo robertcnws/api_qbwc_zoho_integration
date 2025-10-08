@@ -60,8 +60,9 @@ def handle_authenticate(body):
 ############## Customer Query ################
 ##############################################
 
-def generate_customer_query_response():
-    data_xml = '''<CustomerQueryRq requestID="1">
+def generate_customer_query_response(from_modified: str):
+    data_xml = f'''<CustomerQueryRq requestID="1">
+                    <FromModifiedDate>{from_modified}</FromModifiedDate>
                     <IncludeRetElement>ListID</IncludeRetElement>
                     <IncludeRetElement>FullName</IncludeRetElement>
                     <IncludeRetElement>FirstName</IncludeRetElement>
@@ -94,8 +95,9 @@ def generate_customer_query_response():
 ################ Item Query ##################
 ##############################################
 
-def generate_item_query_response(query_object_name):
+def generate_item_query_response(query_object_name: str, from_modified: str):
     data_xml = f'''<{query_object_name}QueryRq requestID="2">
+                    <FromModifiedDate>{from_modified}</FromModifiedDate>
                     <IncludeRetElement>ListID</IncludeRetElement>
                     <IncludeRetElement>Name</IncludeRetElement>
                   </{query_object_name}QueryRq>''' 
