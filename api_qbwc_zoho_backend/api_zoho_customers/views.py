@@ -207,11 +207,15 @@ def load_customers(request):
                 'status_code': 500
             }
             return render(request, 'api_zoho/error.html', context)
+        
+        yesterday = datetime.datetime.now() - datetime.timedelta(days=7)
+        last_modified_time = yesterday.strftime('%Y-%m-%d')
 
         params = {
             'page': 1,
             'per_page': 200, 
             'organization_id': app_config.zoho_org_id,
+            'last_modified_time': last_modified_time,
         } 
         
         # Llama a la tarea asíncrona
