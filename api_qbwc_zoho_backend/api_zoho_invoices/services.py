@@ -1,182 +1,65 @@
-from django.shortcuts import render
 from django.http import JsonResponse
-from django.utils.timezone import make_aware
-from datetime import datetime as dtime
-from datetime import date, timedelta
 import api_zoho.views as api_zoho_views
 from django.conf import settings
 from django.db import transaction
-from django.contrib.auth.decorators import login_required
-from django.views.decorators.csrf import csrf_exempt
-from django.forms.models import model_to_dict
-from django.db.models import Q
 from api_zoho.models import AppConfig, ZohoLoading   
 from api_zoho_invoices.models import ZohoFullInvoice
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
-from api_zoho_items.models import ZohoItem
-from api_zoho_customers.models import ZohoCustomer  
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from datetime import datetime as dtime
 import requests
-import json
 import logging
 import datetime as dt
-import pandas as pd
-import api_zoho_invoices.services as zoho_invoice_services
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
+def load_invoices_from_main_load(headers, params, username, pc_ip):
+    logger.info("Starting to load invoices from Zoho Books Main Load")
+    logger.info(f"Parameters: {params}")
+    invoices_ids_saved = list(ZohoFullInvoice.objects.values_list('invoice_id', flat=True))
+    url = f'{settings.MAIN_LOAD_URL_READ_INVOICES}'
+    invoices_to_save = fetch_invoices(url, headers, params)
+    if invoices_to_save is None:
+        return JsonResponse({"error": "Failed to fetch invoices"}, status=500)
 
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def view_invoice(request, invoice_id):
-    valid_token = api_zoho_views.validateJWTTokenRequest(request)
-    if valid_token:
-        pattern = r'^[A-Za-z0-9]{8}-[A-Za-z0-9]{10}$'
-        zoho_invoice = ZohoFullInvoice.objects.get(invoice_id=invoice_id)
-        all_items = ZohoItem.objects.filter(Q(qb_list_id__regex=pattern)).values_list('item_id', 'qb_list_id')
-        df = pd.DataFrame(list(all_items), columns=['item_id', 'qb_list_id'])
-        all_items_data = df[['item_id', 'qb_list_id']].to_dict(orient='records')
-        all_customers = ZohoCustomer.objects.filter(Q(qb_list_id__regex=pattern)).values_list('contact_id', 'qb_list_id')
-        dfc = pd.DataFrame(list(all_customers), columns=['contact_id', 'qb_list_id'])
-        all_customers_data = dfc[['contact_id', 'qb_list_id']].to_dict(orient='records')
-        qb_customer_list_id = ''
-        
-        for zoho_item in all_items_data: 
-            for item in zoho_invoice.line_items:
-                if item.get('item_id') == zoho_item['item_id']:
-                    item['qb_list_id'] = zoho_item['qb_list_id']
-                    
-            for item in zoho_invoice.items_unmatched:
-                if item.get('zoho_item_id') == zoho_item['item_id']:
-                    item['qb_list_id'] = zoho_item['qb_list_id']
-                    
-        for zoho_customer in all_customers_data:
-            if zoho_invoice.customer_id == zoho_customer['contact_id']:
-                qb_customer_list_id = zoho_customer['qb_list_id']
-            for customer in zoho_invoice.customer_unmatched:
-                if customer.get('zoho_customer_id') == zoho_customer['contact_id']:
-                    customer['qb_list_id'] = zoho_customer['qb_list_id']
-                    
-        cont_items = len(list(filter(lambda x: 'qb_list_id' in x, zoho_invoice.line_items)))
-                        
-        zoho_invoice.all_items_matched = cont_items == len(zoho_invoice.line_items)
-        zoho_invoice.all_customer_matched = qb_customer_list_id != ''
-        zoho_invoice.qb_customer_list_id = qb_customer_list_id
-        zoho_invoice.save()
-        
-        zoho_invoice = model_to_dict(zoho_invoice)
-        
-        
-        context = {
-            'invoice': zoho_invoice
-        }
-        return JsonResponse(context, status=200)
-    return JsonResponse({'error': 'Invalid JWT Token'}, status=401)
+    # Procesar las facturas de forma paralela
+    # invoices_to_save = fetch_full_invoices_parallel(invoices, headers)
 
+    invoices_to_save, invoices_to_update = process_fetched_invoices(invoices_to_save, invoices_ids_saved)
+    save_invoices_in_batches(invoices_to_save)
+    update_invoices_in_batches(invoices_to_update)
 
-@login_required(login_url='login')
-def list_invoices(request):
-    invoice_list_query = ZohoFullInvoice.objects.all().order_by('-invoice_number')
-    batch_size = 200  # Ajusta este tamaño según tus necesidades
-    invoice_list = []
+    if invoices_to_save or invoices_to_update:
+        update_zoho_loading(username, pc_ip)
+        api_zoho_views.manage_notifications("Invoices have been loaded successfully from Zoho Books")
+
+    return JsonResponse({'message': 'Invoices loaded successfully'}, status=200)
     
-    # Dividir en partes y procesar cada parte
-    for i in range(0, invoice_list_query.count(), batch_size):
-        batch = invoice_list_query[i:i + batch_size]
-        invoice_list.extend(batch)  
-        
-    context = {'invoices': invoice_list}
-    return render(request, 'api_zoho_invoices/list_invoices.html', context)
-
-
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def load_invoices(request):
-    if request:
-        valid_token = api_zoho_views.validateJWTTokenRequest(request)
-        if not valid_token:
-            return JsonResponse({'error': 'Invalid JWT Token'}, status=401)
-
-        logger.info("Loading invoices from Zoho Books")
-        option, username = '', ''
-
-        app_config = AppConfig.objects.first()
-        try:
-            # headers = api_zoho_views.config_headers(request)
-            headers = {
-                'Authorization': f'Token {settings.MAIN_LOAD_API_TOKEN}',
-                'Content-Type': 'application/json'
-            }
-            option = request.data.get('option', '')
-            username = request.data.get('username', '')
-        except Exception as e:
-            logger.error(f"Error connecting to Zoho API: {str(e)}")
-            return JsonResponse({'error': f"Error connecting to Zoho API: {str(e)}"}, status=500)
-
-        today, yesterday = date.today(), date.today() - timedelta(days=1)
-        
-        date_to_query = handle_option_date(option, today, yesterday)
-        if not date_to_query:
-            return JsonResponse({'error': 'Invalid date format. Use yyyy-MM-dd format.'}, status=400)
-
-        params = {
-            # 'organization_id': app_config.zoho_org_id,
-            'page': 1,
-            'page_size': 200,
-            'start_last_modified_time': date_to_query,
-            'end_last_modified_time': date_to_query,
-            'zoho_org_id': app_config.zoho_org_id
-            # 'per_page': 200,
-            # 'date_start': date_to_query,
-            # 'date_end': date_to_query
-        }
-        return zoho_invoice_services.load_invoices_from_main_load(headers, params, username, request.META.get('REMOTE_ADDR'))
-
-    return JsonResponse({'error': 'Invalid request'}, status=400)
-
-
-# Manejo de la opción de fecha para la consulta
-def handle_option_date(option, today, yesterday):
-    if option == 'Today':
-        return today.strftime('%Y-%m-%d')
-    elif option == 'Yesterday':
-        return yesterday.strftime('%Y-%m-%d')
-    else:
-        try:
-            return dtime.strptime(option, '%Y-%m-%d').date().strftime('%Y-%m-%d')
-        except ValueError:
-            logger.error(f"Invalid date format provided: {option}")
-            return None
-
-# Obtener IDs de facturas sin detalles completos
 def fetch_invoices(url, headers, params):
     invoice_ids = []
     while True:
         try:
             response = requests.get(url, headers=headers, params=params, timeout=180)
             if response.status_code == 401:
-                headers['Authorization'] = f'Zoho-oauthtoken {api_zoho_views.refresh_zoho_token()}'
+                headers['Authorization'] = f'Token {settings.MAIN_LOAD_API_TOKEN}'
                 response = requests.get(url, headers=headers, params=params, timeout=180)
 
             if response.status_code != 200:
                 logger.error(f"Error fetching invoices: {response.text}")
                 return None
 
-            invoices = response.json().get('invoices', [])
-            invoice_ids.extend([invoice.get('invoice_id') for invoice in invoices])
+            invoices = response.json().get('results', [])
+            # invoice_ids.extend([invoice.get('invoice_id') for invoice in invoices])
 
             # Verificar si hay más páginas
-            page_context = response.json().get('page_context', {})
-            if not page_context.get('has_more_page', False):
+            page_context = response.json().get('next', None)
+            if not page_context:
                 break
             params['page'] += 1
         except requests.exceptions.RequestException as e:
             logger.error(f"Error fetching invoices: {e}")
             return None
-    
-    return invoice_ids
+    return invoices
 
 # Descargar los detalles completos de las facturas de forma paralela
 def fetch_full_invoices_parallel(invoice_ids, headers, max_workers=10):
@@ -243,8 +126,6 @@ def update_invoices_in_batches(invoices, batch_size=100):
                 'contact'
             ])
             
-
-# Actualizar el registro de carga de Zoho
 def update_zoho_loading(username, ip_address):
     current_time_utc = dt.datetime.now(dt.timezone.utc)
     zoho_loading = ZohoLoading.objects.filter(zoho_module='invoices', zoho_record_created=current_time_utc).first()
@@ -256,23 +137,6 @@ def update_zoho_loading(username, ip_address):
     api_zoho_views.manage_api_tracking_log(username, 'load_invoices', ip_address, 'Loaded invoices from Zoho Books')
     
     
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def delete_invoice(request, invoice_id):
-    valid_token = api_zoho_views.validateJWTTokenRequest(request)
-    if valid_token:
-        try:
-            invoice = ZohoFullInvoice.objects.filter(invoice_id=invoice_id).first()
-            invoice.delete()
-            username = request.data.get('username', '')
-            api_zoho_views.manage_api_tracking_log(username, 'delete_invoice', request.META.get('REMOTE_ADDR'), f'Deleted invoice {invoice_id}')
-            return JsonResponse({'status':'success', 'message': 'Invoice deleted successfully'}, status=200)
-        except Exception as e:
-            logger.error(f"Error deleting invoice: {e}")
-            return JsonResponse({'error': 'Failed to delete invoice'}, status=500)
-    return JsonResponse({'error': 'Invalid JWT Token'}, status=401)
-
-
 def create_invoice_instance(data):
     try:
         instance = ZohoFullInvoice(
@@ -405,8 +269,7 @@ def edit_invoice_instance(existing_invoice, new_invoice):
         logger.error(f"Error creating instance: {e}")
         return None
     return existing_invoice
-    
-    
+
 
 def parse_date(datetime_str):
     if not datetime_str:

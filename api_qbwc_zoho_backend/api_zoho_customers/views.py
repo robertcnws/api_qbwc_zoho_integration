@@ -26,6 +26,7 @@ import requests
 import json
 import logging
 import re
+import api_zoho_customers.services as zoho_customer_services
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -199,7 +200,11 @@ def load_customers(request):
         username = request.data.get('username', '')
         pc_ip = request.META.get('REMOTE_ADDR')
         try:
-            headers = api_zoho_views.config_headers(request) 
+            # headers = api_zoho_views.config_headers(request) 
+            headers = {
+                'Authorization': f'Token {settings.MAIN_LOAD_API_TOKEN}',
+                'Content-Type': 'application/json',
+            }
         except Exception as e:
             logger.error(f"Error connecting to Zoho API: {str(e)}")
             context = {
@@ -208,20 +213,25 @@ def load_customers(request):
             }
             return render(request, 'api_zoho/error.html', context)
         
-        yesterday = datetime.datetime.now() - datetime.timedelta(days=7)
-        last_modified_time = yesterday.strftime('%Y-%m-%d')
+        today = datetime.datetime.now()
+        yesterday = today - datetime.timedelta(days=10)
+        start_last_modified_time = yesterday.strftime('%Y-%m-%d')
+        end_last_modified_time = today.strftime('%Y-%m-%d')
 
         params = {
             'page': 1,
-            'per_page': 200, 
-            'organization_id': app_config.zoho_org_id,
-            'last_modified_time': last_modified_time,
+            'page_size': 200,
+            # 'per_page': 200, 
+            # 'organization_id': app_config.zoho_org_id,
+            'start_last_modified_time': start_last_modified_time,
+            'end_last_modified_time': end_last_modified_time,
         } 
         
         # Llama a la tarea asíncrona
-        result = load_customers_task.delay(headers, params, username, pc_ip)
+        # result = load_customers_task.delay(headers, params, username, pc_ip)
+        result = zoho_customer_services.load_customers_from_main_load(headers, params, username, pc_ip)
 
-        return JsonResponse({'message': 'Customer load started', 'task_id': result.id}, status=202)
+        return JsonResponse({'message': result}, status=202)
     
     return JsonResponse({'error': 'Invalid JWT token'}, status=401)
 

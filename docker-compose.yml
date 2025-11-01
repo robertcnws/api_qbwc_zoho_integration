@@ -18,14 +18,14 @@ services:
       - LOGINUSER_USERNAME=test
       - LOGINUSER_EMAIL=test@example.com
       - LOGINUSER_PASSWORD=Hialeah2024*-
-      - CELERY_BROKER_URL=redis://redis:6379/0
-      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis_installation:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis_installation:6379/0
     env_file:
       - ./api_qbwc_zoho_backend/.env
     networks:
-      - api_qbwc_zoho_network
-    depends_on:
-      - redis
+      - shared-network
+    # depends_on:
+    #   - redis_installation
 
   # react_app:
   #   build:
@@ -51,7 +51,7 @@ services:
     ports:
       - "5433:5432"
     networks:
-      - api_qbwc_zoho_network
+      - shared-network
 
   # nginx_server:
   #   build:
@@ -70,20 +70,21 @@ services:
   #   networks:
   #     - api_qbwc_zoho_network
 
-  redis:
+  redis_installation:
     image: redis:latest
-    container_name: redis
+    container_name: redis_installation
     volumes:
       - redis_data:/data
     networks:
-      - api_qbwc_zoho_network
+      - shared-network
 
 volumes:
   postgres_data:
   redis_data:
 
 networks:
-  api_qbwc_zoho_network:
+  shared-network:
+    external: true
     driver: bridge
     # ipam:
     #   config:
