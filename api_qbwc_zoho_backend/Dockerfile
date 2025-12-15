@@ -2,7 +2,6 @@ FROM python:3.12
 
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONPATH=/app
-
 ENV TZ=America/New_York
 
 RUN ln -fs "/usr/share/zoneinfo/$TZ" /etc/localtime && \
@@ -10,26 +9,26 @@ RUN ln -fs "/usr/share/zoneinfo/$TZ" /etc/localtime && \
 
 WORKDIR /app
 
-# --- Python deps ---
 COPY requirements.txt /app/
 
-RUN mkdir -p /var/log/supervisor \
- && mkdir -p /app/backup \
- && pip install --upgrade pip \
- && pip install gunicorn \
- && pip install -r requirements.txt \
- && apt-get update \
- && apt-get install -y --no-install-recommends ca-certificates gnupg postgresql-client supervisor wget \
- && rm -rf /var/lib/apt/lists/*
- 
-COPY . /app/
+RUN mkdir -p /var/log/supervisor /app/backup && \
+    pip install --upgrade pip && \
+    pip install gunicorn && \
+    pip install -r requirements.txt && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends \
+      ca-certificates gnupg postgresql-client supervisor wget && \
+    rm -rf /var/lib/apt/lists/*
 
+COPY . /app/
 COPY _deploy/supervisord.conf /etc/supervisor/supervisord.conf
+
 COPY _deploy/entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
+RUN sed -i 's/\r$//' /entrypoint.sh && chmod +x /entrypoint.sh
 
 EXPOSE 8000
 
-HEALTHCHECK --interval=30s --timeout=5s --retries=5 CMD wget -qO- http://127.0.0.1:8000/api_qbwc_zoho/health_check/ || exit 1
+HEALTHCHECK --interval=30s --timeout=5s --retries=5 \
+  CMD wget -qO- http://127.0.0.1:8000/api_qbwc_zoho/health_check/ || exit 1
 
 CMD ["/entrypoint.sh"]
