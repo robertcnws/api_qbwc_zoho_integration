@@ -1,0 +1,8 @@
+openssl genpkey -algorithm RSA -out nginx_onpremise/certificates/DNS/dns_key.pem
+openssl req -new -key nginx_onpremise/certificates/DNS/dns_key.pem -x509 -days 365 -out nginx_onpremise/certificates/DNS/dns_cert.crt
+openssl pkcs12 -export -out nginx_onpremise/certificates/DNS/dns_cert.pfx -inkey nginx_onpremise/certificates/DNS/dns_key.pem -in nginx_onpremise/certificates/DNS/dns_cert.crt
+
+
+openssl pkcs12 -in nginx_onpremise/certificates/DNS/dns_cert.pfx -out nginx_onpremise/certificates/DNS/dns_cert.pem -nodes -clcerts
+openssl pkcs12 -in nginx_onpremise/certificates/DNS/dns_cert.pfx -out nginx_onpremise/certificates/DNS/dns_key.pem -nodes -nocerts
+openssl pkcs12 -in nginx_onpremise/certificates/DNS/dns_cert.pfx -out nginx_onpremise/certificates/DNS/dns_chain.pem -nodes -nokeys -clcerts

@@ -1,9 +1,9 @@
 services:
-  django_app:
+  backend_app:
     build:
       context: ./api_qbwc_zoho_backend
       dockerfile: Dockerfile
-    container_name: django_app
+    container_name: backend_app
     volumes:
       - ./api_qbwc_zoho_backend:/app
       - ./api_qbwc_zoho_backend/nginx/gunicorn.conf.py:/etc/nginx/gunicorn.conf.py
@@ -24,19 +24,20 @@ services:
       - ./api_qbwc_zoho_backend/.env
     networks:
       - shared-network
-    # depends_on:
-    #   - redis_installation
+    depends_on:
+      - redis_installation
 
-  # react_app:
-  #   build:
-  #     context: ./api_qbwc_zoho_frontend
-  #   container_name: react_app
-  #   volumes:
-  #     - ./api_qbwc_zoho_frontend/build:/app/build 
-  #   env_file:
-  #     - ./api_qbwc_zoho_frontend/.env
-  #   networks:
-  #     - api_qbwc_zoho_network
+  react_app:
+    build:
+      context: ./api_qbwc_zoho_frontend
+      dockerfile: Dockerfile.onpremise
+    container_name: react_app
+    volumes:
+      - ./api_qbwc_zoho_frontend/build:/app/build 
+    env_file:
+      - ./api_qbwc_zoho_frontend/.env
+    networks:
+      - shared-network
 
   postgres_server:
     image: postgres:16.0
@@ -53,22 +54,22 @@ services:
     networks:
       - shared-network
 
-  # nginx_server:
-  #   build:
-  #     context: ./api_qbwc_zoho_backend/nginx
-  #   container_name: nginx_server
-  #   ports:
-  #     - "80:80"
-  #     - "443:443"
-  #   volumes:
-  #     - ./api_qbwc_zoho_backend/nginx/nginx_react_django.conf:/etc/nginx/nginx.conf:ro
-  #     - ./api_qbwc_zoho_backend/nginx/certificates:/etc/nginx/certificates:ro
-  #     - ./api_qbwc_zoho_frontend/build:/usr/share/nginx/html 
-  #   depends_on:
-  #     - django_app
-  #     - react_app
-  #   networks:
-  #     - api_qbwc_zoho_network
+  nginx_server:
+    build:
+      context: ./nginx_onpremise
+    container_name: nginx_server
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx_onpremise/nginx_react.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx_onpremise/certificates:/etc/nginx/certificates:ro
+      - ./api_qbwc_zoho_frontend/build:/usr/share/nginx/html 
+    depends_on:
+      # - backend_app
+      - react_app
+    networks:
+      - shared-network
 
   redis_installation:
     image: redis:latest
