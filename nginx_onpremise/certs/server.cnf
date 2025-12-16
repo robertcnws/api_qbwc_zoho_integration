@@ -1,0 +1,19 @@
+[req]
+prompt = no
+default_md = sha256
+req_extensions = req_ext
+distinguished_name = dn
+
+[dn]
+C = US
+ST = FL
+L = Hialeah
+O = New Window System
+CN = api-qbwc-zoho.newwindowsystem.net
+
+[req_ext]
+subjectAltName = @alt_names
+
+[alt_names]
+DNS.1 = api-qbwc-zoho.newwindowsystem.net
+DNS.2 = wms.newwindowsystem.net

@@ -6,7 +6,7 @@ services:
     container_name: backend_app
     volumes:
       - ./api_qbwc_zoho_backend:/app
-      - ./api_qbwc_zoho_backend/nginx/gunicorn.conf.py:/etc/nginx/gunicorn.conf.py
+      - ./api_qbwc_zoho_backend/_gunicorn/gunicorn.conf.py:/etc/nginx/gunicorn.conf.py
       - ./api_qbwc_zoho_backend/local_backup:/app/backup
     ports:
       - "8000:8000"
@@ -62,11 +62,11 @@ services:
       - "80:80"
       - "443:443"
     volumes:
-      - ./nginx_onpremise/nginx_react.conf:/etc/nginx/nginx.conf:ro
-      - ./nginx_onpremise/certificates:/etc/nginx/certificates:ro
-      - ./api_qbwc_zoho_frontend/build:/usr/share/nginx/html 
+      - ./nginx_onpremise/nginx_react_django.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx_onpremise/certs:/etc/nginx/certs:ro
+      - ./api_qbwc_zoho_frontend/build:/usr/share/nginx/html/qbwc 
     depends_on:
-      # - backend_app
+      - backend_app
       - react_app
     networks:
       - shared-network

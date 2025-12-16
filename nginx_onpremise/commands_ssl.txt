@@ -1,8 +1,13 @@
-openssl genpkey -algorithm RSA -out nginx_onpremise/certificates/DNS/dns_key.pem
-openssl req -new -key nginx_onpremise/certificates/DNS/dns_key.pem -x509 -days 365 -out nginx_onpremise/certificates/DNS/dns_cert.crt
-openssl pkcs12 -export -out nginx_onpremise/certificates/DNS/dns_cert.pfx -inkey nginx_onpremise/certificates/DNS/dns_key.pem -in nginx_onpremise/certificates/DNS/dns_cert.crt
+openssl genrsa -out nginx_onpremise/certs/ca.key 4096
+
+openssl req -x509 -new -nodes -key nginx_onpremise/certs/ca.key -sha256 -days 3650 -out nginx_onpremise/certs/ca.crt -subj "/C=US/ST=FL/L=Hialeah/O=New Window System/CN=NWS-Internal-CA"
 
 
-openssl pkcs12 -in nginx_onpremise/certificates/DNS/dns_cert.pfx -out nginx_onpremise/certificates/DNS/dns_cert.pem -nodes -clcerts
-openssl pkcs12 -in nginx_onpremise/certificates/DNS/dns_cert.pfx -out nginx_onpremise/certificates/DNS/dns_key.pem -nodes -nocerts
-openssl pkcs12 -in nginx_onpremise/certificates/DNS/dns_cert.pfx -out nginx_onpremise/certificates/DNS/dns_chain.pem -nodes -nokeys -clcerts
+openssl genrsa -out nginx_onpremise/certs/server.key 2048
+
+openssl req -new -key nginx_onpremise/certs/server.key -out nginx_onpremise/certs/server.csr -config nginx_onpremise/certs/server.cnf
+
+openssl x509 -req -in nginx_onpremise/certs/server.csr -CA nginx_onpremise/certs/ca.crt -CAkey nginx_onpremise/certs/ca.key -CAcreateserial -out nginx_onpremise/certs/server.crt -days 825 -sha256 -extensions req_ext -extfile nginx_onpremise/certs/server.cnf
+
+openssl pkcs12 -export -out nginx_onpremise/certs/api-qbwc-zoho.pfx -inkey nginx_onpremise/certs/server.key -in nginx_onpremise/certs/server.crt -certfile nginx_onpremise/certs/ca.crt
+
