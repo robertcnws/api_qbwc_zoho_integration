@@ -1,6 +1,6 @@
 apiVersion: v1
 data:
-  nginx_react_django.conf: |
+  nginx_react_django.conf: |-
     user nginx;
     worker_processes  1;
 
@@ -36,13 +36,15 @@ data:
         ssl_prefer_server_ciphers off;
         ssl_ciphers "EECDH+AESGCM:EDH+AESGCM:AES256+EECDH:AES256+EDH";
 
-        upstream django-app {
-            server django-app:8000;  # Nombre del servicio y puerto configurado en docker-compose.yml
+        upstream backend-app {
+            server backend-app:8000;  # Nombre del servicio y puerto configurado en docker-compose.yml
         }
 
         server {
             listen 80;
-            server_name 127.0.0.1;
+            listen [::]:80;
+            server_name api-qbwc-zoho.newwindowsystem.net;
+            # server_name 127.0.0.1;
 
             # Redirige todas las solicitudes HTTP a HTTPS
             location / {
@@ -51,51 +53,33 @@ data:
         }
 
         server {
-            listen 443 ssl;
-            server_name 127.0.0.1;
+            listen 443 ssl default_server;
+            server_name api-qbwc-zoho.newwindowsystem.net;
+            # server_name 127.0.0.1;
 
-            ssl_certificate /etc/nginx/certificates/cert.pem;
-            ssl_certificate_key /etc/nginx/certificates/private_key.pem;
-            ssl_trusted_certificate /etc/nginx/certificates/chain.pem;
-
-            # ssl_certificate /etc/nginx/certificates/server.chain.pem;
-            # ssl_certificate_key /etc/nginx/certificates/server.key.pem;
-            # ssl_trusted_certificate /etc/nginx/certificates/ca.cert.pem;
+            ssl_certificate /etc/nginx/certs/server.crt;
+            ssl_certificate_key /etc/nginx/certs/server.key;
 
             # Sirve archivos estáticos de React
             location / {
-                root   /usr/share/nginx/html;
+                root   /usr/share/nginx/html/qbwc;
                 try_files $uri $uri/ /index.html;
             }
 
             error_page 404 /index.html;
 
-            # # Sirve archivos estáticos de Django
-            # location /static/ {
-            #     alias /app/static/;
-            # }
-
             # Rutas de la API Django
             location /api_qbwc_zoho/ {
-                proxy_pass http://django-app;
+                proxy_pass http://backend-app;
                 proxy_set_header Host $host;
                 proxy_set_header X-Real-IP $remote_addr;
                 proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
                 proxy_set_header X-Forwarded-Proto $scheme;
-                proxy_set_header X-Forwarded-Host $http_host;
-                proxy_set_header X-Forwarded-Proto $scheme;
-                proxy_set_header X-Forwarded-Port $server_port;
 
-                proxy_set_header Upgrade $http_upgrade;
-                proxy_set_header Connection "upgrade";
-
-                proxy_read_timeout 120;
-                proxy_connect_timeout 120;
-                proxy_send_timeout 120;
-                send_timeout 120;
-                proxy_ssl_server_name on;
-                proxy_ssl_verify on;
-                proxy_ssl_verify_depth 2;
+                proxy_read_timeout 300;
+                proxy_connect_timeout 300;
+                proxy_send_timeout 300;
+                send_timeout 300;
             }
 
             # Redirige HTTP a HTTPS
@@ -109,5 +93,5 @@ metadata:
   annotations:
     use-subpath: "true"
   labels:
-    io.kompose.service: nginx
-  name: nginx-cm0
+    io.kompose.service: nginx-server
+  name: nginx-server-cm0

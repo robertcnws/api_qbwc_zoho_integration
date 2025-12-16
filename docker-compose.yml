@@ -1,9 +1,9 @@
 services:
-  backend_app:
+  backend-app:
     build:
       context: ./api_qbwc_zoho_backend
       dockerfile: Dockerfile
-    container_name: backend_app
+    container_name: backend-app
     volumes:
       - ./api_qbwc_zoho_backend:/app
       - ./api_qbwc_zoho_backend/_gunicorn/gunicorn.conf.py:/etc/nginx/gunicorn.conf.py
@@ -18,32 +18,34 @@ services:
       - LOGINUSER_USERNAME=test
       - LOGINUSER_EMAIL=test@example.com
       - LOGINUSER_PASSWORD=Hialeah2024*-
-      - CELERY_BROKER_URL=redis://redis_installation:6379/0
-      - CELERY_RESULT_BACKEND=redis://redis_installation:6379/0
+      - CELERY_BROKER_URL=redis://redis-installation:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis-installation:6379/0
     env_file:
       - ./api_qbwc_zoho_backend/.env
     networks:
       - shared-network
+    restart: unless-stopped
     depends_on:
-      - redis_installation
+      - redis-installation
 
-  react_app:
-    build:
-      context: ./api_qbwc_zoho_frontend
-      dockerfile: Dockerfile.onpremise
-    container_name: react_app
-    volumes:
-      - ./api_qbwc_zoho_frontend/build:/app/build 
-    env_file:
-      - ./api_qbwc_zoho_frontend/.env
-    networks:
-      - shared-network
+  # react-app:
+  #   build:
+  #     context: ./api_qbwc_zoho_frontend
+  #     dockerfile: Dockerfile.onpremise
+  #   container_name: react-app
+  #   volumes:
+  #     - ./api_qbwc_zoho_frontend/build:/app/build 
+  #   env_file:
+  #     - ./api_qbwc_zoho_frontend/.env
+  #   restart: unless-stopped
+  #   networks:
+  #     - shared-network
 
-  postgres_server:
+  postgres-server:
     image: postgres:16.0
-    container_name: postgres_server
+    container_name: postgres-server
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres-data:/var/lib/postgresql/data
       - ./api_qbwc_zoho_backend/scripts_db:/docker-entrypoint-initdb.d
     environment:
       - POSTGRES_DB=api_qbwc_zoho_envqa_db
@@ -51,37 +53,36 @@ services:
       - POSTGRES_PASSWORD=postgres
     ports:
       - "5433:5432"
+    restart: unless-stopped
     networks:
       - shared-network
 
-  nginx_server:
+  nginx-server:
     build:
-      context: ./nginx_onpremise
-    container_name: nginx_server
+      dockerfile: nginx_onpremise/Dockerfile
+    container_name: nginx-server
     ports:
       - "80:80"
       - "443:443"
-    volumes:
-      - ./nginx_onpremise/nginx_react_django.conf:/etc/nginx/nginx.conf:ro
-      - ./nginx_onpremise/certs:/etc/nginx/certs:ro
-      - ./api_qbwc_zoho_frontend/build:/usr/share/nginx/html/qbwc 
     depends_on:
-      - backend_app
-      - react_app
+      - backend-app
+      # - react-app
+    restart: unless-stopped
     networks:
       - shared-network
 
-  redis_installation:
+  redis-installation:
     image: redis:latest
-    container_name: redis_installation
+    container_name: redis-installation
     volumes:
-      - redis_data:/data
+      - redis-data:/data
+    restart: unless-stopped
     networks:
       - shared-network
 
 volumes:
-  postgres_data:
-  redis_data:
+  postgres-data:
+  redis-data:
 
 networks:
   shared-network:

@@ -1,7 +1,10 @@
 FROM nginx:latest
 
-# # Copia el archivo de configuración de Nginx
-# COPY nginx_react_django.conf /etc/nginx/nginx.conf
+# volumes:
+#       - ./nginx_onpremise/nginx_react_django.conf:/etc/nginx/nginx.conf:ro
+#       - ./nginx_onpremise/certs:/etc/nginx/certs:ro
+#       - ./api_qbwc_zoho_frontend/build:/usr/share/nginx/html/qbwc 
 
-# # Añade la entrada al archivo /etc/hosts
-# RUN echo "10.1.10.216 integration.nws.com" >> /etc/hosts
+COPY nginx_onpremise/nginx_react_django.conf /etc/nginx/nginx.conf
+COPY nginx_onpremise/certs /etc/nginx/certs
+COPY api_qbwc_zoho_frontend/build /usr/share/nginx/html/qbwc

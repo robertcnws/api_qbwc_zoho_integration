@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: C:\ProgramData\chocolatey\lib\kubernetes-kompose\tools\kompose.exe convert -f docker-compose.yml -o k8s
+    kompose.version: 1.37.0 (fb0539e64)
+  labels:
+    io.kompose.service: backend-app
+  name: backend-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: backend-app
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: C:\ProgramData\chocolatey\lib\kubernetes-kompose\tools\kompose.exe convert -f docker-compose.yml -o k8s
+        kompose.version: 1.37.0 (fb0539e64)
+      labels:
+        io.kompose.service: backend-app
+    spec:
+      containers:
+        - env:
+            - name: CELERY_BROKER_URL
+              value: redis://redis-installation:6379/0
+            - name: CELERY_RESULT_BACKEND
+              value: redis://redis-installation:6379/0
+          envFrom:
+            - configMapRef:
+                name: api-qbwc-zoho-backend--env
+          image: backend-app:local
+          imagePullPolicy: IfNotPresent
+          name: backend-app
+          ports:
+            - containerPort: 8000
+              protocol: TCP
+          volumeMounts:
+            - mountPath: /app
+              name: backend-app-cm0
+            - mountPath: /etc/nginx/gunicorn.conf.py
+              name: backend-app-cm1
+              subPath: gunicorn.conf.py
+            - mountPath: /app/backup
+              name: backend-app-claim2
+      restartPolicy: Always
+      volumes:
+        - configMap:
+            name: backend-app-cm0
+          name: backend-app-cm0
+        - configMap:
+            items:
+              - key: gunicorn.conf.py
+                path: gunicorn.conf.py
+            name: backend-app-cm1
+          name: backend-app-cm1
+        - name: backend-app-claim2
+          persistentVolumeClaim:
+            claimName: backend-app-claim2
