@@ -295,6 +295,12 @@ def delete_sales_order(request, sales_order_id):
             sales_order.delete()
             username = request.data.get('username', '')
             api_zoho_views.manage_api_tracking_log(username, 'delete_sales_order', request.META.get('REMOTE_ADDR'), f'Deleted sales order {sales_order_id}')
+            from api_ws.utils import notify_group
+            from api_quickbook_soap.views import get_matched_sales_orders_data
+            try:
+                notify_group('sales_orders', get_matched_sales_orders_data(''))
+            except Exception:
+                pass
             return JsonResponse({'status':'success', 'message': 'Sales order deleted successfully'}, status=200)
         except Exception as e:
             logger.error(f"Error deleting sales order: {e}")

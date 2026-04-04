@@ -18,7 +18,7 @@ cython_debug/
 */.pnp
 *.pnp.js
 */coverage
-*/build
+# */build
 *.DS_Store
 *.env.local
 *.env.development.local

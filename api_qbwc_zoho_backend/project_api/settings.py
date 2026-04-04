@@ -169,6 +169,7 @@ CORS_ALLOW_HEADERS = [
 # Application definition
 
 INSTALLED_APPS = [
+    'daphne',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -178,6 +179,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'rest_framework',
     'rest_framework_simplejwt',
+    'channels',
     'api_zoho',
     'api_zoho_customers',
     'api_zoho_items',
@@ -185,7 +187,16 @@ INSTALLED_APPS = [
     'api_quickbook_soap',
     'api_zoho_statistics',
     'api_zoho_sales_orders',
+    'api_ws',
 ]
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels.layers.InMemoryChannelLayer',
+    }
+}
+
+ASGI_APPLICATION = 'project_api.asgi.application'
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (

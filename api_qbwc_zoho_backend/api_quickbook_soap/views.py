@@ -42,6 +42,25 @@ import math
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
+
+def _notify_ws_group(kind, request=None, date_str=None):
+    """Notify WS clients after a mutation. Resolves date from request query params if needed."""
+    from api_ws.utils import notify_group
+    try:
+        if kind == 'invoices':
+            d = date_str or (request.query_params.get('date') if request else None) or ''
+            notify_group('invoices', get_matched_invoices_data(d))
+        elif kind == 'sales_orders':
+            d = date_str or (request.query_params.get('date') if request else None) or ''
+            notify_group('sales_orders', get_matched_sales_orders_data(d))
+        elif kind == 'qbwc_items':
+            notify_group('qbwc_items', get_qbwc_items_data())
+        elif kind == 'qbwc_customers':
+            notify_group('qbwc_customers', get_qbwc_customers_data())
+    except Exception as e:
+        logger.error(f"WS notify error for {kind}: {e}")
+
+
 #############################################
 # Declarar variables globales
 #############################################
@@ -175,6 +194,7 @@ def force_to_sync_ajax(request, kind):
                 invoice_model.force_to_sync = not invoice_model.force_to_sync
                 invoice_model.save()
                 api_zoho_views.manage_api_tracking_log(username, f'force_to_sync_{kind}', request.META.get('REMOTE_ADDR'), f'Forced to sync {kind}')
+            _notify_ws_group(kind, request)
             return JsonResponse({'status': 'success'}, status=200)
         except Exception as e:
             logger.error(f"An error occurred: {e}")
@@ -198,6 +218,7 @@ def unsync_ajax(request, kind):
                 invoice_model.inserted_in_qb = not invoice_model.inserted_in_qb
                 invoice_model.save()
                 api_zoho_views.manage_api_tracking_log(username, f'unsync_{kind}', request.META.get('REMOTE_ADDR'), f'Unsync {kind}')
+            _notify_ws_group(kind, request)
             return JsonResponse({'status': 'success'}, status=200)
         except Exception as e:
             logger.error(f"An error occurred: {e}")
@@ -226,6 +247,7 @@ def never_match_items_ajax(request):
                 qb_item.save()
                 action, message = ('never_match_items', 'Never match items') if not to_match else ('undo_never_match_items', 'Undo never match items')
                 api_zoho_views.manage_api_tracking_log(username, action, request.META.get('REMOTE_ADDR'), message)
+            _notify_ws_group('qbwc_items')
             return JsonResponse({'message': 'success', 'status': 200})
         except Exception as e:
             logger.error(f"An error occurred: {e}")
@@ -249,6 +271,7 @@ def never_match_customers_ajax(request):
                 qb_customer.save()
                 action, message = ('never_match_customers', 'Never match customers') if not to_match else ('undo_never_match_customers', 'Undo never match customers')
                 api_zoho_views.manage_api_tracking_log(username, action, request.META.get('REMOTE_ADDR'), message)
+            _notify_ws_group('qbwc_customers')
             return JsonResponse({'message': 'success'}, status=200)
         except Exception as e:
             logger.error(f"An error occurred: {e}")
@@ -569,7 +592,134 @@ def matched(request, kind, filt):
         return JsonResponse(context, safe=False)
     
     return JsonResponse({'error': 'Invalid JWT Token'}, status=401)
-    
+
+
+def _get_matched_data(kind, filt, date_str):
+    """
+    Shared data-fetching logic for the matched view.
+    Returns a plain dict (not HttpResponse) so it can be used by both the HTTP
+    view and the WebSocket consumer.
+    """
+    try:
+        date_date = parse_date(date_str) if date_str else date.today()
+        custom_item_ids = list(ZohoItem.objects.filter(is_custom=True).values_list('item_id', flat=True))
+        cond = Q()
+        for cid in custom_item_ids:
+            cond |= Q(line_items__contains=[{"item_id": cid}])
+
+        if kind == 'invoices':
+            iterable = ZohoFullInvoice.objects.filter(date=date_date).order_by('-invoice_number')
+            if filt == 'stock':
+                iterable = iterable.exclude(cond)
+        elif kind == 'sales_orders':
+            iterable = ZohoFullSalesOrder.objects.filter(date=date_date).order_by('-salesorder_number')
+            if filt == 'custom':
+                iterable = iterable.filter(cond)
+        else:
+            return {}
+
+        pattern = r'^[A-Za-z0-9]{8}-[A-Za-z0-9]{10}$'
+        all_items = ZohoItem.objects.filter(Q(qb_list_id__regex=pattern)).values_list('item_id', 'qb_list_id')
+        df = pd.DataFrame(list(all_items), columns=['item_id', 'qb_list_id'])
+        all_items_data = df[['item_id', 'qb_list_id']].to_dict(orient='records')
+        all_customers = ZohoCustomer.objects.filter(Q(qb_list_id__regex=pattern)).values_list('contact_id', 'qb_list_id')
+        dfc = pd.DataFrame(list(all_customers), columns=['contact_id', 'qb_list_id'])
+        all_customers_data = dfc[['contact_id', 'qb_list_id']].to_dict(orient='records')
+        qb_customer_list_id = ''
+
+        items_dict = {item['item_id']: item for item in all_items_data}
+        customers_dict = {customer['contact_id']: customer for customer in all_customers_data}
+
+        for it in iterable:
+            for item in it.line_items:
+                item_id = item.get('item_id')
+                if item_id in items_dict:
+                    item['qb_list_id'] = items_dict[item_id]['qb_list_id']
+
+            for item in it.items_unmatched:
+                zoho_item_id = item.get('zoho_item_id')
+                if zoho_item_id in items_dict:
+                    item['qb_list_id'] = items_dict[zoho_item_id]['qb_list_id']
+
+            customer_id = it.customer_id
+            if customer_id in customers_dict:
+                qb_customer_list_id = customers_dict[customer_id]['qb_list_id']
+
+            for customer in it.customer_unmatched:
+                zoho_customer_id = customer.get('zoho_customer_id')
+                if zoho_customer_id in customers_dict:
+                    customer['qb_list_id'] = customers_dict[zoho_customer_id]['qb_list_id']
+
+            cont_items = sum(1 for x in (it.line_items or []) if 'qb_list_id' in x)
+
+            it.all_items_matched = cont_items == len(it.line_items)
+            it.all_customer_matched = qb_customer_list_id != ''
+            it.qb_customer_list_id = qb_customer_list_id
+            it.save()
+            qb_customer_list_id = ''
+
+        stats = iterable.aggregate(
+            matched_number=Count('id', filter=Q(inserted_in_qb=True)),
+            total_items_unmatched=Count('id', filter=Q(items_unmatched__isnull=False, items_unmatched__gt=0)),
+            total_customers_unmatched=Count('id', filter=Q(customer_unmatched__isnull=False, customer_unmatched__gt=0)),
+            unprocessed_number=Count('id', filter=Q(inserted_in_qb=False))
+        )
+
+        matched_number = stats['matched_number']
+        total_items_unmatched = stats['total_items_unmatched']
+        total_customers_unmatched = stats['total_customers_unmatched']
+        unmatched_number = max(total_items_unmatched, total_customers_unmatched)
+        unprocessed_number = stats['unprocessed_number'] - unmatched_number
+
+        return {
+            'elements': serializers.serialize('json', iterable),
+            'matched_number': matched_number,
+            'unmatched_number': unmatched_number,
+            'unprocessed_number': unprocessed_number,
+        }
+    except Exception as e:
+        logger.error(f'Error in _get_matched_data({kind}, {filt}): {e}')
+        return {}
+
+
+def get_matched_invoices_data(date_str):
+    """WebSocket helper: returns invoices/stock data dict."""
+    return _get_matched_data('invoices', 'stock', date_str)
+
+
+def get_matched_sales_orders_data(date_str):
+    """WebSocket helper: returns sales_orders/custom data dict."""
+    return _get_matched_data('sales_orders', 'custom', date_str)
+
+
+def get_qbwc_items_data():
+    """WebSocket helper: returns QbItem list serialized as JSON string."""
+    try:
+        soap_items_query = QbItem.objects.filter(never_match=False, matched=False).order_by('name')
+        batch_size = 200
+        items = []
+        for i in range(0, soap_items_query.count(), batch_size):
+            batch = soap_items_query[i:i + batch_size]
+            items.extend(batch)
+        return serializers.serialize('json', items)
+    except Exception as e:
+        logger.error(f'Error in get_qbwc_items_data: {e}')
+        return '[]'
+
+
+def get_qbwc_customers_data():
+    """WebSocket helper: returns QbCustomer list serialized as JSON string."""
+    try:
+        soap_customers_query = QbCustomer.objects.filter(never_match=False, matched=False).order_by('name')
+        batch_size = 200
+        customers = []
+        for i in range(0, soap_customers_query.count(), batch_size):
+            batch = soap_customers_query[i:i + batch_size]
+            customers.extend(batch)
+        return serializers.serialize('json', customers)
+    except Exception as e:
+        logger.error(f'Error in get_qbwc_customers_data: {e}')
+        return '[]'
 
 
 #############################################
@@ -638,6 +788,7 @@ def match_one_item_ajax(request):
             qb_item.save()
             message = 'Item matched successfully' if action == 'match' else 'Item unmatched successfully'
             api_zoho_views.manage_api_tracking_log(username, f'{action}_item', request.META.get('REMOTE_ADDR'), f'{action.capitalize()} item')
+            _notify_ws_group('qbwc_items')
             return JsonResponse({'status': 'success', 'message': message})
         except Exception as e:
             return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
@@ -664,6 +815,7 @@ def match_one_customer_ajax(request):
             qb_customer.save()
             message = 'Customer matched successfully' if action == 'match' else 'Customer unmatched successfully'
             api_zoho_views.manage_api_tracking_log(username, f'{action}_customer', request.META.get('REMOTE_ADDR'), f'{action.capitalize()} customer')
+            _notify_ws_group('qbwc_customers')
             return JsonResponse({'status': 'success', 'message': message})
         except Exception as e:
             return JsonResponse({'status': 'error', 'message': str(e)}, status=400)

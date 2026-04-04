@@ -7,4 +7,5 @@ FROM nginx:latest
 
 COPY nginx_onpremise/nginx_react_django.conf /etc/nginx/nginx.conf
 COPY nginx_onpremise/certs /etc/nginx/certs
-COPY api_qbwc_zoho_frontend/build /usr/share/nginx/html/qbwc
+# COPY api_qbwc_zoho_frontend/build /usr/share/nginx/html/qbwc
+COPY api_qbwc_zoho_new_frontend/dist /usr/share/nginx/html/qbwc

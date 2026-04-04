@@ -12,4 +12,6 @@ urlpatterns = [
     path('data/data_item_trend_statistics/', views.data_item_trend_statistics, name='data_item_trend_statistics'),
     path('data/data_customer_matched_statistics/', views.data_customer_matched_statistics, name='data_customer_matched_statistics'),
     path('data/data_item_matched_statistics/', views.data_item_matched_statistics, name='data_item_matched_statistics'),
+    path('data/data_customer_monthly_statistics/', views.data_customer_monthly_statistics, name='data_customer_monthly_statistics'),
+    path('data/data_item_monthly_statistics/', views.data_item_monthly_statistics, name='data_item_monthly_statistics'),
 ]

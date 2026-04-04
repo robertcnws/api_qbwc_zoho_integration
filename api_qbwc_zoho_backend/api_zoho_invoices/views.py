@@ -266,6 +266,12 @@ def delete_invoice(request, invoice_id):
             invoice.delete()
             username = request.data.get('username', '')
             api_zoho_views.manage_api_tracking_log(username, 'delete_invoice', request.META.get('REMOTE_ADDR'), f'Deleted invoice {invoice_id}')
+            from api_ws.utils import notify_group
+            from api_quickbook_soap.views import get_matched_invoices_data
+            try:
+                notify_group('invoices', get_matched_invoices_data(''))
+            except Exception:
+                pass
             return JsonResponse({'status':'success', 'message': 'Invoice deleted successfully'}, status=200)
         except Exception as e:
             logger.error(f"Error deleting invoice: {e}")

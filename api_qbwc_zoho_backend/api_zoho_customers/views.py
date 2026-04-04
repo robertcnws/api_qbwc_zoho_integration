@@ -170,24 +170,32 @@ def view_customer(request, customer_id):
     return JsonResponse({'status': 'error', 'error': 'Invalid token'}, status=401)
 
 
+def get_customers_list_data():
+    """
+    WebSocket helper: returns serialized ZohoCustomer list as a JSON string.
+    Can be called outside of a request context (e.g. from a WebSocket consumer).
+    """
+    try:
+        customers_list_query = ZohoCustomer.objects.all().order_by('contact_name')
+        batch_size = 200
+        customers_list = []
+        for i in range(0, customers_list_query.count(), batch_size):
+            batch = customers_list_query[i:i + batch_size]
+            customers_list.extend(batch)
+        return serializers.serialize('json', customers_list)
+    except Exception as e:
+        logger.error(f'Error in get_customers_list_data: {e}')
+        return '[]'
+
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def  list_customers(request):
     valid_token = api_zoho_views.validateJWTTokenRequest(request)
     if valid_token:
-        customers_list_query = ZohoCustomer.objects.all().order_by('contact_name')
-        batch_size = 200  # Ajusta este tamaño según tus necesidades
-        customers_list = []
-        
-        # Dividir en partes y procesar cada parte
-        for i in range(0, customers_list_query.count(), batch_size):
-            batch = customers_list_query[i:i + batch_size]
-            customers_list.extend(batch)  # Agregar datos al acumulador
-        
-        items_data = serializers.serialize('json', customers_list)
-        
+        items_data = get_customers_list_data()
         return JsonResponse(items_data, safe=False)
-    
+
     return JsonResponse({'error': 'Invalid token'}, status=401)
 
 

@@ -496,13 +496,22 @@ const InvoicesDetails = () => {
                       <Table size="small">
                         <TableBody>
                           <TableRow
+                            // sx={{
+                            //   backgroundColor: invoice.qb_customer_list_id
+                            //     ? 'rgba(102, 187, 106, 0.1)'
+                            //     : 'rgba(255, 167, 38, 0.1)',
+                            //   cursor: !invoice.qb_customer_list_id ? 'pointer' : 'default',
+                            // }}
+                            // onClick={() => !invoice.qb_customer_list_id && handleViewCustomer(invoice.customer_id)}
+                            // onMouseOver={() => !invoice.qb_customer_list_id && setHovered(true)}
+                            // onMouseOut={() => setHovered(false)}
                             sx={{
                               backgroundColor: invoice.qb_customer_list_id
                                 ? 'rgba(102, 187, 106, 0.1)'
                                 : 'rgba(255, 167, 38, 0.1)',
-                              cursor: !invoice.qb_customer_list_id ? 'pointer' : 'default',
+                              cursor: 'pointer',
                             }}
-                            onClick={() => !invoice.qb_customer_list_id && handleViewCustomer(invoice.customer_id)}
+                            onClick={() => handleViewCustomer(invoice.customer_id)}
                             onMouseOver={() => !invoice.qb_customer_list_id && setHovered(true)}
                             onMouseOut={() => setHovered(false)}
                           >
@@ -598,11 +607,18 @@ const InvoicesDetails = () => {
                               }).map((it, idx) => (
                                 <TableRow
                                   key={idx}
+                                  // sx={{
+                                  //   backgroundColor: it.qb_list_id ? 'rgba(102, 187, 106, 0.1)' : 'rgba(255, 167, 38, 0.1)',
+                                  //   cursor: !it.qb_list_id ? 'pointer' : 'default',
+                                  // }}
+                                  // onClick={() => !it.qb_list_id && handleViewItem(it)}
+                                  // onMouseOver={() => !it.qb_list_id && setHovered(true)}
+                                  // onMouseOut={() => setHovered(false)}
                                   sx={{
                                     backgroundColor: it.qb_list_id ? 'rgba(102, 187, 106, 0.1)' : 'rgba(255, 167, 38, 0.1)',
-                                    cursor: !it.qb_list_id ? 'pointer' : 'default',
+                                    cursor: 'pointer',
                                   }}
-                                  onClick={() => !it.qb_list_id && handleViewItem(it)}
+                                  onClick={() => handleViewItem(it)}
                                   onMouseOver={() => !it.qb_list_id && setHovered(true)}
                                   onMouseOut={() => setHovered(false)}
                                 >

@@ -497,13 +497,22 @@ const SalesOrdersDetails = () => {
                       <Table size="small">
                         <TableBody>
                           <TableRow
+                            // sx={{
+                            //   backgroundColor: salesOrder.qb_customer_list_id
+                            //     ? 'rgba(102, 187, 106, 0.1)'
+                            //     : 'rgba(255, 167, 38, 0.1)',
+                            //   cursor: !salesOrder.qb_customer_list_id ? 'pointer' : 'default',
+                            // }}
+                            // onClick={() => !salesOrder.qb_customer_list_id && handleViewCustomer(salesOrder.customer_id)}
+                            // onMouseOver={() => !salesOrder.qb_customer_list_id && setHovered(true)}
+                            // onMouseOut={() => setHovered(false)}
                             sx={{
                               backgroundColor: salesOrder.qb_customer_list_id
                                 ? 'rgba(102, 187, 106, 0.1)'
                                 : 'rgba(255, 167, 38, 0.1)',
-                              cursor: !salesOrder.qb_customer_list_id ? 'pointer' : 'default',
+                              cursor: 'pointer',
                             }}
-                            onClick={() => !salesOrder.qb_customer_list_id && handleViewCustomer(salesOrder.customer_id)}
+                            onClick={() => handleViewCustomer(salesOrder.customer_id)}
                             onMouseOver={() => !salesOrder.qb_customer_list_id && setHovered(true)}
                             onMouseOut={() => setHovered(false)}
                           >
@@ -599,11 +608,18 @@ const SalesOrdersDetails = () => {
                               }).map((it, idx) => (
                                 <TableRow
                                   key={idx}
+                                  // sx={{
+                                  //   backgroundColor: it.qb_list_id ? 'rgba(102, 187, 106, 0.1)' : 'rgba(255, 167, 38, 0.1)',
+                                  //   cursor: !it.qb_list_id ? 'pointer' : 'default',
+                                  // }}
+                                  // onClick={() => !it.qb_list_id && handleViewItem(it)}
+                                  // onMouseOver={() => !it.qb_list_id && setHovered(true)}
+                                  // onMouseOut={() => setHovered(false)}
                                   sx={{
                                     backgroundColor: it.qb_list_id ? 'rgba(102, 187, 106, 0.1)' : 'rgba(255, 167, 38, 0.1)',
-                                    cursor: !it.qb_list_id ? 'pointer' : 'default',
+                                    cursor: 'pointer',
                                   }}
-                                  onClick={() => !it.qb_list_id && handleViewItem(it)}
+                                  onClick={() =>handleViewItem(it)}
                                   onMouseOver={() => !it.qb_list_id && setHovered(true)}
                                   onMouseOut={() => setHovered(false)}
                                 >

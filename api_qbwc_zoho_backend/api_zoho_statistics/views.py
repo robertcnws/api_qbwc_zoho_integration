@@ -67,7 +67,7 @@ def data_invoice_monthly_statistics(request):
         
         response_data = []
         for stat in stats:
-            month = stat['month'].strftime('%Y-%m') 
+            month = stat['month'].strftime('%b %Y') 
             total_number = invoices.filter(date__month=stat['month'].month, date__year=stat['month'].year).count()
             matched_number = stat['matched_number']
             total_items_unmatched = stat['total_items_unmatched']
@@ -285,19 +285,19 @@ def data_customer_matched_statistics(request):
 def data_item_matched_statistics(request):
     valid_token = validateJWTTokenRequest(request)
     if valid_token:
-        
+
         total_items = ZohoItem.objects.count()
-        
+
         pattern = r'^[A-Za-z0-9]{8}-[A-Za-z0-9]{10}$'
-        
+
         total_not_matched_items = ZohoItem.objects.filter(
             Q(qb_list_id__isnull=True) | Q(qb_list_id='') | ~Q(qb_list_id__regex=pattern)
         ).count()
-        
+
         total_matched = total_items - total_not_matched_items
-        
+
         per_cent_matched = math.floor((total_matched / total_items) * 100) if total_items > 0 else 0
-        
+
         per_cent_not_matched = 100 - per_cent_matched
 
         trend = {}
@@ -310,4 +310,68 @@ def data_item_matched_statistics(request):
             'total': total_items,
             'trend': trend
         })
+    return JsonResponse({'error': 'Invalid JWT Token'}, status=401)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def data_customer_monthly_statistics(request):
+    valid_token = validateJWTTokenRequest(request)
+    if valid_token:
+        pattern = r'^[A-Za-z0-9]{8}-[A-Za-z0-9]{10}$'
+        five_months_ago = datetime.now() - timedelta(days=5*30)
+        customers = ZohoCustomer.objects.filter(created_time__gte=five_months_ago)
+
+        stats = customers.annotate(month=TruncMonth('created_time')).values('month').annotate(
+            matched_number=Count('id', filter=Q(qb_list_id__regex=pattern)),
+            unmatched_number=Count('id', filter=Q(qb_list_id__isnull=True) | Q(qb_list_id='') | ~Q(qb_list_id__regex=pattern)),
+        ).order_by('month')
+
+        response_data = []
+        for stat in stats:
+            month = stat['month'].strftime('%b %Y')
+            total_number = customers.filter(
+                created_time__month=stat['month'].month,
+                created_time__year=stat['month'].year
+            ).count()
+            response_data.append({
+                'month': month,
+                'matched_number': stat['matched_number'],
+                'unmatched_number': stat['unmatched_number'],
+                'total_number': total_number,
+            })
+
+        return JsonResponse(response_data, safe=False, status=200)
+    return JsonResponse({'error': 'Invalid JWT Token'}, status=401)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def data_item_monthly_statistics(request):
+    valid_token = validateJWTTokenRequest(request)
+    if valid_token:
+        pattern = r'^[A-Za-z0-9]{8}-[A-Za-z0-9]{10}$'
+        five_months_ago = datetime.now() - timedelta(days=5*30)
+        items = ZohoItem.objects.filter(created_time__gte=five_months_ago)
+
+        stats = items.annotate(month=TruncMonth('created_time')).values('month').annotate(
+            matched_number=Count('id', filter=Q(qb_list_id__regex=pattern)),
+            unmatched_number=Count('id', filter=Q(qb_list_id__isnull=True) | Q(qb_list_id='') | ~Q(qb_list_id__regex=pattern)),
+        ).order_by('month')
+
+        response_data = []
+        for stat in stats:
+            month = stat['month'].strftime('%b %Y')
+            total_number = items.filter(
+                created_time__month=stat['month'].month,
+                created_time__year=stat['month'].year
+            ).count()
+            response_data.append({
+                'month': month,
+                'matched_number': stat['matched_number'],
+                'unmatched_number': stat['unmatched_number'],
+                'total_number': total_number,
+            })
+
+        return JsonResponse(response_data, safe=False, status=200)
     return JsonResponse({'error': 'Invalid JWT Token'}, status=401)

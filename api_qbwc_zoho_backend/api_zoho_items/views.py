@@ -47,6 +47,12 @@ def match_one_item_ajax(request):
                 qb_item.matched = True if action == 'match' else False
                 qb_item.save()
                 api_zoho_views.manage_api_tracking_log(username, f'{action}_item', request.META.get('REMOTE_ADDR'), f'{action.capitalize()} item')
+                from api_ws.utils import notify_group
+                from api_zoho_items.views import get_items_list_data
+                try:
+                    notify_group('items', get_items_list_data())
+                except Exception:
+                    pass
                 return JsonResponse({'status': 'success', 'message': 'Item matched successfully'})
             except Exception as e:
                 return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
@@ -154,32 +160,29 @@ def view_item(request, item_id):
     return JsonResponse({'error': 'Invalid JWT Token'}, status=401)  
 
 
+def get_items_list_data():
+    items_list_query = ZohoItem.objects.all().order_by('name')
+    batch_size = 200
+    items_list = []
+    for i in range(0, items_list_query.count(), batch_size):
+        batch = items_list_query[i:i + batch_size]
+        items_list.extend(batch)
+    pattern = r'^[A-Za-z0-9]{8}-[A-Za-z0-9]{10}$'
+    regex = re.compile(pattern)
+    for item in items_list:
+        item.matched = bool(regex.match(item.qb_list_id)) if item.qb_list_id else False
+    return json.loads(serializers.serialize('json', items_list))
+
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def list_items(request):
     valid_token = api_zoho_views.validateJWTTokenRequest(request)
     if valid_token:
-        items_list_query = ZohoItem.objects.all().order_by('name')
-        batch_size = 200  # Ajusta este tamaño según tus necesidades
-        items_list = []
-        
-        # Dividir en partes y procesar cada parte
-        for i in range(0, items_list_query.count(), batch_size):
-            batch = items_list_query[i:i + batch_size]
-            items_list.extend(batch) 
-        
-        pattern = r'^[A-Za-z0-9]{8}-[A-Za-z0-9]{10}$'
-            
-        regex = re.compile(pattern)  
+        items_data = get_items_list_data()
+        return JsonResponse(json.dumps(items_data), safe=False)
 
-        # Añadir atributo 'matched' a cada item si cumple con la expresión regular
-        for item in items_list:
-            item.matched = bool(regex.match(item.qb_list_id)) if item.qb_list_id else False
-
-        items_data = serializers.serialize('json', items_list)
-        return JsonResponse(items_data, safe=False)
-    
-    return JsonResponse({'error': 'Invalid JWT Token'}, status=401) 
+    return JsonResponse({'error': 'Invalid JWT Token'}, status=401)
 
 
 @api_view(['POST'])
