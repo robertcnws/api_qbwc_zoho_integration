@@ -79,8 +79,8 @@ const Topbar = ({ handleLogout, toggleSidebar }) => {
   const fetchNotifications = async () => {
     try {
       const response = await fetchWithToken(`${apiUrl}/list_notifications/`, 'GET', { username }, {})
-      const data = response.data.data
-      const quantityUnread = response.data.quantity_unread
+      const data = response.data.data || []
+      const quantityUnread = response.data.quantity_unread || 0
       setNotifications(data)
       setUnreadCount(quantityUnread)
 

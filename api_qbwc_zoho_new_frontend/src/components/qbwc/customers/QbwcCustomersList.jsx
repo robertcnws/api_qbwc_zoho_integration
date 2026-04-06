@@ -9,6 +9,7 @@ import CustomFilter from '@/components/shared/CustomFilter'
 import NavigationRightButton from '@/components/shared/NavigationRightButton'
 import { ArrowUp, ArrowDown, ArrowUpDown, Ban, Wallet } from 'lucide-react'
 import { toast } from 'sonner'
+import { useConfirm } from '@/components/shared/ConfirmDialog'
 
 const SortableHeader = ({ col, label, orderBy, order, onSort }) => (
   <TableHead
@@ -24,6 +25,7 @@ const SortableHeader = ({ col, label, orderBy, order, onSort }) => (
 
 const QbwcCustomersList = ({ customers, onSyncComplete }) => {
   const navigate = useNavigate()
+  const confirm = useConfirm()
   const [page, setPage] = useState(0)
   const [rowsPerPage, setRowsPerPage] = useState(10)
   const [searchTerm, setSearchTerm] = useState(localStorage.getItem('searchTermGlobal') || '')
@@ -86,14 +88,14 @@ const QbwcCustomersList = ({ customers, onSyncComplete }) => {
   const renderForceSyncCheckbox = (customer, selected) => {
     if (filter !== 'matched') {
       return (
-        <div className="flex items-center gap-2">
+        <label className="flex items-center gap-2 cursor-pointer select-none">
           <Checkbox
             className="border-yellow-500 data-[state=checked]:bg-yellow-500"
             checked={selected}
             onCheckedChange={() => handleCheckboxClick(customer.fields.list_id)}
           />
           <span className="text-yellow-600 text-sm">Never match?</span>
-        </div>
+        </label>
       )
     } else {
       return <span className="text-green-600 text-sm font-medium">Matched</span>
@@ -105,7 +107,13 @@ const QbwcCustomersList = ({ customers, onSyncComplete }) => {
       toast.error('Please select at least one customer.')
       return
     }
-    const confirmed = window.confirm('Do you want to never match selected customers?')
+    const confirmed = await confirm({
+      title: 'Are you sure?',
+      description: 'Do you want to never match selected customers?',
+      icon: 'warning',
+      confirmText: 'Yes, never match them!',
+      variant: 'default',
+    })
     if (!confirmed) return
     try {
       const url = `${apiUrl}/api_quickbook_soap/never_match_customers_ajax/`
@@ -145,6 +153,7 @@ const QbwcCustomersList = ({ customers, onSyncComplete }) => {
     { id: 'qb_email', label: 'QB Email', colspan: 1, textAlign: 'left' },
     { id: 'qb_phone', label: 'QB Phone', colspan: 1, textAlign: 'left' },
     { id: 'qb_list_id', label: 'QB List ID', colspan: 1, textAlign: 'left' },
+    { id: 'status', label: 'Status', colspan: 1, textAlign: 'center' },
     { id: 'actions', label: 'Actions', colspan: 1, textAlign: 'center' }
   ]
 
@@ -212,6 +221,11 @@ const QbwcCustomersList = ({ customers, onSyncComplete }) => {
                   <TableCell>{customer.fields.phone}</TableCell>
                   <TableCell>{customer.fields.list_id}</TableCell>
                   <TableCell className="text-center">
+                    {customer.fields.matched
+                      ? <span className="text-xs font-bold px-1.5 py-0.5 rounded bg-green-100 text-green-700 border border-green-300">MATCHED</span>
+                      : <span className="text-xs font-bold px-1.5 py-0.5 rounded bg-red-100 text-red-600 border border-red-300">UNMATCHED</span>}
+                  </TableCell>
+                  <TableCell className="text-center" onClick={(e) => e.stopPropagation()}>
                     {renderForceSyncCheckbox(customer, isSelected(customer.fields.list_id))}
                   </TableCell>
                 </TableRow>

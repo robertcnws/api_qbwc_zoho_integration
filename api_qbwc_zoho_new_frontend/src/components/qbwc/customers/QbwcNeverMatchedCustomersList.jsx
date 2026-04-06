@@ -7,6 +7,7 @@ import TableCustomPagination from '@/components/shared/TableCustomPagination'
 import NavigationRightButton from '@/components/shared/NavigationRightButton'
 import { ArrowUp, ArrowDown, ArrowUpDown, Undo2, Wallet } from 'lucide-react'
 import { toast } from 'sonner'
+import { useConfirm } from '@/components/shared/ConfirmDialog'
 
 const SortableHeader = ({ col, label, orderBy, order, onSort }) => (
   <TableHead
@@ -21,6 +22,7 @@ const SortableHeader = ({ col, label, orderBy, order, onSort }) => (
 )
 
 const QbwcNeverMatchedCustomersList = ({ customers, onSyncComplete }) => {
+  const confirm = useConfirm()
   const [page, setPage] = useState(0)
   const [rowsPerPage, setRowsPerPage] = useState(10)
   const [searchTerm, setSearchTerm] = useState(localStorage.getItem('searchTermGlobal') || '')
@@ -65,14 +67,14 @@ const QbwcNeverMatchedCustomersList = ({ customers, onSyncComplete }) => {
 
   const renderForceSyncCheckbox = (customer, selected) => {
     return (
-      <div className="flex items-center gap-2">
+      <label className="flex items-center gap-2 cursor-pointer select-none">
         <Checkbox
           className="border-green-500 data-[state=checked]:bg-green-500"
           checked={selected}
           onCheckedChange={() => handleCheckboxClick(customer.fields.list_id)}
         />
         <span className="text-green-600 text-sm">Undo never match?</span>
-      </div>
+      </label>
     )
   }
 
@@ -81,7 +83,13 @@ const QbwcNeverMatchedCustomersList = ({ customers, onSyncComplete }) => {
       toast.error('Please select at least one customer.')
       return
     }
-    const confirmed = window.confirm('Do you want to recover selected customers?')
+    const confirmed = await confirm({
+      title: 'Are you sure?',
+      description: 'Do you want to recover selected customers?',
+      icon: 'warning',
+      confirmText: 'Yes, undo it!',
+      variant: 'default',
+    })
     if (!confirmed) return
     try {
       const url = `${apiUrl}/api_quickbook_soap/never_match_customers_ajax/`

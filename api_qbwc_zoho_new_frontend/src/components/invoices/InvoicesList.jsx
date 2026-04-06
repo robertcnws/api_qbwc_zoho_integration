@@ -483,14 +483,14 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
                         handleForceToSync([invoice.fields.invoice_id], `Unforce sync invoice ${invoice.fields.invoice_number}?`)}>
                       {!invoice.fields.force_to_sync ? (
                         !(invoice.fields.inserted_in_qb && !hasErrors) ? (
-                          <div className="flex items-center justify-center gap-1">
+                          <label className="flex items-center justify-center gap-1 cursor-pointer select-none">
                             <Checkbox
                               checked={isSyncSelected(invoice.fields.invoice_id)}
                               onCheckedChange={() => toggleSyncCheckbox(invoice.fields.invoice_id)}
                               onClick={(e) => e.stopPropagation()}
                             />
                             <span className="text-xs">Force to sync?</span>
-                          </div>
+                          </label>
                         ) : (
                           <TooltipProvider><Tooltip><TooltipTrigger><CheckCircle size={18} className="text-green-600" /></TooltipTrigger><TooltipContent>Synced</TooltipContent></Tooltip></TooltipProvider>
                         )
@@ -505,13 +505,13 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
                     {/* Unsync cell */}
                     <TableCell className="text-center">
                       {invoice.fields.inserted_in_qb ? (
-                        <div className="flex items-center justify-center gap-1">
+                        <label className="flex items-center justify-center gap-1 cursor-pointer select-none">
                           <Checkbox
                             checked={isUnsyncSelected(invoice.fields.invoice_id)}
                             onCheckedChange={() => toggleUnsyncCheckbox(invoice.fields.invoice_id)}
                           />
                           <span className="text-xs">Unsync?</span>
-                        </div>
+                        </label>
                       ) : (
                         <TooltipProvider><Tooltip><TooltipTrigger><MinusCircle size={18} className="text-amber-400" /></TooltipTrigger><TooltipContent>Not synced yet</TooltipContent></Tooltip></TooltipProvider>
                       )}

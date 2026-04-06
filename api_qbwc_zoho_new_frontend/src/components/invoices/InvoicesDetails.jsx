@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef, useLayoutEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { ArrowLeft, ArrowRight, X, Link as LinkIcon, RefreshCw, Trash2 } from 'lucide-react';
+import { ArrowLeft, ArrowRight, X, Link as LinkIcon, RefreshCw, CircleOff, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useConfirm } from '@/components/shared/ConfirmDialog';
 
@@ -184,6 +184,32 @@ const InvoicesDetails = () => {
     }
   }, [confirm, navigate]);
 
+  const handleForceToSync = useCallback(async (inv) => {
+    if (!inv) return;
+    const action = inv.force_to_sync ? 'unsync' : 'resync';
+    const confirmed = await confirm({
+      title: 'Are you sure?',
+      description: `Do you want to ${action} this invoice?`,
+      icon: 'warning',
+      confirmText: `Yes, ${action} it!`,
+      variant: 'default',
+    });
+    if (!confirmed) return;
+    try {
+      const url = `${apiUrl}/api_quickbook_soap/force_to_sync_ajax/invoices/`;
+      const data = { elements: [inv.invoice_id], username: localStorage.getItem('username') };
+      const response = await fetchWithToken(url, 'POST', data, {});
+      if (response.data.status === 'success') {
+        toast.success(`Invoice has been ${action === 'resync' ? 'forced to sync' : 'unsynced'}.`);
+        setInvoice((prev) => ({ ...prev, force_to_sync: !prev.force_to_sync }));
+      } else {
+        toast.error(`Error: ${response.data.message}`);
+      }
+    } catch (err) {
+      toast.error(`Error: ${err}`);
+    }
+  }, [confirm]);
+
   const getBackgroundColor = (fi) =>
     invoice && fi.fields.invoice_id === invoice.invoice_id ? 'bg-gray-300' : '';
 
@@ -227,13 +253,13 @@ const InvoicesDetails = () => {
     searchPlaceholder: 'Search Invoice', handleSearchSelectChange,
   };
 
-  const navItems = [
-    { label: 'Resync Invoice', icon: <RefreshCw size={16} className="mr-1" />, visible: true },
-    { label: 'Delete Invoice', icon: <Trash2 size={16} className="mr-1" />, onClick: () => handleDeleteInvoice(invoice), visible: true },
-  ];
-
   if (loading) return <AlertLoading message="Invoice Details" />;
   if (error) return <AlertError error={error} />;
+
+  const navItems = [
+    { label: invoice?.force_to_sync ? 'Unsync Invoice' : 'Resync Invoice', icon: invoice?.force_to_sync ? <CircleOff size={16} className="mr-1" /> : <RefreshCw size={16} className="mr-1" />, onClick: () => handleForceToSync(invoice), visible: true },
+    { label: 'Delete Invoice', icon: <Trash2 size={16} className="mr-1" />, onClick: () => handleDeleteInvoice(invoice), visible: true },
+  ];
 
   return (
     <div className="w-full py-2">

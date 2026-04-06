@@ -10,6 +10,7 @@ import CustomFilter from '@/components/shared/CustomFilter'
 import NavigationRightButton from '@/components/shared/NavigationRightButton'
 import { ArrowUp, ArrowDown, ArrowUpDown, Ban, Wallet } from 'lucide-react'
 import { toast } from 'sonner'
+import { useConfirm } from '@/components/shared/ConfirmDialog'
 
 const SortableHeader = ({ col, label, orderBy, order, onSort }) => (
   <TableHead
@@ -25,6 +26,7 @@ const SortableHeader = ({ col, label, orderBy, order, onSort }) => (
 
 const QbwcItemsList = ({ items, zohoItems, onSyncComplete }) => {
   const navigate = useNavigate()
+  const confirm = useConfirm()
 
   const [page, setPage] = useState(0)
   const [rowsPerPage, setRowsPerPage] = useState(10)
@@ -88,14 +90,14 @@ const QbwcItemsList = ({ items, zohoItems, onSyncComplete }) => {
   const renderForceSyncCheckbox = (item, selected) => {
     if (filter !== 'matched') {
       return (
-        <div className="flex items-center gap-2">
+        <label className="flex items-center gap-2 cursor-pointer select-none">
           <Checkbox
             className="border-yellow-500 data-[state=checked]:bg-yellow-500"
             checked={selected}
             onCheckedChange={() => handleCheckboxClick(item.fields.list_id)}
           />
           <span className="text-yellow-600 text-sm">Never match?</span>
-        </div>
+        </label>
       )
     } else {
       return <span className="text-green-600 text-sm font-medium">Matched</span>
@@ -107,7 +109,13 @@ const QbwcItemsList = ({ items, zohoItems, onSyncComplete }) => {
       toast.error('Please select at least one item.')
       return
     }
-    const confirmed = window.confirm('Do you want to never match selected items?')
+    const confirmed = await confirm({
+      title: 'Are you sure?',
+      description: 'Do you want to never match selected items?',
+      icon: 'warning',
+      confirmText: 'Yes, never match them!',
+      variant: 'default',
+    })
     if (!confirmed) return
     try {
       const url = `${apiUrl}/api_quickbook_soap/never_match_items_ajax/`
@@ -149,6 +157,7 @@ const QbwcItemsList = ({ items, zohoItems, onSyncComplete }) => {
     { id: 'qb_list_id', label: 'QB List ID', colspan: 1, textAlign: 'left' },
     { id: 'qb_item_type', label: 'QB Item Type', colspan: 1, textAlign: 'left' },
     { id: 'zoho_item', label: 'Zoho Item', colspan: 1, textAlign: 'left' },
+    { id: 'status', label: 'Status', colspan: 1, textAlign: 'center' },
     { id: 'actions', label: 'Actions', colspan: 1, textAlign: 'center' }
   ]
 
@@ -261,6 +270,11 @@ const QbwcItemsList = ({ items, zohoItems, onSyncComplete }) => {
                     )
                   })()}
                   <TableCell className="text-center">
+                    {item.fields.matched
+                      ? <span className="text-xs font-bold px-1.5 py-0.5 rounded bg-green-100 text-green-700 border border-green-300">MATCHED</span>
+                      : <span className="text-xs font-bold px-1.5 py-0.5 rounded bg-red-100 text-red-600 border border-red-300">UNMATCHED</span>}
+                  </TableCell>
+                  <TableCell className="text-center" onClick={(e) => e.stopPropagation()}>
                     {renderForceSyncCheckbox(item, isSelected(item.fields.list_id))}
                   </TableCell>
                 </TableRow>

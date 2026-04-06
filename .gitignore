@@ -15,6 +15,7 @@ downloads/
 eggs/
 .eggs/
 lib/
+!api_qbwc_zoho_new_frontend/src/lib/
 lib64/
 parts/
 sdist/

@@ -467,10 +467,10 @@ const SalesOrdersList = ({ data, configData, onSyncComplete, filterDate, setFilt
                         handleForceToSync([so.fields.salesorder_id], `Unforce sync sales order ${so.fields.salesorder_number}?`)}>
                       {!so.fields.force_to_sync ? (
                         !(so.fields.inserted_in_qb && !hasErrors) ? (
-                          <div className="flex items-center justify-center gap-1">
+                          <label className="flex items-center justify-center gap-1 cursor-pointer select-none">
                             <Checkbox checked={isSyncSelected(so.fields.salesorder_id)} onCheckedChange={() => toggleSyncCheckbox(so.fields.salesorder_id)} onClick={(e) => e.stopPropagation()} />
                             <span className="text-xs">Force to sync?</span>
-                          </div>
+                          </label>
                         ) : (
                           <TooltipProvider><Tooltip><TooltipTrigger><CheckCircle size={18} className="text-green-600" /></TooltipTrigger><TooltipContent>Synced</TooltipContent></Tooltip></TooltipProvider>
                         )
@@ -484,10 +484,10 @@ const SalesOrdersList = ({ data, configData, onSyncComplete, filterDate, setFilt
 
                     <TableCell className="text-center">
                       {so.fields.inserted_in_qb ? (
-                        <div className="flex items-center justify-center gap-1">
+                        <label className="flex items-center justify-center gap-1 cursor-pointer select-none">
                           <Checkbox checked={isUnsyncSelected(so.fields.salesorder_id)} onCheckedChange={() => toggleUnsyncCheckbox(so.fields.salesorder_id)} />
                           <span className="text-xs">Unsync?</span>
-                        </div>
+                        </label>
                       ) : (
                         <TooltipProvider><Tooltip><TooltipTrigger><MinusCircle size={18} className="text-amber-400" /></TooltipTrigger><TooltipContent>Not synced yet</TooltipContent></Tooltip></TooltipProvider>
                       )}

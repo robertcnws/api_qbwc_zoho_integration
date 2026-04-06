@@ -434,8 +434,28 @@ const ItemsDetails = () => {
                       <TableRow>
                         <TableCell className="border-none font-medium">QB Item Info</TableCell>
                         <TableCell className="border-none">
-                          QB List ID: <b>{item.qb_list_id}</b>
-                          {item.qb_item?.name && <><br />Matched QB Item: <b>{item.qb_item.name}</b></>}
+                          <div className="flex flex-col gap-1">
+                            <span>QB List ID: <b>{item.qb_list_id}</b></span>
+                            {item.qb_item?.name && <span>Matched QB Item: <b>{item.qb_item.name}</b></span>}
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="w-fit mt-1"
+                              onClick={() => {
+                                localStorage.setItem('backNavigation', 'item_details');
+                                navigate('/integration/qbwc/item_details', {
+                                  state: {
+                                    item: { fields: { list_id: item.qb_list_id, name: item.qb_item?.name || '', matched: true } },
+                                    items: [],
+                                    zohoItems: filteredItems.map(i => i.fields ? i : { fields: i }),
+                                    filter: 'all',
+                                  },
+                                });
+                              }}
+                            >
+                              View QB Item Details
+                            </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
                     )}
@@ -551,7 +571,7 @@ const ItemsDetails = () => {
                                   ))}
                                 </div>
                               )}
-                              <Button size="sm" disabled={qbSelectedItem === null}
+                              <Button size="sm" className="self-start" disabled={qbSelectedItem === null}
                                 onClick={() => handleMatchItem(item.item_id, qbSelectedItem?.fields.list_id || '', 'match')}>
                                 Match
                               </Button>

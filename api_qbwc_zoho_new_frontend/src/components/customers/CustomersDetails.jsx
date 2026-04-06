@@ -443,10 +443,29 @@ const CustomersDetails = () => {
                       <TableRow>
                         <TableCell className="border-none font-medium">QB Customer Info</TableCell>
                         <TableCell className="border-none">
-                          QB List ID: <b>{customer.qb_list_id}</b>
-                          {customer.qb_customer?.name && (
-                            <><br />Matched QB Customer: <b>{customer.qb_customer.name}</b></>
-                          )}
+                          <div className="flex flex-col gap-1">
+                            <span>QB List ID: <b>{customer.qb_list_id}</b></span>
+                            {customer.qb_customer?.name && (
+                              <span>Matched QB Customer: <b>{customer.qb_customer.name}</b></span>
+                            )}
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="w-fit mt-1"
+                              onClick={() => {
+                                localStorage.setItem('backNavigation', 'customer_details');
+                                navigate('/integration/qbwc/customer_details', {
+                                  state: {
+                                    customer: { fields: { list_id: customer.qb_list_id, name: customer.qb_customer?.name || '', matched: true } },
+                                    customers: [],
+                                    filter: 'all',
+                                  },
+                                });
+                              }}
+                            >
+                              View QB Customer Details
+                            </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
                     )}
@@ -548,7 +567,7 @@ const CustomersDetails = () => {
                                   ))}
                                 </div>
                               )}
-                              <Button size="sm" disabled={qbSelectedCustomer === null}
+                              <Button size="sm" className="self-start" disabled={qbSelectedCustomer === null}
                                 onClick={() => handleMatchCustomer(customer.contact_id, qbSelectedCustomer?.fields.list_id || '', 'match')}>
                                 Match
                               </Button>
