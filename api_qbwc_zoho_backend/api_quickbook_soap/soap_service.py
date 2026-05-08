@@ -347,6 +347,56 @@ def generate_invoice_add_response_new_version():
     return response
 
 
+def generate_invoice_pre_add_query_response():
+    """Phase 1 of the invoice-add cycle: in a single QBXMLMsgsRq block, send
+    BOTH a PreferencesQueryRq (to detect whether 'Warn about duplicate invoice
+    numbers' is enabled in QB) AND an InvoiceQueryRq filtered by the candidate
+    RefNumbers (to detect duplicates already in QB before issuing any Add).
+
+    Limited to 100 candidates per cycle to keep the qbXML request size bounded;
+    the rest are picked up on subsequent QBWC runs.
+    """
+    candidates = list(
+        ZohoFullInvoice.objects
+        .filter(
+            force_to_sync=True,
+            inserted_in_qb=False,
+            qb_txn_id__isnull=True,
+        )
+        .exclude(invoice_number__isnull=True)
+        .exclude(invoice_number='')
+        .values_list('invoice_number', flat=True)[:100]
+    )
+    if not candidates:
+        logger.info("Invoice-add phase 1: no candidates, returning empty request.")
+        return generate_empty_request_response()
+
+    refnum_xml = ''.join(f'<RefNumber>{n}</RefNumber>' for n in candidates)
+    data_xml = f'''<PreferencesQueryRq requestID="pref-1" />
+                <InvoiceQueryRq requestID="invq-1">
+                    {refnum_xml}
+                    <IncludeLineItems>false</IncludeLineItems>
+                    <IncludeRetElement>TxnID</IncludeRetElement>
+                    <IncludeRetElement>EditSequence</IncludeRetElement>
+                    <IncludeRetElement>RefNumber</IncludeRetElement>
+                </InvoiceQueryRq>'''
+    request_xml = f'''<?qbxml version="8.0"?>
+                    <QBXML>
+                        <QBXMLMsgsRq onError="continueOnError">
+                            {data_xml}
+                        </QBXMLMsgsRq>
+                    </QBXML>'''
+    return f'''<?xml version="1.0" encoding="utf-8"?>
+                <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:qb="http://developer.intuit.com/">
+                    <soap:Header/>
+                    <soap:Body>
+                        <qb:sendRequestXMLResponse>
+                            <qb:sendRequestXMLResult><![CDATA[{request_xml}]]></qb:sendRequestXMLResult>
+                        </qb:sendRequestXMLResponse>
+                    </soap:Body>
+                </soap:Envelope>'''
+
+
 def generate_invoice_add_response():
     today = date.today()
     # yesterday = today.replace(day=today.day - 1)    
@@ -354,7 +404,13 @@ def generate_invoice_add_response():
     # logging.debug(f'Yesterday: {yesterday}')
 
     # invoices = ZohoFullInvoice.objects.filter(Q(force_to_sync=True) | Q(date=yesterday), inserted_in_qb=False)
-    invoices = ZohoFullInvoice.objects.filter(force_to_sync=True, inserted_in_qb=False)
+    # qb_txn_id__isnull=True: never resend an invoice that QB has already confirmed,
+    # regardless of inserted_in_qb / force_to_sync state.
+    invoices = ZohoFullInvoice.objects.filter(
+        force_to_sync=True,
+        inserted_in_qb=False,
+        qb_txn_id__isnull=True,
+    )
     logging.debug(f'Length Invoices: {len(invoices)}')
 
     data_xml = ''
@@ -462,7 +518,7 @@ def generate_invoice_add_response():
                     if items_xml != '':
                         sales_tax_list_id = settings.SALES_TAX_LIST_ID
                         template = settings.TEMPLATE_INVOICE_NAME
-                        data_xml += f'''<InvoiceAddRq requestID="{i + 2}">
+                        data_xml += f'''<InvoiceAddRq requestID="inv-{invoices[i].invoice_id}">
                                         <InvoiceAdd>
                                             <CustomerRef>
                                                 <ListID>{zoho_customer.qb_list_id}</ListID>
@@ -471,6 +527,7 @@ def generate_invoice_add_response():
                                                 <FullName>{template}</FullName>
                                             </TemplateRef>
                                             <TxnDate>{invoices[i].date}</TxnDate>
+                                            <RefNumber>{invoices[i].invoice_number}</RefNumber>
                                             <TermsRef>
                                                 <FullName>{terms}</FullName>
                                             </TermsRef>
@@ -480,7 +537,10 @@ def generate_invoice_add_response():
                                     '''
 
                     logger.debug(f'Data XML: {data_xml}')
-                    invoices[i].inserted_in_qb = True
+                    # Mark as 'sent' (awaiting QB response). The actual
+                    # inserted_in_qb=True is set in _apply_invoice_add_response
+                    # once QB confirms with a TxnID.
+                    invoices[i].sync_state = ZohoFullInvoice.SYNC_STATE_SENT
                     invoices[i].save()
             else:
                 logger.debug(f'Customer {zoho_customer} has no QB List ID (Proceed to match)')
@@ -522,7 +582,10 @@ def generate_invoice_add_response():
                                         </qb:sendRequestXMLResponse>
                                     </soap:Body>
                                 </soap:Envelope>'''
-    return response
+        return response
+    # No InvoiceAddRq to send (e.g. all candidates were marked as duplicates
+    # in the query phase). Tell QBWC there's nothing to do so it closes cleanly.
+    return generate_empty_request_response()
 
 
 def generate_sales_order_add_response():

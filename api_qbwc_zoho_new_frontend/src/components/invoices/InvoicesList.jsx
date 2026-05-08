@@ -24,6 +24,7 @@ import { CustomFilter } from '@/components/shared/CustomFilter';
 import { EmptyRecordsCell } from '@/components/shared/EmptyRecordsCell';
 import { TableCustomPagination } from '@/components/shared/TableCustomPagination';
 import { NavigationRightButton } from '@/components/shared/NavigationRightButton';
+import { SyncStateBadge } from '@/components/shared/SyncStateBadge';
 import { apiUrl, fetchWithToken } from '@/lib/utils';
 
 dayjs.extend(utc);
@@ -298,18 +299,7 @@ const InvoicesList = ({ data, configData, onSyncComplete, filterDate, setFilterD
     }
   };
 
-  const renderSyncStatus = (inv) => {
-    const hasErrors = inv.fields.customer_unmatched.length > 0 || inv.fields.items_unmatched.length > 0;
-    if (hasErrors) return (
-      <TooltipProvider><Tooltip><TooltipTrigger><XCircle size={18} className="text-red-500" /></TooltipTrigger><TooltipContent>Error</TooltipContent></Tooltip></TooltipProvider>
-    );
-    if (!inv.fields.inserted_in_qb) return (
-      <TooltipProvider><Tooltip><TooltipTrigger><MinusCircle size={18} className="text-amber-500" /></TooltipTrigger><TooltipContent>Not Processed</TooltipContent></Tooltip></TooltipProvider>
-    );
-    return (
-      <TooltipProvider><Tooltip><TooltipTrigger><CheckCircle size={18} className="text-green-600" /></TooltipTrigger><TooltipContent>Success</TooltipContent></Tooltip></TooltipProvider>
-    );
-  };
+  const renderSyncStatus = (inv) => <SyncStateBadge invoice={inv.fields} />;
 
   const renderMatchStatus = (inv) => {
     const matched = inv.fields.all_items_matched && inv.fields.all_customer_matched;

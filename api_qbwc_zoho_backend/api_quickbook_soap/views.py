@@ -1315,28 +1315,240 @@ def create_xml_response(task_id):
     return HttpResponse(xml_str, content_type='text/xml')
 
         
+def _apply_invoice_query_response(xml_data: str) -> None:
+    """Parse InvoiceQueryRs. Each <InvoiceRet> means QB already has that
+    RefNumber — mark the matching ZohoFullInvoice as skipped_duplicate and
+    persist the existing TxnID so it's never Add'ed again. The Add filter
+    excludes rows with qb_txn_id, so these are naturally skipped.
+
+    Best-effort: errors are swallowed; the SOAP cycle must keep moving."""
+    try:
+        xml_dict = xmltodict.parse(xml_data)
+        body = xml_dict['soap:Envelope']['soap:Body']
+        recv_key = helpers_qbwc._get_op_key(body, 'receiveResponseXML')
+        if not recv_key:
+            return
+        inner_xml = body[recv_key].get('response') or ''
+        if not inner_xml or 'InvoiceQueryRs' not in inner_xml:
+            return
+
+        data = xmltodict.parse(inner_xml)
+        msgs = data.get('QBXML', {}).get('QBXMLMsgsRs', {})
+        rs = msgs.get('InvoiceQueryRs') or {}
+        ret_node = rs.get('InvoiceRet')
+        if not ret_node:
+            logger.info("InvoiceQueryRs: no existing invoices found in QB for the queried RefNumbers.")
+            return
+        ret_iter = ret_node if isinstance(ret_node, list) else [ret_node]
+        now = datetime.now(timezone.utc)
+        marked = 0
+        for ret in ret_iter:
+            ref_num = ret.get('RefNumber') or ''
+            txn_id = ret.get('TxnID') or ''
+            edit_seq = ret.get('EditSequence') or ''
+            if not ref_num or not txn_id:
+                continue
+            invoice = ZohoFullInvoice.objects.filter(invoice_number=ref_num).first()
+            if not invoice:
+                logger.warning("InvoiceQueryRs: no ZohoFullInvoice for RefNumber=%s", ref_num)
+                continue
+            invoice.qb_txn_id = txn_id
+            invoice.qb_edit_sequence = edit_seq
+            invoice.qb_inserted_at = invoice.qb_inserted_at or now
+            invoice.inserted_in_qb = True
+            invoice.force_to_sync = False
+            invoice.sync_state = ZohoFullInvoice.SYNC_STATE_SKIPPED_DUPLICATE
+            invoice.last_qb_error = None
+            invoice.save(update_fields=[
+                'qb_txn_id', 'qb_edit_sequence', 'qb_inserted_at',
+                'inserted_in_qb', 'force_to_sync', 'sync_state', 'last_qb_error',
+            ])
+            marked += 1
+        logger.info("InvoiceQueryRs: %d invoice(s) marked as skipped_duplicate (already in QB).", marked)
+    except Exception as e:
+        logger.error("Error parsing InvoiceQueryRs: %s", e)
+
+
+def _apply_invoice_add_response(xml_data: str) -> None:
+    """Parse the receiveResponseXML body for InvoiceAddRs and update each
+    ZohoFullInvoice with the QB result (TxnID, sync_state, etc.).
+
+    Errors here are swallowed: the SOAP cycle must keep moving (we must
+    return 100 to QBWC regardless), and the operator can recover from logs.
+    """
+    try:
+        xml_dict = xmltodict.parse(xml_data)
+        body = xml_dict['soap:Envelope']['soap:Body']
+        recv_key = helpers_qbwc._get_op_key(body, 'receiveResponseXML')
+        if not recv_key:
+            return
+        inner_xml = body[recv_key].get('response') or ''
+        if not inner_xml or 'InvoiceAddRs' not in inner_xml:
+            return
+
+        data = xmltodict.parse(inner_xml)
+        msgs = data.get('QBXML', {}).get('QBXMLMsgsRs', {})
+        rs_node = msgs.get('InvoiceAddRs')
+        if not rs_node:
+            return
+        rs_iter = rs_node if isinstance(rs_node, list) else [rs_node]
+        now = datetime.now(timezone.utc)
+
+        for rs in rs_iter:
+            request_id = rs.get('@requestID', '') or ''
+            if not request_id.startswith('inv-'):
+                logger.warning("InvoiceAddRs with unexpected requestID=%r", request_id)
+                continue
+            invoice_id = request_id[len('inv-'):]
+            invoice = ZohoFullInvoice.objects.filter(invoice_id=invoice_id).first()
+            if not invoice:
+                logger.warning("InvoiceAddRs for unknown invoice_id=%s", invoice_id)
+                continue
+
+            status_code = rs.get('@statusCode', '') or ''
+            status_sev = rs.get('@statusSeverity', '') or ''
+            status_msg = rs.get('@statusMessage', '') or ''
+            ret = rs.get('InvoiceRet') or {}
+
+            if status_code == '0' and ret:
+                invoice.qb_txn_id = ret.get('TxnID') or invoice.qb_txn_id
+                invoice.qb_edit_sequence = ret.get('EditSequence') or invoice.qb_edit_sequence
+                invoice.qb_inserted_at = now
+                invoice.inserted_in_qb = True
+                invoice.force_to_sync = False
+                invoice.sync_state = ZohoFullInvoice.SYNC_STATE_CONFIRMED
+                invoice.last_qb_error = None
+                invoice.save(update_fields=[
+                    'qb_txn_id', 'qb_edit_sequence', 'qb_inserted_at',
+                    'inserted_in_qb', 'force_to_sync', 'sync_state', 'last_qb_error',
+                ])
+                logger.info("Invoice %s confirmed in QB (TxnID=%s)", invoice_id, invoice.qb_txn_id)
+            else:
+                msg_low = status_msg.lower()
+                is_dup = 'duplicate' in msg_low or (
+                    'already' in msg_low and ('used' in msg_low or 'exist' in msg_low)
+                )
+                if is_dup:
+                    invoice.sync_state = ZohoFullInvoice.SYNC_STATE_SKIPPED_DUPLICATE
+                    invoice.inserted_in_qb = True
+                    invoice.force_to_sync = False
+                else:
+                    invoice.sync_state = ZohoFullInvoice.SYNC_STATE_FAILED
+                    invoice.inserted_in_qb = False
+                invoice.last_qb_error = f"[{status_code}/{status_sev}] {status_msg}"
+                invoice.save(update_fields=[
+                    'sync_state', 'inserted_in_qb', 'force_to_sync', 'last_qb_error',
+                ])
+                logger.warning(
+                    "InvoiceAddRs invoice_id=%s status=%s severity=%s msg=%s",
+                    invoice_id, status_code, status_sev, status_msg,
+                )
+    except Exception as e:
+        logger.error("Error parsing InvoiceAddRs: %s", e)
+
+
 def process_qbwc_invoice_add_request(xml_data):
+    """Two-phase QBWC cycle for invoice insertion, in a single endpoint:
+
+      counter=0: send PreferencesQueryRq + InvoiceQueryRq (by RefNumber) in
+                 the SAME QBXMLMsgsRq block. The pref query surfaces a
+                 notification if 'Warn about duplicate invoice numbers' is OFF;
+                 the invoice query marks existing duplicates as
+                 skipped_duplicate with their TxnID.
+      counter=1: send InvoiceAddRq for the survivors. The Add filter excludes
+                 anything with qb_txn_id, so duplicates from phase 1 are skipped.
+      counter>=2: empty (signals QBWC we're done).
+
+    receiveResponseXML dispatches by content (PreferencesQueryRs/InvoiceQueryRs/
+    InvoiceAddRs) rather than by counter, since multiple Rs may coexist and the
+    QBWC is free to pace the cycle.
+    """
     global counter
     response = None
     try:
         xml_dict = xmltodict.parse(xml_data)
         body = xml_dict['soap:Envelope']['soap:Body']
-        if 'authenticate' in body:
+
+        if helpers_qbwc._has_op(body, 'authenticate'):
+            # Reset counter so a previous cycle that died without closeConnection
+            # doesn't leave us stuck in phase 2 forever.
+            counter = 0
             response = soap_service.handle_authenticate(body)
-        elif 'sendRequestXML' in body and counter == 0:
-            counter += 1
-            response = soap_service.generate_invoice_add_response()
-        elif 'closeConnection' in body:
+
+        elif helpers_qbwc._has_op(body, 'sendRequestXML'):
+            if counter == 0:
+                counter = 1
+                response = soap_service.generate_invoice_pre_add_query_response()
+            elif counter == 1:
+                counter = 2
+                response = soap_service.generate_invoice_add_response()
+            else:
+                logger.info("invoice_add: sendRequestXML after add phase. Returning empty.")
+                response = soap_service.generate_empty_request_response()
+
+        elif helpers_qbwc._has_op(body, 'receiveResponseXML'):
+            recv_key = helpers_qbwc._get_op_key(body, 'receiveResponseXML')
+            inner_xml = (body.get(recv_key) or {}).get('response') or '' if recv_key else ''
+            # Multiple Rs may coexist in the same response (Pref + Query in
+            # phase 1). Apply each parser independently.
+            if 'PreferencesQueryRs' in inner_xml:
+                _apply_preferences_query_response(xml_data)
+            if 'InvoiceQueryRs' in inner_xml:
+                _apply_invoice_query_response(xml_data)
+            if 'InvoiceAddRs' in inner_xml:
+                _apply_invoice_add_response(xml_data)
+            response = soap_service.generate_receive_response(percent='100')
+
+        elif helpers_qbwc._has_op(body, 'closeConnection'):
             counter = 0
             response = soap_service.generate_close_connection_response()
+
         else:
             response = soap_service.generate_unsupported_request_response()
+
         return response
     except Exception as e:
         logger.error(f"Error processing request: {e}")
+        counter = 0
         return soap_service.generate_error_response(str(e))
     
     
+def _apply_preferences_query_response(xml_data: str) -> None:
+    """Parse PreferencesRet and surface a notification if
+    IsWarnAboutDuplicateInvoiceNumbers is disabled. Best-effort: errors are
+    swallowed so the SOAP cycle keeps moving."""
+    try:
+        xml_dict = xmltodict.parse(xml_data)
+        body = xml_dict['soap:Envelope']['soap:Body']
+        recv_key = helpers_qbwc._get_op_key(body, 'receiveResponseXML')
+        if not recv_key:
+            return
+        inner_xml = body[recv_key].get('response') or ''
+        if not inner_xml or 'PreferencesQueryRs' not in inner_xml:
+            return
+        data = xmltodict.parse(inner_xml)
+        msgs = data.get('QBXML', {}).get('QBXMLMsgsRs', {})
+        rs = msgs.get('PreferencesQueryRs') or {}
+        ret = rs.get('PreferencesRet') or {}
+        sc_prefs = ret.get('SalesAndCustomersPreferences') or {}
+        warn = sc_prefs.get('IsWarnAboutDuplicateInvoiceNumbers')
+        if warn is None:
+            logger.info("PreferencesQueryRs: IsWarnAboutDuplicateInvoiceNumbers not present in response.")
+            return
+        is_enabled = str(warn).strip().lower() == 'true'
+        if not is_enabled:
+            api_zoho_views.manage_notifications(
+                "Warning: 'Warn about duplicate invoice numbers' is OFF in QuickBooks. "
+                "Enable it in Edit > Preferences > Sales & Customers > Company Preferences "
+                "to prevent duplicate invoices."
+            )
+            logger.warning("QB pref IsWarnAboutDuplicateInvoiceNumbers is OFF.")
+        else:
+            logger.info("QB pref IsWarnAboutDuplicateInvoiceNumbers is ON.")
+    except Exception as e:
+        logger.error("Error parsing PreferencesQueryRs: %s", e)
+
+
 def process_qbwc_sales_order_add_request(xml_data):
     global counter
     response = None
