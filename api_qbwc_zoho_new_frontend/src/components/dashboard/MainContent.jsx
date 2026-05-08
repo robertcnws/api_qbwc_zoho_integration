@@ -96,8 +96,12 @@ const MainContent = () => {
 
   const fetchStats = async (element, model, module, setData) => {
     try {
+      // Send the client's local date so server-side filters are not affected
+      // by container/host clock or timezone drift.
+      const now = new Date();
+      const clientToday = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
       const response = await fetchWithToken(
-        `${apiUrl}/api_zoho_statistics/data/data_${model}_${module}_statistics/`,
+        `${apiUrl}/api_zoho_statistics/data/data_${model}_${module}_statistics/?today=${clientToday}`,
         'GET',
         null,
         {}
@@ -300,7 +304,7 @@ const MainContent = () => {
         </Panel>
 
         <Panel title="Invoices Last 5 Months Statistics">
-          <BarChartComponent data={invoicesMonthlyStats} />
+          <BarChartComponent data={invoicesMonthlyStats} showLabels />
         </Panel>
       </div>
 

@@ -93,10 +93,21 @@ def data_invoice_monthly_statistics(request):
 def data_invoice_daily_statistics(request):
     valid_token = validateJWTTokenRequest(request)
     if valid_token:
-        seven_days_ago = datetime.now() - timedelta(days=7)
-        
-        invoices = ZohoFullInvoice.objects.filter(date__gte=seven_days_ago)
-        
+        # Allow client to pass its own "today" (as YYYY-MM-DD) so the result
+        # is independent of the server clock / container timezone.
+        today_param = request.GET.get('today')
+        if today_param:
+            try:
+                today = datetime.strptime(today_param, '%Y-%m-%d').date()
+            except ValueError:
+                today = timezone.localdate()
+        else:
+            today = timezone.localdate()
+        yesterday = today - timedelta(days=1)
+        seven_days_ago = today - timedelta(days=7)
+        # Last 7 days, excluding today: [today-7, yesterday]
+        invoices = ZohoFullInvoice.objects.filter(date__gte=seven_days_ago, date__lte=yesterday)
+
         stats = invoices.annotate(day=TruncDate('date')).values('day').annotate(
             matched_number=Count('id', filter=Q(inserted_in_qb=True)),
             total_items_unmatched=Count('id', filter=Q(items_unmatched__isnull=False, items_unmatched__gt=0)),
