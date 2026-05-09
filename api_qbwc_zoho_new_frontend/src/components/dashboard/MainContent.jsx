@@ -14,6 +14,7 @@ import LineChartComponent from '@/components/charts/LineChartComponent';
 import RadialMatchChart from '@/components/charts/RadialMatchChart';
 import AreaChartComponent from '@/components/charts/AreaChartComponent';
 import ComposedChartComponent from '@/components/charts/ComposedChartComponent';
+import SyncStateDonutChart from '@/components/charts/SyncStateDonutChart';
 
 // ── Internal primitives ─────────────────────────────────────────────────────
 
@@ -88,6 +89,7 @@ const MainContent = () => {
   const [itemsMatchedStats, setItemsMatchedStats] = useState(null);
   const [customersMonthlyStats, setCustomersMonthlyStats] = useState([]);
   const [itemsMonthlyStats, setItemsMonthlyStats] = useState([]);
+  const [invoicesSyncStateStats, setInvoicesSyncStateStats] = useState(null);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -137,6 +139,7 @@ const MainContent = () => {
     fetchStats('Items Matched Statistics', 'item', 'matched', setItemsMatchedStats);
     fetchStats('Customers Monthly Statistics', 'customer', 'monthly', setCustomersMonthlyStats);
     fetchStats('Items Monthly Statistics', 'item', 'monthly', setItemsMonthlyStats);
+    fetchStats('Invoices Sync State Statistics', 'invoice', 'sync_state', setInvoicesSyncStateStats);
   };
 
   useEffect(() => {
@@ -292,6 +295,39 @@ const MainContent = () => {
           />
         )}
       </div>
+
+      {/* Sync Health row — sync_state stat cards + donut */}
+      {invoicesSyncStateStats && (
+        <div className="grid grid-cols-1 md:grid-cols-[1fr_3fr] gap-4 items-stretch">
+          <div className="flex flex-col gap-4">
+            <StatCard
+              title="Sync Issues"
+              direction={invoicesSyncStateStats.failed > 0 ? 'down' : 'up'}
+              onClick={() => navigate('/integration/list_invoices')}
+              valueNode={
+                <span className={`text-sm ${invoicesSyncStateStats.failed > 0 ? 'text-red-600' : 'text-green-600'}`}>
+                  <b>{invoicesSyncStateStats.failed}</b> failed in QB
+                </span>
+              }
+              color={invoicesSyncStateStats.failed > 0 ? 'error' : 'success'}
+            />
+            <StatCard
+              title="Duplicates Skipped"
+              direction="up"
+              onClick={() => navigate('/integration/list_invoices')}
+              valueNode={
+                <span className="text-sm text-amber-700">
+                  <b>{invoicesSyncStateStats.skipped_duplicate}</b> avoided duplicates
+                </span>
+              }
+              color="warning"
+            />
+          </div>
+          <Panel title="Invoices by Sync State">
+            <SyncStateDonutChart data={invoicesSyncStateStats} />
+          </Panel>
+        </div>
+      )}
 
       {/* Charts row 1 — Invoices */}
       <div className="grid grid-cols-1 md:grid-cols-[5fr_3fr_4fr] gap-4 items-stretch">

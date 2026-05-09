@@ -52,6 +52,29 @@ def data_invoice_historic_statistics(request):
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
+def data_invoice_sync_state_statistics(request):
+    """Counts of invoices per sync_state. Used by the dashboard donut chart
+    and the 'Sync Issues' / 'Duplicates Skipped' stat cards.
+    """
+    valid_token = validateJWTTokenRequest(request)
+    if not valid_token:
+        return JsonResponse({'error': 'Invalid JWT Token'}, status=401)
+
+    rows = (
+        ZohoFullInvoice.objects
+        .values('sync_state')
+        .annotate(count=Count('id'))
+    )
+    counts = {state: 0 for state, _ in ZohoFullInvoice.SYNC_STATE_CHOICES}
+    for r in rows:
+        state = r['sync_state'] or ZohoFullInvoice.SYNC_STATE_PENDING
+        counts[state] = counts.get(state, 0) + r['count']
+    counts['total'] = sum(v for k, v in counts.items() if k != 'total')
+    return JsonResponse(counts, status=200)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def data_invoice_monthly_statistics(request):
     valid_token = validateJWTTokenRequest(request)
     if valid_token:

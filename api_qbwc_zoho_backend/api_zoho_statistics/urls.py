@@ -5,6 +5,7 @@ app_name = 'api_zoho_statistics'
 
 urlpatterns = [
     path('data/data_invoice_historic_statistics/', views.data_invoice_historic_statistics, name='data_invoice_historic_statistics'),
+    path('data/data_invoice_sync_state_statistics/', views.data_invoice_sync_state_statistics, name='data_invoice_sync_state_statistics'),
     path('data/data_invoice_monthly_statistics/', views.data_invoice_monthly_statistics, name='data_invoice_monthly_statistics'),
     path('data/data_invoice_daily_statistics/', views.data_invoice_daily_statistics, name='data_invoice_daily_statistics'),
     path('data/data_invoice_trend_statistics/', views.data_invoice_trend_statistics, name='data_invoice_trend_statistics'),
