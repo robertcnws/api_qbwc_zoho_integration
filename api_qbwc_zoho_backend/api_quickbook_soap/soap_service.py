@@ -588,11 +588,67 @@ def generate_invoice_add_response():
     return generate_empty_request_response()
 
 
+def generate_sales_order_pre_add_query_response():
+    """Phase 1 of the sales-order-add cycle: in a single QBXMLMsgsRq block,
+    send BOTH a PreferencesQueryRq (to detect 'Warn about duplicate sales
+    order numbers') AND a SalesOrderQueryRq filtered by candidate RefNumbers
+    (to detect duplicates already in QB before issuing any Add).
+
+    Limited to 100 candidates per cycle to keep the qbXML request size bounded;
+    the rest are picked up on subsequent QBWC runs.
+    """
+    candidates = list(
+        ZohoFullSalesOrder.objects
+        .filter(
+            force_to_sync=True,
+            inserted_in_qb=False,
+            qb_txn_id__isnull=True,
+        )
+        .exclude(salesorder_number__isnull=True)
+        .exclude(salesorder_number='')
+        .values_list('salesorder_number', flat=True)[:100]
+    )
+    if not candidates:
+        logger.info("Sales-order-add phase 1: no candidates, returning empty request.")
+        return generate_empty_request_response()
+
+    refnum_xml = ''.join(f'<RefNumber>{n}</RefNumber>' for n in candidates)
+    data_xml = f'''<PreferencesQueryRq requestID="pref-1" />
+                <SalesOrderQueryRq requestID="soq-1">
+                    {refnum_xml}
+                    <IncludeLineItems>false</IncludeLineItems>
+                    <IncludeRetElement>TxnID</IncludeRetElement>
+                    <IncludeRetElement>EditSequence</IncludeRetElement>
+                    <IncludeRetElement>RefNumber</IncludeRetElement>
+                </SalesOrderQueryRq>'''
+    request_xml = f'''<?qbxml version="8.0"?>
+                    <QBXML>
+                        <QBXMLMsgsRq onError="continueOnError">
+                            {data_xml}
+                        </QBXMLMsgsRq>
+                    </QBXML>'''
+    return f'''<?xml version="1.0" encoding="utf-8"?>
+                <soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:qb="http://developer.intuit.com/">
+                    <soap:Header/>
+                    <soap:Body>
+                        <qb:sendRequestXMLResponse>
+                            <qb:sendRequestXMLResult><![CDATA[{request_xml}]]></qb:sendRequestXMLResult>
+                        </qb:sendRequestXMLResponse>
+                    </soap:Body>
+                </soap:Envelope>'''
+
+
 def generate_sales_order_add_response():
     today = date.today()
     logging.debug(f'Today: {today}')
 
-    sales_orders = ZohoFullSalesOrder.objects.filter(force_to_sync=True, inserted_in_qb=False)
+    # qb_txn_id__isnull=True: never resend a SO that QB has already confirmed,
+    # regardless of inserted_in_qb / force_to_sync state.
+    sales_orders = ZohoFullSalesOrder.objects.filter(
+        force_to_sync=True,
+        inserted_in_qb=False,
+        qb_txn_id__isnull=True,
+    )
     logging.debug(f'Length Sales Orders: {len(sales_orders)}')
 
     data_xml = ''
@@ -693,7 +749,7 @@ def generate_sales_order_add_response():
                     if items_xml != '':
                         sales_tax_list_id = settings.SALES_TAX_LIST_ID
                         template = settings.TEMPLATE_SALES_ORDER_NAME
-                        data_xml += f'''<SalesOrderAddRq requestID="{i + 2}">
+                        data_xml += f'''<SalesOrderAddRq requestID="so-{sales_orders[i].salesorder_id}">
                                         <SalesOrderAdd>
                                             <CustomerRef>
                                                 <ListID>{zoho_customer.qb_list_id}</ListID>
@@ -702,6 +758,7 @@ def generate_sales_order_add_response():
                                                 <FullName>{template}</FullName>
                                             </TemplateRef>
                                             <TxnDate>{sales_orders[i].date}</TxnDate>
+                                            <RefNumber>{sales_orders[i].salesorder_number}</RefNumber>
                                             <TermsRef>
                                                 <FullName>{terms}</FullName>
                                             </TermsRef>
@@ -711,7 +768,10 @@ def generate_sales_order_add_response():
                                     '''
 
                     logger.debug(f'Data XML: {data_xml}')
-                    sales_orders[i].inserted_in_qb = True
+                    # Mark as 'sent' (awaiting QB response). The actual
+                    # inserted_in_qb=True is set in _apply_sales_order_add_response
+                    # once QB confirms with a TxnID.
+                    sales_orders[i].sync_state = ZohoFullSalesOrder.SYNC_STATE_SENT
                     sales_orders[i].save()
             else:
                 logger.debug(f'Customer {zoho_customer} has no QB List ID (Proceed to match)')
@@ -753,4 +813,7 @@ def generate_sales_order_add_response():
                                         </qb:sendRequestXMLResponse>
                                     </soap:Body>
                                 </soap:Envelope>'''
-    return response
+        return response
+    # No SalesOrderAddRq to send (e.g. all candidates were marked as duplicates
+    # in the query phase). Tell QBWC there's nothing to do so it closes cleanly.
+    return generate_empty_request_response()

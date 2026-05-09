@@ -1514,9 +1514,11 @@ def process_qbwc_invoice_add_request(xml_data):
     
     
 def _apply_preferences_query_response(xml_data: str) -> None:
-    """Parse PreferencesRet and surface a notification if
-    IsWarnAboutDuplicateInvoiceNumbers is disabled. Best-effort: errors are
-    swallowed so the SOAP cycle keeps moving."""
+    """Parse PreferencesRet and surface notifications for any "warn about
+    duplicate {invoice,sales order} numbers" pref that is OFF in QB. Both
+    flags live in SalesAndCustomersPreferences and arrive in the same response,
+    so this single parser handles both. Best-effort: errors are swallowed so
+    the SOAP cycle keeps moving."""
     try:
         xml_dict = xmltodict.parse(xml_data)
         body = xml_dict['soap:Envelope']['soap:Body']
@@ -1531,43 +1533,221 @@ def _apply_preferences_query_response(xml_data: str) -> None:
         rs = msgs.get('PreferencesQueryRs') or {}
         ret = rs.get('PreferencesRet') or {}
         sc_prefs = ret.get('SalesAndCustomersPreferences') or {}
-        warn = sc_prefs.get('IsWarnAboutDuplicateInvoiceNumbers')
-        if warn is None:
-            logger.info("PreferencesQueryRs: IsWarnAboutDuplicateInvoiceNumbers not present in response.")
-            return
-        is_enabled = str(warn).strip().lower() == 'true'
-        if not is_enabled:
-            api_zoho_views.manage_notifications(
-                "Warning: 'Warn about duplicate invoice numbers' is OFF in QuickBooks. "
-                "Enable it in Edit > Preferences > Sales & Customers > Company Preferences "
-                "to prevent duplicate invoices."
-            )
-            logger.warning("QB pref IsWarnAboutDuplicateInvoiceNumbers is OFF.")
-        else:
-            logger.info("QB pref IsWarnAboutDuplicateInvoiceNumbers is ON.")
+
+        checks = [
+            ('IsWarnAboutDuplicateInvoiceNumbers', 'invoice numbers', 'invoices'),
+            ('IsWarnAboutDuplicateSalesOrderNumbers', 'sales order numbers', 'sales orders'),
+        ]
+        for field, doc_label, txn_label in checks:
+            warn = sc_prefs.get(field)
+            if warn is None:
+                logger.info("PreferencesQueryRs: %s not present in response.", field)
+                continue
+            is_enabled = str(warn).strip().lower() == 'true'
+            if not is_enabled:
+                api_zoho_views.manage_notifications(
+                    f"Warning: 'Warn about duplicate {doc_label}' is OFF in QuickBooks. "
+                    "Enable it in Edit > Preferences > Sales & Customers > Company Preferences "
+                    f"to prevent duplicate {txn_label}."
+                )
+                logger.warning("QB pref %s is OFF.", field)
+            else:
+                logger.info("QB pref %s is ON.", field)
     except Exception as e:
         logger.error("Error parsing PreferencesQueryRs: %s", e)
 
 
+def _apply_sales_order_query_response(xml_data: str) -> None:
+    """Parse SalesOrderQueryRs. Each <SalesOrderRet> means QB already has that
+    RefNumber — mark the matching ZohoFullSalesOrder as skipped_duplicate and
+    persist the existing TxnID so it's never Add'ed again. The Add filter
+    excludes rows with qb_txn_id, so these are naturally skipped.
+
+    Best-effort: errors are swallowed; the SOAP cycle must keep moving."""
+    try:
+        xml_dict = xmltodict.parse(xml_data)
+        body = xml_dict['soap:Envelope']['soap:Body']
+        recv_key = helpers_qbwc._get_op_key(body, 'receiveResponseXML')
+        if not recv_key:
+            return
+        inner_xml = body[recv_key].get('response') or ''
+        if not inner_xml or 'SalesOrderQueryRs' not in inner_xml:
+            return
+
+        data = xmltodict.parse(inner_xml)
+        msgs = data.get('QBXML', {}).get('QBXMLMsgsRs', {})
+        rs = msgs.get('SalesOrderQueryRs') or {}
+        ret_node = rs.get('SalesOrderRet')
+        if not ret_node:
+            logger.info("SalesOrderQueryRs: no existing sales orders found in QB for the queried RefNumbers.")
+            return
+        ret_iter = ret_node if isinstance(ret_node, list) else [ret_node]
+        now = datetime.now(timezone.utc)
+        marked = 0
+        for ret in ret_iter:
+            ref_num = ret.get('RefNumber') or ''
+            txn_id = ret.get('TxnID') or ''
+            edit_seq = ret.get('EditSequence') or ''
+            if not ref_num or not txn_id:
+                continue
+            so = ZohoFullSalesOrder.objects.filter(salesorder_number=ref_num).first()
+            if not so:
+                logger.warning("SalesOrderQueryRs: no ZohoFullSalesOrder for RefNumber=%s", ref_num)
+                continue
+            so.qb_txn_id = txn_id
+            so.qb_edit_sequence = edit_seq
+            so.qb_inserted_at = so.qb_inserted_at or now
+            so.inserted_in_qb = True
+            so.force_to_sync = False
+            so.sync_state = ZohoFullSalesOrder.SYNC_STATE_SKIPPED_DUPLICATE
+            so.last_qb_error = None
+            so.save(update_fields=[
+                'qb_txn_id', 'qb_edit_sequence', 'qb_inserted_at',
+                'inserted_in_qb', 'force_to_sync', 'sync_state', 'last_qb_error',
+            ])
+            marked += 1
+        logger.info("SalesOrderQueryRs: %d sales order(s) marked as skipped_duplicate (already in QB).", marked)
+    except Exception as e:
+        logger.error("Error parsing SalesOrderQueryRs: %s", e)
+
+
+def _apply_sales_order_add_response(xml_data: str) -> None:
+    """Parse the receiveResponseXML body for SalesOrderAddRs and update each
+    ZohoFullSalesOrder with the QB result (TxnID, sync_state, etc.).
+
+    Errors are swallowed; the SOAP cycle must return 100 to QBWC regardless,
+    and the operator can recover from logs.
+    """
+    try:
+        xml_dict = xmltodict.parse(xml_data)
+        body = xml_dict['soap:Envelope']['soap:Body']
+        recv_key = helpers_qbwc._get_op_key(body, 'receiveResponseXML')
+        if not recv_key:
+            return
+        inner_xml = body[recv_key].get('response') or ''
+        if not inner_xml or 'SalesOrderAddRs' not in inner_xml:
+            return
+
+        data = xmltodict.parse(inner_xml)
+        msgs = data.get('QBXML', {}).get('QBXMLMsgsRs', {})
+        rs_node = msgs.get('SalesOrderAddRs')
+        if not rs_node:
+            return
+        rs_iter = rs_node if isinstance(rs_node, list) else [rs_node]
+        now = datetime.now(timezone.utc)
+
+        for rs in rs_iter:
+            request_id = rs.get('@requestID', '') or ''
+            if not request_id.startswith('so-'):
+                logger.warning("SalesOrderAddRs with unexpected requestID=%r", request_id)
+                continue
+            salesorder_id = request_id[len('so-'):]
+            so = ZohoFullSalesOrder.objects.filter(salesorder_id=salesorder_id).first()
+            if not so:
+                logger.warning("SalesOrderAddRs for unknown salesorder_id=%s", salesorder_id)
+                continue
+
+            status_code = rs.get('@statusCode', '') or ''
+            status_sev = rs.get('@statusSeverity', '') or ''
+            status_msg = rs.get('@statusMessage', '') or ''
+            ret = rs.get('SalesOrderRet') or {}
+
+            if status_code == '0' and ret:
+                so.qb_txn_id = ret.get('TxnID') or so.qb_txn_id
+                so.qb_edit_sequence = ret.get('EditSequence') or so.qb_edit_sequence
+                so.qb_inserted_at = now
+                so.inserted_in_qb = True
+                so.force_to_sync = False
+                so.sync_state = ZohoFullSalesOrder.SYNC_STATE_CONFIRMED
+                so.last_qb_error = None
+                so.save(update_fields=[
+                    'qb_txn_id', 'qb_edit_sequence', 'qb_inserted_at',
+                    'inserted_in_qb', 'force_to_sync', 'sync_state', 'last_qb_error',
+                ])
+                logger.info("SalesOrder %s confirmed in QB (TxnID=%s)", salesorder_id, so.qb_txn_id)
+            else:
+                msg_low = status_msg.lower()
+                is_dup = 'duplicate' in msg_low or (
+                    'already' in msg_low and ('used' in msg_low or 'exist' in msg_low)
+                )
+                if is_dup:
+                    so.sync_state = ZohoFullSalesOrder.SYNC_STATE_SKIPPED_DUPLICATE
+                    so.inserted_in_qb = True
+                    so.force_to_sync = False
+                else:
+                    so.sync_state = ZohoFullSalesOrder.SYNC_STATE_FAILED
+                    so.inserted_in_qb = False
+                so.last_qb_error = f"[{status_code}/{status_sev}] {status_msg}"
+                so.save(update_fields=[
+                    'sync_state', 'inserted_in_qb', 'force_to_sync', 'last_qb_error',
+                ])
+                logger.warning(
+                    "SalesOrderAddRs salesorder_id=%s status=%s severity=%s msg=%s",
+                    salesorder_id, status_code, status_sev, status_msg,
+                )
+    except Exception as e:
+        logger.error("Error parsing SalesOrderAddRs: %s", e)
+
+
 def process_qbwc_sales_order_add_request(xml_data):
+    """Two-phase QBWC cycle for sales-order insertion, in a single endpoint:
+
+      counter=0: send PreferencesQueryRq + SalesOrderQueryRq (by RefNumber) in
+                 the SAME QBXMLMsgsRq block. The pref query surfaces a
+                 notification if 'Warn about duplicate sales order numbers' is
+                 OFF; the SO query marks existing duplicates as
+                 skipped_duplicate with their TxnID.
+      counter=1: send SalesOrderAddRq for the survivors. The Add filter excludes
+                 anything with qb_txn_id, so duplicates from phase 1 are skipped.
+      counter>=2: empty (signals QBWC we're done).
+
+    receiveResponseXML dispatches by content (PreferencesQueryRs/
+    SalesOrderQueryRs/SalesOrderAddRs) rather than by counter, since multiple
+    Rs may coexist and the QBWC is free to pace the cycle.
+    """
     global counter
     response = None
     try:
         xml_dict = xmltodict.parse(xml_data)
         body = xml_dict['soap:Envelope']['soap:Body']
-        if 'authenticate' in body:
+
+        if helpers_qbwc._has_op(body, 'authenticate'):
+            counter = 0
             response = soap_service.handle_authenticate(body)
-        elif 'sendRequestXML' in body and counter == 0:
-            counter += 1
-            response = soap_service.generate_sales_order_add_response()
-        elif 'closeConnection' in body:
+
+        elif helpers_qbwc._has_op(body, 'sendRequestXML'):
+            if counter == 0:
+                counter = 1
+                response = soap_service.generate_sales_order_pre_add_query_response()
+            elif counter == 1:
+                counter = 2
+                response = soap_service.generate_sales_order_add_response()
+            else:
+                logger.info("sales_order_add: sendRequestXML after add phase. Returning empty.")
+                response = soap_service.generate_empty_request_response()
+
+        elif helpers_qbwc._has_op(body, 'receiveResponseXML'):
+            recv_key = helpers_qbwc._get_op_key(body, 'receiveResponseXML')
+            inner_xml = (body.get(recv_key) or {}).get('response') or '' if recv_key else ''
+            if 'PreferencesQueryRs' in inner_xml:
+                _apply_preferences_query_response(xml_data)
+            if 'SalesOrderQueryRs' in inner_xml:
+                _apply_sales_order_query_response(xml_data)
+            if 'SalesOrderAddRs' in inner_xml:
+                _apply_sales_order_add_response(xml_data)
+            response = soap_service.generate_receive_response(percent='100')
+
+        elif helpers_qbwc._has_op(body, 'closeConnection'):
             counter = 0
             response = soap_service.generate_close_connection_response()
+
         else:
             response = soap_service.generate_unsupported_request_response()
+
         return response
     except Exception as e:
         logger.error(f"Error processing request: {e}")
+        counter = 0
         return soap_service.generate_error_response(str(e))
 
 

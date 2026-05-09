@@ -7,6 +7,20 @@ logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 class ZohoFullSalesOrder(models.Model):
+
+    SYNC_STATE_PENDING = 'pending'
+    SYNC_STATE_SENT = 'sent'
+    SYNC_STATE_CONFIRMED = 'confirmed'
+    SYNC_STATE_FAILED = 'failed'
+    SYNC_STATE_SKIPPED_DUPLICATE = 'skipped_duplicate'
+    SYNC_STATE_CHOICES = [
+        (SYNC_STATE_PENDING, 'Pending'),
+        (SYNC_STATE_SENT, 'Sent to QB (awaiting response)'),
+        (SYNC_STATE_CONFIRMED, 'Confirmed in QB'),
+        (SYNC_STATE_FAILED, 'Failed in QB'),
+        (SYNC_STATE_SKIPPED_DUPLICATE, 'Skipped — already in QB'),
+    ]
+
     id = models.AutoField(primary_key=True)
     salesorder_id = models.CharField(max_length=32, unique=True, db_index=True)
     salesorder_number = models.CharField(max_length=64, db_index=True)
@@ -54,7 +68,18 @@ class ZohoFullSalesOrder(models.Model):
     number_of_times_synced = models.IntegerField(default=0, blank=True)
     all_items_matched = models.BooleanField(default=False, blank=True)
     all_customer_matched = models.BooleanField(default=False, blank=True)
-    
+
+    qb_txn_id = models.CharField(max_length=50, blank=True, null=True, db_index=True)
+    qb_edit_sequence = models.CharField(max_length=20, blank=True, null=True)
+    qb_inserted_at = models.DateTimeField(blank=True, null=True)
+    last_qb_error = models.TextField(blank=True, null=True)
+    sync_state = models.CharField(
+        max_length=30,
+        choices=SYNC_STATE_CHOICES,
+        default=SYNC_STATE_PENDING,
+        db_index=True,
+    )
+
 
     def __str__(self):
         return f"{self.salesorder_number} - {self.customer_name}"
